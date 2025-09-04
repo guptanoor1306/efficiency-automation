@@ -3,247 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Team Efficiency Tracker</title>
-    <link rel="stylesheet" href="styles.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <title>Efficiency Automation Tracker</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            text-align: center;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        .logo {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+        h1 {
+            font-size: 2.5em;
+            margin: 20px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .subtitle {
+            font-size: 1.2em;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+        .redirect-btn {
+            background: #28a745;
+            color: white;
+            padding: 15px 30px;
+            font-size: 18px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+        }
+        .redirect-btn:hover {
+            background: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+        }
+        .features {
+            margin-top: 30px;
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        .countdown {
+            margin-top: 20px;
+            font-size: 16px;
+            opacity: 0.7;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1><i class="fas fa-chart-line"></i> Team Efficiency Tracker</h1>
-            <div class="team-selector">
-                <label for="team-select">Select Team:</label>
-                <select id="team-select">
-                    <option value="b2b">B2B Team</option>
-                    <option value="varsity">Varsity Team</option>
-                    <option value="zero1">Zero1 - Bratish Team</option>
-                    <option value="harish">Zero1 - Harish Team</option>
-                </select>
-            </div>
-        </header>
-
-        <nav class="navigation">
-            <button id="nav-current" class="nav-btn active">
-                <i class="fas fa-calendar-day"></i> Current Tracking
-            </button>
-            <button id="nav-historical" class="nav-btn">
-                <i class="fas fa-chart-line"></i> Historical Analysis
-            </button>
-            <button id="nav-future" class="nav-btn">
-                <i class="fas fa-calendar-plus"></i> Future Planning
-            </button>
-        </nav>
-
-        <main>
-            <!-- Current Tracking View -->
-            <div id="current-view" class="view-container active">
-                <div class="dashboard-grid">
-                    <!-- Team Member Management -->
-                    <div class="card">
-                        <h2><i class="fas fa-users"></i> Team Members</h2>
-                    <div class="member-form">
-                        <input type="text" id="member-name" placeholder="Enter member name">
-                        <select id="member-level">
-                            <option value="">Select Level</option>
-                            <option value="L1">Level 1 (7 days)</option>
-                            <option value="L2">Level 2 (10 days)</option>
-                            <option value="L3">Level 3 (14 days)</option>
-                            <option value="L4">Level 4 (21 days)</option>
-                            <option value="L5">Level 5 (30 days)</option>
-                        </select>
-                        <button id="add-member"><i class="fas fa-plus"></i> Add Member</button>
-                    </div>
-                    <div id="members-list" class="members-list"></div>
-                </div>
-
-                <!-- Daily Entry Form -->
-                <div class="card">
-                    <h2><i class="fas fa-calendar-day"></i> Daily Entry</h2>
-                    <form id="daily-entry-form">
-                        <div class="form-group">
-                            <label for="entry-member">Team Member:</label>
-                            <select id="entry-member" required>
-                                <option value="">Select Member</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="entry-date">Date:</label>
-                            <input type="date" id="entry-date" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="tasks-completed">Tasks Completed:</label>
-                            <input type="number" id="tasks-completed" min="0" step="0.1" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="hours-worked">Hours Worked:</label>
-                            <input type="number" id="hours-worked" min="0" max="12" step="0.5" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="is-leave">
-                                <input type="checkbox" id="is-leave"> Mark as Leave
-                            </label>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="comments">Comments:</label>
-                            <textarea id="comments" placeholder="Any notes about the day..."></textarea>
-                        </div>
-                        
-                        <button type="submit"><i class="fas fa-save"></i> Save Entry</button>
-                    </form>
-                </div>
-
-                <!-- Efficiency Dashboard -->
-                <div class="card wide">
-                    <h2><i class="fas fa-chart-bar"></i> Efficiency Dashboard</h2>
-                    <div class="efficiency-controls">
-                        <select id="dashboard-member">
-                            <option value="">Select Member</option>
-                        </select>
-                        <button id="calculate-efficiency"><i class="fas fa-calculator"></i> Calculate Efficiency</button>
-                    </div>
-                    <div id="efficiency-results" class="efficiency-results"></div>
-                </div>
-
-                <!-- Weekly Overview -->
-                <div class="card wide">
-                    <h2><i class="fas fa-calendar-week"></i> Weekly Overview</h2>
-                    <div class="week-controls">
-                        <input type="week" id="week-selector">
-                        <button id="load-week"><i class="fas fa-sync"></i> Load Week</button>
-                    </div>
-                        <div id="weekly-data" class="weekly-data"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Historical Analysis View -->
-            <div id="historical-view" class="view-container">
-                <div class="dashboard-grid">
-                    <!-- Historical Controls -->
-                    <div class="card">
-                        <h2><i class="fas fa-history"></i> Historical Data Controls</h2>
-                        <div class="historical-controls">
-                            <div class="form-group">
-                                <label for="historical-member">Select Member:</label>
-                                <select id="historical-member">
-                                    <option value="">All Members</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="historical-year">Year:</label>
-                                <select id="historical-year"></select>
-                            </div>
-                            <div class="form-group">
-                                <label for="view-type">View Type:</label>
-                                <select id="view-type">
-                                    <option value="monthly">Monthly Efficiency</option>
-                                    <option value="weekly">Weekly Efficiency</option>
-                                </select>
-                            </div>
-                            <button id="load-historical"><i class="fas fa-search"></i> Load Historical Data</button>
-                        </div>
-                    </div>
-
-                    <!-- Historical Results -->
-                    <div class="card wide">
-                        <h2><i class="fas fa-chart-area"></i> Historical Efficiency Analysis</h2>
-                        <div id="historical-results" class="historical-results"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Future Planning View -->
-            <div id="future-view" class="view-container">
-                <div class="dashboard-grid">
-                    <!-- Future Planning Controls -->
-                    <div class="card">
-                        <h2><i class="fas fa-calendar-alt"></i> Future Planning</h2>
-                        <div class="future-controls">
-                            <div class="form-group">
-                                <label for="future-member">Select Member:</label>
-                                <select id="future-member">
-                                    <option value="">Select Member</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="future-weeks">Number of Weeks Ahead:</label>
-                                <select id="future-weeks">
-                                    <option value="1">1 Week</option>
-                                    <option value="2">2 Weeks</option>
-                                    <option value="4">1 Month</option>
-                                    <option value="8">2 Months</option>
-                                    <option value="12">3 Months</option>
-                                </select>
-                            </div>
-                            <button id="load-future-planning"><i class="fas fa-calendar-plus"></i> Load Future Weeks</button>
-                        </div>
-                    </div>
-
-                    <!-- Future Planning Grid -->
-                    <div class="card wide">
-                        <h2><i class="fas fa-calendar-week"></i> Weekly Planning Grid</h2>
-                        <div id="future-planning-grid" class="future-planning-grid"></div>
-                    </div>
-
-                    <!-- Bulk Entry Form -->
-                    <div class="card">
-                        <h2><i class="fas fa-edit"></i> Quick Weekly Entry</h2>
-                        <form id="bulk-entry-form">
-                            <div class="form-group">
-                                <label for="bulk-member">Member:</label>
-                                <select id="bulk-member" required>
-                                    <option value="">Select Member</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="bulk-week">Week:</label>
-                                <input type="week" id="bulk-week" required>
-                            </div>
-                            <div class="bulk-days">
-                                <div class="day-entry">
-                                    <label>Monday</label>
-                                    <input type="number" id="mon-tasks" placeholder="Tasks" step="0.1">
-                                    <input type="number" id="mon-hours" placeholder="Hours" step="0.5">
-                                    <label><input type="checkbox" id="mon-leave"> Leave</label>
-                                </div>
-                                <div class="day-entry">
-                                    <label>Tuesday</label>
-                                    <input type="number" id="tue-tasks" placeholder="Tasks" step="0.1">
-                                    <input type="number" id="tue-hours" placeholder="Hours" step="0.5">
-                                    <label><input type="checkbox" id="tue-leave"> Leave</label>
-                                </div>
-                                <div class="day-entry">
-                                    <label>Wednesday</label>
-                                    <input type="number" id="wed-tasks" placeholder="Tasks" step="0.1">
-                                    <input type="number" id="wed-hours" placeholder="Hours" step="0.5">
-                                    <label><input type="checkbox" id="wed-leave"> Leave</label>
-                                </div>
-                                <div class="day-entry">
-                                    <label>Thursday</label>
-                                    <input type="number" id="thu-tasks" placeholder="Tasks" step="0.1">
-                                    <input type="number" id="thu-hours" placeholder="Hours" step="0.5">
-                                    <label><input type="checkbox" id="thu-leave"> Leave</label>
-                                </div>
-                                <div class="day-entry">
-                                    <label>Friday</label>
-                                    <input type="number" id="fri-tasks" placeholder="Tasks" step="0.1">
-                                    <input type="number" id="fri-hours" placeholder="Hours" step="0.5">
-                                    <label><input type="checkbox" id="fri-leave"> Leave</label>
-                                </div>
-                            </div>
-                            <button type="submit"><i class="fas fa-save"></i> Save Weekly Data</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </main>
+        <div class="logo">🎯</div>
+        <h1>Efficiency Automation Tracker</h1>
+        <div class="subtitle">Real-time Performance Management for Teams</div>
+        
+        <a href="real-efficiency-tracker.html" class="redirect-btn">
+            🚀 Launch Application
+        </a>
+        
+        <div class="features">
+            ✅ 4 Teams Support &nbsp;&nbsp;
+            ✅ Weekly Data Entry &nbsp;&nbsp;
+            ✅ Auto Month Transition &nbsp;&nbsp;
+            ✅ Google Sheets Backup
+        </div>
+        
+        <div class="countdown" id="countdown"></div>
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        // Auto-redirect after 5 seconds
+        let countdown = 5;
+        const countdownElement = document.getElementById('countdown');
+        
+        function updateCountdown() {
+            if (countdown > 0) {
+                countdownElement.textContent = `Auto-redirecting in ${countdown} seconds...`;
+                countdown--;
+            } else {
+                window.location.href = 'real-efficiency-tracker.html';
+            }
+        }
+        
+        updateCountdown();
+        const interval = setInterval(updateCountdown, 1000);
+        
+        // Clear interval if user manually clicks
+        document.querySelector('.redirect-btn').addEventListener('click', () => {
+            clearInterval(interval);
+        });
+    </script>
 </body>
 </html>
