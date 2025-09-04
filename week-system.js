@@ -138,6 +138,12 @@ class WeekSystem {
         }));
     }
     
+    getWeeksForMonth(monthName, year) {
+        return this.weeks.filter(week => 
+            week.monthName === monthName && week.year === year
+        );
+    }
+    
     // Get Week 1 of September 2025 specifically
     getSeptemberWeek1() {
         // First Monday of September 2025
