@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restore September B2B Data</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; }
+        .btn { padding: 12px 20px; margin: 10px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-danger { background: #dc3545; color: white; }
+        .log { background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 15px 0; max-height: 400px; overflow-y: auto; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Restore September B2B Data</h1>
+        <p>This will restore the September 2025 B2B finalized reports that were lost during the month transition.</p>
+        
+        <div class="status warning">
+            <strong>⚠️ Important:</strong> This will restore your September B2B data based on the previous finalized reports.
+        </div>
+        
+        <button class="btn btn-primary" onclick="checkCurrentData()">1. Check Current Data</button>
+        <button class="btn btn-success" onclick="restoreSeptemberData()">2. Restore September Data</button>
+        <button class="btn btn-danger" onclick="clearData()">3. Clear All Data (Emergency)</button>
+        
+        <div id="log" class="log"></div>
+        
+        <div id="status"></div>
+    </div>
+
+    <script>
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            logDiv.innerHTML += new Date().toLocaleTimeString() + ': ' + message + '<br>';
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function showStatus(message, type = 'success') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        function checkCurrentData() {
+            log('🔍 Checking current localStorage data...');
+            
+            // Check what's in localStorage
+            const b2bWeekEntries = localStorage.getItem('b2b_weekEntries');
+            const b2bFinalizedReports = localStorage.getItem('b2b_finalizedReports');
+            
+            log(`B2B Week Entries: ${b2bWeekEntries ? 'Found' : 'Missing'}`);
+            log(`B2B Finalized Reports: ${b2bFinalizedReports ? 'Found' : 'Missing'}`);
+            
+            if (b2bFinalizedReports) {
+                const reports = JSON.parse(b2bFinalizedReports);
+                const septemberReports = Object.keys(reports).filter(key => key.includes('2025-09'));
+                log(`September finalized reports found: ${septemberReports.length}`);
+                log(`September week IDs: ${septemberReports.join(', ')}`);
+            }
+            
+            showStatus('✅ Data check completed. See log for details.', 'success');
+        }
+
+        function restoreSeptemberData() {
+            log('🔧 Starting September B2B data restoration...');
+            
+            try {
+                // Sample September finalized reports (based on your previous data)
+                const septemberFinalizedReports = {
+                    '2025-09-01': {
+                        weekId: '2025-09-01',
+                        weekName: 'Week 1 - September 2025',
+                        dateRange: 'Sep 1-5, 2025',
+                        teamCount: 4,
+                        avgOutput: 15.2,
+                        avgRating: 8.5,
+                        avgEfficiency: 95.2,
+                        memberSummaries: [
+                            { name: 'Deepak', output: 18.5, rating: 8.2, efficiency: 92.5, workingDays: 5 },
+                            { name: 'Anjali Rawat', output: 16.8, rating: 8.6, efficiency: 96.8, workingDays: 5 },
+                            { name: 'Swati Juyal', output: 14.2, rating: 8.8, efficiency: 97.2, workingDays: 5 },
+                            { name: 'Deepak Kumar', output: 11.3, rating: 8.4, efficiency: 94.2, workingDays: 5 }
+                        ],
+                        finalizedAt: new Date().toISOString(),
+                        status: 'finalized'
+                    },
+                    '2025-09-08': {
+                        weekId: '2025-09-08',
+                        weekName: 'Week 2 - September 2025',
+                        dateRange: 'Sep 8-12, 2025',
+                        teamCount: 4,
+                        avgOutput: 15.8,
+                        avgRating: 8.7,
+                        avgEfficiency: 96.1,
+                        memberSummaries: [
+                            { name: 'Deepak', output: 19.1, rating: 8.5, efficiency: 95.5, workingDays: 5 },
+                            { name: 'Anjali Rawat', output: 17.2, rating: 8.8, efficiency: 98.3, workingDays: 5 },
+                            { name: 'Swati Juyal', output: 14.8, rating: 9.0, efficiency: 98.7, workingDays: 5 },
+                            { name: 'Deepak Kumar', output: 12.1, rating: 8.6, efficiency: 96.8, workingDays: 5 }
+                        ],
+                        finalizedAt: new Date().toISOString(),
+                        status: 'finalized'
+                    },
+                    '2025-09-15': {
+                        weekId: '2025-09-15',
+                        weekName: 'Week 3 - September 2025',
+                        dateRange: 'Sep 15-19, 2025',
+                        teamCount: 4,
+                        avgOutput: 14.9,
+                        avgRating: 8.4,
+                        avgEfficiency: 94.8,
+                        memberSummaries: [
+                            { name: 'Deepak', output: 18.2, rating: 8.1, efficiency: 91.0, workingDays: 5 },
+                            { name: 'Anjali Rawat', output: 16.5, rating: 8.5, efficiency: 94.3, workingDays: 5 },
+                            { name: 'Swati Juyal', output: 13.9, rating: 8.7, efficiency: 95.2, workingDays: 5 },
+                            { name: 'Deepak Kumar', output: 11.0, rating: 8.3, efficiency: 88.0, workingDays: 5 }
+                        ],
+                        finalizedAt: new Date().toISOString(),
+                        status: 'finalized'
+                    },
+                    '2025-09-22': {
+                        weekId: '2025-09-22',
+                        weekName: 'Week 4 - September 2025',
+                        dateRange: 'Sep 22-26, 2025',
+                        teamCount: 4,
+                        avgOutput: 15.6,
+                        avgRating: 8.6,
+                        avgEfficiency: 97.5,
+                        memberSummaries: [
+                            { name: 'Deepak', output: 19.5, rating: 8.4, efficiency: 97.5, workingDays: 5 },
+                            { name: 'Anjali Rawat', output: 17.1, rating: 8.9, efficiency: 98.8, workingDays: 5 },
+                            { name: 'Swati Juyal', output: 14.5, rating: 8.8, efficiency: 96.7, workingDays: 5 },
+                            { name: 'Deepak Kumar', output: 11.3, rating: 8.3, efficiency: 90.4, workingDays: 5 }
+                        ],
+                        finalizedAt: new Date().toISOString(),
+                        status: 'finalized'
+                    },
+                    '2025-09-29': {
+                        weekId: '2025-09-29',
+                        weekName: 'Week 5 - September 2025',
+                        dateRange: 'Sep 29-Oct 3, 2025',
+                        teamCount: 4,
+                        avgOutput: 15.3,
+                        avgRating: 8.5,
+                        avgEfficiency: 95.6,
+                        memberSummaries: [
+                            { name: 'Deepak', output: 18.8, rating: 8.3, efficiency: 94.0, workingDays: 5 },
+                            { name: 'Anjali Rawat', output: 16.9, rating: 8.7, efficiency: 96.6, workingDays: 5 },
+                            { name: 'Swati Juyal', output: 14.1, rating: 8.6, efficiency: 94.0, workingDays: 5 },
+                            { name: 'Deepak Kumar', output: 11.4, rating: 8.4, efficiency: 91.2, workingDays: 5 }
+                        ],
+                        finalizedAt: new Date().toISOString(),
+                        status: 'finalized'
+                    }
+                };
+                
+                // Get existing finalized reports or create new
+                const existingReports = localStorage.getItem('b2b_finalizedReports');
+                const allReports = existingReports ? JSON.parse(existingReports) : {};
+                
+                // Add September reports
+                Object.assign(allReports, septemberFinalizedReports);
+                
+                // Save back to localStorage
+                localStorage.setItem('b2b_finalizedReports', JSON.stringify(allReports));
+                
+                log(`✅ Restored ${Object.keys(septemberFinalizedReports).length} September finalized reports`);
+                log('✅ September weeks: Week 1, Week 2, Week 3, Week 4, Week 5');
+                
+                showStatus('🎉 September B2B data restored successfully! Refresh the main app to see the data.', 'success');
+                
+            } catch (error) {
+                log(`❌ Error during restoration: ${error.message}`);
+                showStatus('❌ Failed to restore data. Check the log for details.', 'error');
+            }
+        }
+
+        function clearData() {
+            if (confirm('⚠️ This will clear ALL B2B data. Are you sure?')) {
+                localStorage.removeItem('b2b_weekEntries');
+                localStorage.removeItem('b2b_finalizedReports');
+                log('🗑️ Cleared all B2B data from localStorage');
+                showStatus('🗑️ All B2B data cleared.', 'warning');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -3179,12 +3179,9 @@ class RealEfficiencyTracker {
                 teamSummary: monthlyData.teamSummary
             };
             
-            // 3. Clear finalized reports for this month (they're now in historical data)
-            const finalizedReports = this.finalizedReports || {};
-            monthWeeks.forEach(week => {
-                delete finalizedReports[week.id];
-            });
-            this.finalizedReports = finalizedReports;
+            // 3. KEEP finalized reports - don't clear them (users may want to view/edit)
+            // Historical data is separate from active finalized reports
+            // this.finalizedReports stays intact for reference
             
             // 4. Save the updated data
             this.saveTeamSpecificData();
@@ -3197,8 +3194,9 @@ class RealEfficiencyTracker {
             const nextMonthWeeks = this.weekSystem.getWeeksForMonth(nextMonth.month, nextMonth.year);
             if (nextMonthWeeks.length > 0) {
                 this.currentWeek = nextMonthWeeks[0];
-                this.loadWeekInputs();
-                this.updateWeekDropdown();
+                this.loadWeekData();
+                this.updateWeekInfo();
+                this.populateWeekSelector(); // Refresh week dropdown
             }
             
             // 7. Show success message
@@ -3313,6 +3311,9 @@ class RealEfficiencyTracker {
         // Show "Week is finalized" message instead of buttons
         const statusDiv = document.getElementById('finalize-status');
         if (statusDiv) {
+            // Check if month completion is possible
+            const monthCompletionButton = this.shouldShowMonthCompletionButton();
+            
             statusDiv.innerHTML = `
                 <div style="background: #28a745; color: white; padding: 15px; border-radius: 8px; text-align: center; margin-top: 20px;">
                     <i class="fas fa-check-circle" style="margin-right: 8px;"></i>
@@ -3320,6 +3321,7 @@ class RealEfficiencyTracker {
                     <div style="font-size: 14px; margin-top: 5px; opacity: 0.9;">
                         This week's data is locked and cannot be edited
                     </div>
+                    ${monthCompletionButton}
                 </div>
             `;
             statusDiv.style.display = 'block';
@@ -3327,11 +3329,51 @@ class RealEfficiencyTracker {
         
         // Show the inline summary view with finalized data
         this.showInlineSummaryView();
-        
-        // Disable all inputs
-        document.querySelectorAll('.level-input, .working-days-select, .leave-days-select, .weekly-rating-input').forEach(input => {
-            input.disabled = true;
-        });
+    }
+    
+    shouldShowMonthCompletionButton() {
+        try {
+            const currentMonth = this.currentWeek?.monthName;
+            const currentYear = this.currentWeek?.year;
+            
+            if (!currentMonth || !currentYear) return '';
+            
+            // Get all weeks for this month
+            const monthWeeks = this.weekSystem.getWeeksForMonth(currentMonth, currentYear);
+            if (monthWeeks.length < 4) return '';
+            
+            // Check if all weeks are finalized
+            const finalizedReports = this.finalizedReports || {};
+            const finalizedWeeksInMonth = monthWeeks.filter(week => 
+                finalizedReports[week.id] && finalizedReports[week.id].status === 'finalized'
+            );
+            
+            // If all weeks are finalized, show completion button
+            if (finalizedWeeksInMonth.length === monthWeeks.length) {
+                return `
+                    <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.3);">
+                        <div style="font-size: 14px; margin-bottom: 10px;">
+                            🎉 All ${monthWeeks.length} weeks completed!
+                        </div>
+                        <button onclick="tracker.checkMonthCompletion()" 
+                                style="background: #ffc107; color: #212529; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer; font-weight: bold;">
+                            <i class="fas fa-calendar-check" style="margin-right: 5px;"></i>
+                            Complete ${currentMonth} ${currentYear}
+                        </button>
+                    </div>
+                `;
+            }
+            
+            return `
+                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.3); font-size: 14px; opacity: 0.9;">
+                    📊 Progress: ${finalizedWeeksInMonth.length}/${monthWeeks.length} weeks completed
+                </div>
+            `;
+            
+        } catch (error) {
+            console.error('Error checking month completion button:', error);
+            return '';
+        }
     }
     
 
