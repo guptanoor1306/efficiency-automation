@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Efficiency Tracker - Real Data</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-weight: 600;
+            font-size: 2rem;
+        }
+
+        .header p {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+            font-weight: 400;
+        }
+
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .sidebar {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            height: fit-content;
+        }
+
+        .main-content {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .week-selector {
+            margin-bottom: 25px;
+        }
+
+        .week-selector label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .week-selector select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ecf0f1;
+            border-radius: 6px;
+            font-size: 1rem;
+            background: white;
+        }
+
+        .week-selector select:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .team-list {
+            margin-bottom: 25px;
+        }
+
+        .team-list h3 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .member-item {
+            padding: 12px;
+            margin-bottom: 8px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+
+        .member-item:hover {
+            background: #e3f2fd;
+            border-left-color: #3498db;
+        }
+
+        .member-item.active {
+            background: #3498db;
+            color: white;
+            border-left-color: #2980b9;
+        }
+
+        .member-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .member-role {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .controls-section {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            background: #2980b9;
+        }
+
+        .view-btn.active {
+            background: #27ae60 !important;
+            color: white;
+        }
+        
+        .person-view-container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+            word-wrap: break-word;
+            max-width: 100%;
+        }
+        
+        .person-selector {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .efficiency-chart {
+            min-height: 300px;
+            margin-bottom: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-style: italic;
+            color: #666;
+            overflow: hidden;
+            word-wrap: break-word;
+        }
+
+        .btn-success {
+            background: #27ae60;
+        }
+
+        .btn-success:hover {
+            background: #229954;
+        }
+
+        .efficiency-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            overflow-x: auto;
+        }
+
+        .efficiency-table th,
+        .efficiency-table td {
+            padding: 12px 8px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+            font-size: 0.9rem;
+        }
+
+        .efficiency-table th {
+            background: #34495e;
+            color: white;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+
+        .sub-header th {
+            background: #f1c40f !important;
+            color: #2c3e50 !important;
+            font-size: 0.8rem;
+        }
+
+        .working-days-select,
+        .leave-days-select {
+            width: 80px;
+            padding: 4px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        .weekly-rating {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #27ae60;
+        }
+
+        .work-type-header {
+            background: #f1c40f !important;
+            color: #2c3e50 !important;
+            font-weight: 600;
+            text-align: left !important;
+            padding-left: 15px !important;
+        }
+
+        .level-input {
+            width: 60px;
+            padding: 4px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: center;
+            font-size: 0.85rem;
+        }
+
+        .level-input:focus {
+            outline: none;
+            border-color: #3498db;
+            background: #f0f8ff;
+        }
+
+        .totals-row {
+            background: #34495e !important;
+            color: white !important;
+            font-weight: 700;
+        }
+
+        .efficiency-score {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: white;
+        }
+
+        .efficiency-high {
+            background: #27ae60;
+        }
+
+        .efficiency-medium {
+            background: #f39c12;
+        }
+
+        .efficiency-low {
+            background: #e74c3c;
+        }
+
+        .save-section {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .message {
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .message.info {
+            background: #cce7ff;
+            color: #004085;
+            border: 1px solid #99d6ff;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #718096;
+        }
+
+        .week-info {
+            background: #e8f4f8;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .week-title {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .week-dates {
+            color: #718096;
+            font-size: 0.9rem;
+        }
+
+        .day-headers {
+            display: grid;
+            grid-template-columns: 1fr repeat(5, 80px) 1fr 1fr 1fr;
+            gap: 5px;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #34495e;
+        }
+
+        .day-header {
+            text-align: center;
+            padding: 8px 4px;
+            background: #ecf0f1;
+            border-radius: 4px;
+        }
+
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 10px;
+            }
+            
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-chart-line"></i> Team Efficiency Tracker</h1>
+            <p>Real-time Performance Management - January 2025 onwards</p>
+            
+            <div class="team-selector-header" style="margin-top: 20px;">
+                <label for="team-select-header" style="font-weight: 500; margin-right: 10px; color: #2c3e50;">Select Team:</label>
+                            <select id="team-select-header" style="padding: 8px 15px; border: 2px solid #3498db; border-radius: 25px; background: white; font-size: 16px; font-weight: 500; color: #2c3e50; cursor: pointer;">
+                <option value="b2b">B2B Team</option>
+                <option value="varsity">Varsity Team</option>
+                <option value="zero1">Zero1 - Bratish Team</option>
+                <option value="harish">Zero1 - Harish Team</option>
+            </select>
+                
+            </div>
+        </div>
+
+        <div id="message-container"></div>
+
+
+        <div class="main-grid" style="grid-template-columns: 250px 1fr;">
+            <div class="sidebar">
+                <div class="week-selector">
+                    <label for="week-select">Select Week:</label>
+                    <select id="week-select">
+                        <option value="">Loading weeks...</option>
+                    </select>
+                </div>
+                
+                <div class="view-navigation" style="margin-top: 20px;">
+                    <h3 style="color: #2c3e50; margin-bottom: 10px; font-size: 14px;">Views</h3>
+                    <button class="btn view-btn active" onclick="tracker.showWeeklyView()" style="width: 100%; margin-bottom: 8px; font-size: 13px; padding: 8px;">
+                        <i class="fas fa-calendar-week"></i> Weekly
+                    </button>
+                    <button class="btn view-btn" onclick="tracker.showMonthlyView()" style="width: 100%; margin-bottom: 8px; font-size: 13px; padding: 8px; background: #3498db;">
+                        <i class="fas fa-chart-bar"></i> Monthly
+                    </button>
+                    <button class="btn view-btn" onclick="tracker.showPersonView()" style="width: 100%; margin-bottom: 8px; font-size: 13px; padding: 8px; background: #9b59b6;">
+                        <i class="fas fa-user-chart"></i> Person View
+                    </button>
+                </div>
+            </div>
+
+            <div class="main-content">
+                <div id="loading" class="loading">
+                    <i class="fas fa-spinner fa-spin"></i> Loading efficiency data from Google Sheets...
+                </div>
+                
+                <div id="week-info" class="week-info" style="display: none;">
+                    <div class="week-title" id="week-title">Select a week and team member</div>
+                    <div class="week-dates" id="week-dates">Fixed Monday to Friday schedule</div>
+                </div>
+
+                <div id="efficiency-data" style="display: none;">
+                    <table class="efficiency-table">
+                        <thead>
+                            <tr>
+                                <th rowspan="2">Work Types</th>
+                                <th colspan="3">L1</th>
+                                <th colspan="2">L2</th>
+                                <th colspan="3">L3</th>
+                                <th rowspan="2">Week Total</th>
+                                <th rowspan="2">Working Days</th>
+                                <th rowspan="2">Leave Days</th>
+                                <th rowspan="2">Weekly Rating</th>
+                                <th rowspan="2">Target</th>
+                                <th rowspan="2">Efficiency %</th>
+                            </tr>
+                            <tr class="sub-header">
+                                <th>OST</th>
+                                <th>Screen Capture</th>
+                                <th>1st Cut</th>
+                                <th>Hand Animation</th>
+                                <th>FSS Animation</th>
+                                <th>Character</th>
+                                <th>VO Animation</th>
+                                <th>Intro</th>
+                            </tr>
+                        </thead>
+                        <tbody id="team-data-rows">
+                            <!-- Team member rows will be dynamically generated -->
+                        </tbody>
+                    </table>
+
+                    <div class="save-section">
+                        <button class="btn btn-success" onclick="tracker.saveWeekData()">
+                            <i class="fas fa-save"></i> Save Week Data
+                        </button>
+                        <button class="btn" onclick="tracker.finalizeWeeklyReport()" style="background: #e74c3c; color: white;">
+                            <i class="fas fa-check-circle"></i> Finalize & Lock Week
+                        </button>
+                        <div id="finalize-status" style="display: none; margin-top: 10px; padding: 10px; background: #d4edda; border: 1px solid #c3e6cb; border-radius: 5px; color: #155724;">
+                            <i class="fas fa-check-circle" style="color: #28a745;"></i> Week finalized successfully!
+                        </div>
+                        <div id="weekly-summary-view" style="display: none; margin-top: 15px;">
+                            <!-- Inline summary will be inserted here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="real-sheets-integration.js"></script>
+    <script src="week-system.js"></script>
+    <script src="real-efficiency-tracker.js?v=2025090402"></script>
+</body>
+</html>
