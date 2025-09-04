@@ -125,9 +125,9 @@ class RealEfficiencyTracker {
                     { name: 'Deepak', level: 'L1' },
                     { name: 'Anjali Rawat', level: 'L2' },
                     { name: 'Swati Juyal', level: 'L2' },
-                    { name: 'Satyam Gupta', level: 'L3' },
                     { name: 'Deepak Kumar', level: 'L3' }
                 ],
+                // Note: Satyam Gupta removed from active members for Sept 2025 onwards but remains in historical data
                 workLevels: this.levelMapping,
                 sheetRange: 'B2B!A1:Z100'
             },
@@ -198,7 +198,7 @@ class RealEfficiencyTracker {
         };
         
         // Current team shortcuts (updated when team changes)
-        this.teamMembers = this.teamConfigs[this.currentTeam].members;
+        this.teamMembers = this.getActiveTeamMembers(this.currentTeam);
         this.workLevels = this.teamConfigs[this.currentTeam].workLevels;
         
         // Historical data from Google Sheets - January to May 2025 (completed months)
@@ -1396,6 +1396,30 @@ class RealEfficiencyTracker {
         this.loadTeamSpecificData();
         
         this.init();
+    }
+    
+    getActiveTeamMembers(team) {
+        // Get current date to determine active members
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth(); // 0-based: 0=Jan, 8=Sep
+        
+        // For B2B team: Satyam Gupta removed from September 2025 onwards
+        if (team === 'b2b') {
+            // If current date is September 2025 or later, exclude Satyam
+            if (currentYear > 2025 || (currentYear === 2025 && currentMonth >= 8)) {
+                console.log('📅 Satyam Gupta removed from B2B team for current/future months');
+                return this.teamConfigs[team].members.filter(member => member.name !== 'Satyam Gupta');
+            }
+        }
+        
+        // For all other teams or past months, return all configured members
+        return this.teamConfigs[team].members;
+    }
+    
+    getAllTeamMembers(team) {
+        // Always return all configured team members (including removed ones) for historical viewing
+        return this.teamConfigs[team].members;
     }
     
     async init() {
@@ -3012,6 +3036,9 @@ class RealEfficiencyTracker {
         // Save current week data permanently (without showing save message)
         this.saveWeekDataSilently();
         
+        // AUTO-SAVE TO GOOGLE SHEETS
+        this.autoSaveToSheets(weekSummary);
+        
         // Show finalization status
         this.showFinalizationStatus();
         
@@ -3022,7 +3049,53 @@ class RealEfficiencyTracker {
         this.showMessage(`✅ Week ${this.currentWeek.weekNumber} finalized successfully!`, 'success');
         
         // NEW: Check if this completes the month and trigger transition
-        this.checkMonthCompletion();
+        setTimeout(() => {
+            this.checkMonthCompletion();
+        }, 1000); // Small delay to ensure all data is saved
+    }
+    
+    async autoSaveToSheets(weekSummary) {
+        try {
+            console.log('📝 Auto-saving finalized week to Google Sheets...');
+            
+            // Check if we have sheets API available
+            if (typeof RealSheetsAPI === 'undefined') {
+                console.log('⚠️ RealSheetsAPI not available, skipping auto-save');
+                return;
+            }
+            
+            const api = new RealSheetsAPI();
+            
+            // Prepare data for the week tracking sheet
+            const sheetName = `${this.currentTeam.toUpperCase()}_Weekly_Tracking`;
+            
+            // Format data similar to manual save structure
+            const rowData = [
+                weekSummary.weekName,
+                weekSummary.dateRange,
+                weekSummary.teamCount,
+                weekSummary.avgOutput.toFixed(2),
+                weekSummary.avgRating.toFixed(2),
+                weekSummary.avgEfficiency.toFixed(1),
+                weekSummary.finalizedAt,
+                'AUTO_FINALIZED'
+            ];
+            
+            // Try to write to sheets
+            const result = await api.appendRowToSheet(sheetName, rowData);
+            
+            if (result.success) {
+                console.log('✅ Week data auto-saved to Google Sheets');
+                this.showMessage('📊 Week finalized and backed up to Google Sheets', 'success');
+            } else {
+                console.log('❌ Failed to auto-save to Google Sheets:', result.error);
+                this.showMessage('⚠️ Week finalized locally. Google Sheets backup failed.', 'warning');
+            }
+            
+        } catch (error) {
+            console.error('Error auto-saving to sheets:', error);
+            this.showMessage('⚠️ Week finalized locally. Google Sheets backup failed.', 'warning');
+        }
     }
     
     checkMonthCompletion() {
@@ -3041,19 +3114,46 @@ class RealEfficiencyTracker {
             const monthWeeks = this.weekSystem.getWeeksForMonth(currentMonth, currentYear);
             console.log(`Found ${monthWeeks.length} weeks in ${currentMonth} ${currentYear}`);
             
-            // Check if all weeks are finalized
+            // Refresh finalized reports from storage
+            this.loadTeamSpecificData();
             const finalizedReports = this.finalizedReports || {};
-            const finalizedWeeksInMonth = monthWeeks.filter(week => 
-                finalizedReports[week.id] && finalizedReports[week.id].status === 'finalized'
-            );
             
-            console.log(`Finalized weeks: ${finalizedWeeksInMonth.length}/${monthWeeks.length}`);
+            // Check if all weeks are finalized
+            const finalizedWeeksInMonth = monthWeeks.filter(week => {
+                const isFinalized = finalizedReports[week.id] && finalizedReports[week.id].status === 'finalized';
+                console.log(`Week ${week.id}: ${isFinalized ? 'FINALIZED' : 'not finalized'}`);
+                return isFinalized;
+            });
+            
+            console.log(`✅ Finalized weeks: ${finalizedWeeksInMonth.length}/${monthWeeks.length}`);
+            console.log('Finalized week IDs:', finalizedWeeksInMonth.map(w => w.id));
             
             if (finalizedWeeksInMonth.length === monthWeeks.length && monthWeeks.length >= 4) {
                 console.log('🎉 Month is complete! Starting transition...');
-                this.transitionToNextMonth(currentMonth, currentYear, monthWeeks, finalizedWeeksInMonth);
+                
+                // Confirm with user before transition
+                const confirmed = confirm(
+                    `🎉 All ${monthWeeks.length} weeks of ${currentMonth} ${currentYear} are complete!\n\n` +
+                    `✅ Move to monthly summary\n` +
+                    `✅ Activate ${this.getNextMonth(currentMonth, currentYear).month} ${this.getNextMonth(currentMonth, currentYear).year}\n\n` +
+                    `Proceed with automatic transition?`
+                );
+                
+                if (confirmed) {
+                    this.transitionToNextMonth(currentMonth, currentYear, monthWeeks, finalizedWeeksInMonth);
+                } else {
+                    console.log('User cancelled month transition');
+                }
             } else {
                 console.log(`Month not complete yet. Need ${monthWeeks.length - finalizedWeeksInMonth.length} more weeks.`);
+                
+                // Show which weeks are missing
+                const missingWeeks = monthWeeks.filter(week => 
+                    !finalizedReports[week.id] || finalizedReports[week.id].status !== 'finalized'
+                );
+                if (missingWeeks.length > 0) {
+                    console.log('Missing weeks:', missingWeeks.map(w => w.label));
+                }
             }
         } catch (error) {
             console.error('Error checking month completion:', error);
@@ -3351,7 +3451,7 @@ class RealEfficiencyTracker {
             this.loadTeamSpecificData();
             
             // Update current team shortcuts
-            this.teamMembers = this.teamConfigs[this.currentTeam].members;
+            this.teamMembers = this.getActiveTeamMembers(this.currentTeam);
             this.workLevels = this.teamConfigs[this.currentTeam].workLevels;
             
             // If switching to Varsity, always load historical data
@@ -5126,7 +5226,7 @@ class RealEfficiencyTracker {
                     <label for="person-select" style="font-weight: 500; margin-bottom: 8px; display: block;">Select Team Member:</label>
                     <select id="person-select" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; background: white;">
                         <option value="">Choose a team member...</option>
-                        ${this.teamMembers.map(member => `<option value="${member.name}">${member.name}</option>`).join('')}
+                        ${this.getAllTeamMembers(this.currentTeam).map(member => `<option value="${member.name}">${member.name}</option>`).join('')}
                     </select>
                 </div>
                 
