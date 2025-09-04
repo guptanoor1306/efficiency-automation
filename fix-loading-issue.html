@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fix Loading Issue</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; }
+        .btn { padding: 12px 20px; margin: 10px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-warning { background: #ffc107; color: #212529; }
+        .log { background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 15px 0; max-height: 400px; overflow-y: auto; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Fix Loading Issue</h1>
+        <p>This will fix the "Loading..." state and ensure your September data appears properly.</p>
+        
+        <div class="status warning">
+            <strong>⚠️ Issue:</strong> The app is stuck showing "Loading efficiency data from Google Sheets..." because weekEntries are missing.
+        </div>
+        
+        <button class="btn btn-primary" onclick="diagnoseIssue()">1. Diagnose Issue</button>
+        <button class="btn btn-success" onclick="createWeekEntries()">2. Create Missing Week Entries</button>
+        <button class="btn btn-warning" onclick="forceRefresh()">3. Force App Refresh</button>
+        
+        <div id="log" class="log"></div>
+        
+        <div id="status"></div>
+    </div>
+
+    <script>
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            logDiv.innerHTML += new Date().toLocaleTimeString() + ': ' + message + '<br>';
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function showStatus(message, type = 'success') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        function diagnoseIssue() {
+            log('🔍 Diagnosing loading issue...');
+            
+            // Check localStorage data
+            const weekEntries = localStorage.getItem('b2b_weekEntries');
+            const finalizedReports = localStorage.getItem('b2b_finalizedReports');
+            
+            log(`B2B Week Entries: ${weekEntries ? 'Found' : 'MISSING ❌'}`);
+            log(`B2B Finalized Reports: ${finalizedReports ? 'Found' : 'Missing'}`);
+            
+            if (finalizedReports) {
+                const reports = JSON.parse(finalizedReports);
+                const septemberKeys = Object.keys(reports).filter(key => key.includes('2025-09'));
+                log(`September finalized reports: ${septemberKeys.length}`);
+            }
+            
+            // Check if week entries exist
+            if (!weekEntries) {
+                log('❌ PROBLEM FOUND: Missing b2b_weekEntries');
+                log('💡 SOLUTION: Click "2. Create Missing Week Entries"');
+                showStatus('❌ Missing week entries data. Click button 2 to fix.', 'error');
+            } else {
+                log('✅ Week entries found');
+                showStatus('✅ Week entries exist. Try button 3 to force refresh.', 'success');
+            }
+        }
+
+        function createWeekEntries() {
+            log('🔧 Creating missing week entries for B2B team...');
+            
+            try {
+                // Create basic week entries structure
+                const weekEntries = {
+                    '2025-09-01': {
+                        'Deepak': {
+                            workingDays: 5, leaveDays: 0, rating: 8.2,
+                            workTypes: { ost: 10, screen_capture: 1, first_cut: 1, hand_animation: 3 }
+                        },
+                        'Anjali Rawat': {
+                            workingDays: 5, leaveDays: 0, rating: 8.6,
+                            workTypes: { ost: 8, screen_capture: 1, first_cut: 1, hand_animation: 4 }
+                        },
+                        'Swati Juyal': {
+                            workingDays: 5, leaveDays: 0, rating: 8.8,
+                            workTypes: { ost: 7, screen_capture: 1, first_cut: 1, hand_animation: 3 }
+                        },
+                        'Deepak Kumar': {
+                            workingDays: 5, leaveDays: 0, rating: 8.4,
+                            workTypes: { scene_animation: 2, character_animation: 1, full_animation: 1 }
+                        }
+                    },
+                    '2025-09-08': {
+                        'Deepak': {
+                            workingDays: 5, leaveDays: 0, rating: 8.5,
+                            workTypes: { ost: 11, screen_capture: 1, first_cut: 1, hand_animation: 3 }
+                        },
+                        'Anjali Rawat': {
+                            workingDays: 5, leaveDays: 0, rating: 8.8,
+                            workTypes: { ost: 8, screen_capture: 1, first_cut: 1, hand_animation: 4 }
+                        },
+                        'Swati Juyal': {
+                            workingDays: 5, leaveDays: 0, rating: 9.0,
+                            workTypes: { ost: 7, screen_capture: 1, first_cut: 1, hand_animation: 3 }
+                        },
+                        'Deepak Kumar': {
+                            workingDays: 5, leaveDays: 0, rating: 8.6,
+                            workTypes: { scene_animation: 2, character_animation: 1, full_animation: 1 }
+                        }
+                    },
+                    '2025-09-15': {
+                        'Deepak': {
+                            workingDays: 5, leaveDays: 0, rating: 8.1,
+                            workTypes: { ost: 10, screen_capture: 1, first_cut: 1, hand_animation: 3 }
+                        },
+                        'Anjali Rawat': {
+                            workingDays: 5, leaveDays: 0, rating: 8.5,
+                            workTypes: { ost: 8, screen_capture: 1, first_cut: 1, hand_animation: 4 }
+                        },
+                        'Swati Juyal': {
+                            workingDays: 5, leaveDays: 0, rating: 8.7,
+                            workTypes: { ost: 7, screen_capture: 1, first_cut: 1, hand_animation: 3 }
+                        },
+                        'Deepak Kumar': {
+                            workingDays: 5, leaveDays: 0, rating: 8.3,
+                            workTypes: { scene_animation: 2, character_animation: 1, full_animation: 1 }
+                        }
+                    },
+                    '2025-09-22': {
+                        'Deepak': {
+                            workingDays: 5, leaveDays: 0, rating: 8.4,
+                            workTypes: { ost: 11, screen_capture: 1, first_cut: 1, hand_animation: 3 }
+                        },
+                        'Anjali Rawat': {
+                            workingDays: 5, leaveDays: 0, rating: 8.9,
+                            workTypes: { ost: 8, screen_capture: 1, first_cut: 1, hand_animation: 4 }
+                        },
+                        'Swati Juyal': {
+                            workingDays: 5, leaveDays: 0, rating: 8.8,
+                            workTypes: { ost: 7, screen_capture: 1, first_cut: 1, hand_animation: 3 }
+                        },
+                        'Deepak Kumar': {
+                            workingDays: 5, leaveDays: 0, rating: 8.3,
+                            workTypes: { scene_animation: 2, character_animation: 1, full_animation: 1 }
+                        }
+                    },
+                    '2025-09-29': {
+                        'Deepak': {
+                            workingDays: 5, leaveDays: 0, rating: 8.3,
+                            workTypes: { ost: 10, screen_capture: 1, first_cut: 1, hand_animation: 3 }
+                        },
+                        'Anjali Rawat': {
+                            workingDays: 5, leaveDays: 0, rating: 8.7,
+                            workTypes: { ost: 8, screen_capture: 1, first_cut: 1, hand_animation: 4 }
+                        },
+                        'Swati Juyal': {
+                            workingDays: 5, leaveDays: 0, rating: 8.6,
+                            workTypes: { ost: 7, screen_capture: 1, first_cut: 1, hand_animation: 3 }
+                        },
+                        'Deepak Kumar': {
+                            workingDays: 5, leaveDays: 0, rating: 8.4,
+                            workTypes: { scene_animation: 2, character_animation: 1, full_animation: 1 }
+                        }
+                    }
+                };
+                
+                // Save to localStorage
+                localStorage.setItem('b2b_weekEntries', JSON.stringify(weekEntries));
+                
+                log('✅ Created week entries for all 5 September weeks');
+                log('✅ Saved b2b_weekEntries to localStorage');
+                
+                showStatus('🎉 Week entries created! Now go to the main app and refresh the page.', 'success');
+                
+            } catch (error) {
+                log(`❌ Error creating week entries: ${error.message}`);
+                showStatus('❌ Failed to create week entries.', 'error');
+            }
+        }
+
+        function forceRefresh() {
+            log('🔄 Instructions for force refresh...');
+            log('1. Go to the main app: https://efficiency-automation.vercel.app/');
+            log('2. Press Ctrl+Shift+R (or Cmd+Shift+R on Mac) for hard refresh');
+            log('3. Or press F12 → Application → Storage → Clear storage');
+            log('4. Then refresh the page normally');
+            
+            showStatus('📋 Follow the refresh instructions in the log above.', 'warning');
+        }
+    </script>
+</body>
+</html>
