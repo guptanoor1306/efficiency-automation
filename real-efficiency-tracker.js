@@ -5422,11 +5422,14 @@ class RealEfficiencyTracker {
     
     getPersonWeeklyData(memberName) {
         const weeklyData = [];
-        const currentMonth = new Date().toLocaleString('default', { month: 'long', year: 'numeric' });
+        
+        // Use current working month from this.currentWeek instead of real calendar date
+        const currentWorkingMonth = this.currentWeek ? `${this.currentWeek.monthName} ${this.currentWeek.year}` : null;
         
         console.log('Getting weekly data for:', memberName);
+        console.log('Current working month:', currentWorkingMonth);
         
-        // Get weeks from current month (including finalized weeks)
+        // Only show weeks from current working month that are NOT moved to historical data
         const finalizedReports = this.finalizedReports || {};
         console.log('Finalized reports available:', Object.keys(finalizedReports));
         
@@ -5434,13 +5437,24 @@ class RealEfficiencyTracker {
             const weekData = finalizedReports[weekId];
             console.log(`Checking week ${weekId}:`, weekData);
             
-            if (weekData && weekData.memberSummaries) {
+            // Check if this week belongs to current working month
+            const weekMonth = this.getWeekMonth(weekId);
+            const belongsToCurrentMonth = weekMonth === currentWorkingMonth;
+            
+            // Only show if it belongs to current working month AND not in historical data
+            const isInHistoricalData = this.historicalData[this.currentTeam]?.[weekMonth]?.isComplete;
+            
+            console.log(`Week ${weekId}: month=${weekMonth}, belongsToCurrent=${belongsToCurrentMonth}, inHistorical=${isInHistoricalData}`);
+            
+            if (belongsToCurrentMonth && !isInHistoricalData && weekData && weekData.memberSummaries) {
                 const memberWeekData = weekData.memberSummaries.find(m => m.name === memberName);
                 console.log(`Found member week data for ${memberName}:`, memberWeekData);
                 
                 if (memberWeekData) {
+                    // Use proper week numbering (Week 1, Week 2, etc.) instead of calendar week numbers
+                    const weekNumber = this.getWeekNumberInMonth(weekId);
                     weeklyData.push({
-                        week: weekData.weekName || `Week ${weekId}`,
+                        week: `Week ${weekNumber}`,
                         efficiency: memberWeekData.efficiency || 0,
                         output: memberWeekData.output || 0,
                         rating: memberWeekData.rating || 0
@@ -5451,6 +5465,35 @@ class RealEfficiencyTracker {
         
         console.log('Final weekly data array:', weeklyData);
         return weeklyData;
+    }
+    
+    getWeekMonth(weekId) {
+        // Convert weekId like "2025-09-01" to "September 2025"
+        try {
+            const [year, month, day] = weekId.split('-');
+            const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+            return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+        } catch (error) {
+            console.error('Error parsing week ID:', weekId, error);
+            return null;
+        }
+    }
+    
+    getWeekNumberInMonth(weekId) {
+        // Convert weekId like "2025-10-01", "2025-10-08", "2025-10-15", "2025-10-22" 
+        // to week numbers 1, 2, 3, 4
+        try {
+            const [year, month, day] = weekId.split('-');
+            const dayNum = parseInt(day);
+            
+            if (dayNum <= 7) return 1;
+            if (dayNum <= 14) return 2;
+            if (dayNum <= 21) return 3;
+            return 4; // 22+ is week 4
+        } catch (error) {
+            console.error('Error determining week number for:', weekId, error);
+            return 1;
+        }
     }
     
     getMonthNumber(monthName) {
