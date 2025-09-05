@@ -1561,12 +1561,41 @@ class RealEfficiencyTracker {
 
     
     setCurrentWeek() {
-        const currentWeek = this.weekSystem.getCurrentWeek();
+        // Find the first incomplete week for this team
+        const currentWeek = this.getFirstIncompleteWeek();
         if (currentWeek) {
             document.getElementById('week-select').value = currentWeek.id;
             this.currentWeek = currentWeek;
             this.updateWeekInfo();
         }
+    }
+    
+    getFirstIncompleteWeek() {
+        // Get all weeks from September 2025 onwards
+        const allWeeks = this.weekSystem.weeks;
+        
+        // Find first week that is not in historical data and not finalized
+        for (const week of allWeeks) {
+            const monthYear = `${week.monthName} ${week.year}`;
+            
+            // Skip if this month is already in historical data (completed)
+            if (this.historicalData[this.currentTeam]?.[monthYear]?.isComplete) {
+                continue;
+            }
+            
+            // Check if this week is finalized
+            const finalizedReports = this.getFinalizedReports();
+            const isFinalized = finalizedReports[week.id];
+            
+            if (!isFinalized) {
+                console.log(`🎯 Found first incomplete week for ${this.currentTeam}: ${week.label}`);
+                return week;
+            }
+        }
+        
+        // Fallback to current calendar week
+        console.log(`⚠️ No incomplete weeks found for ${this.currentTeam}, using calendar current`);
+        return this.weekSystem.getCurrentWeek();
     }
     
     updateWeekInfo() {
@@ -3538,6 +3567,9 @@ class RealEfficiencyTracker {
             }
             
             // Refresh the interface for the new team
+            // Set the current week for this team (team-specific)
+            this.setCurrentWeek();
+            
             this.generateTeamDataRows();
             this.loadAllMembersData();
             
