@@ -2689,7 +2689,7 @@ class RealEfficiencyTracker {
                         <div><strong>Total Members:</strong> ${monthData.teamSummary.totalMembers}</div>
                         <div><strong>Avg Rating:</strong> <span style="color: #27ae60; font-weight: bold;">${monthData.teamSummary.avgRating}</span></div>
                         <div><strong>Total Output:</strong> ${monthData.teamSummary.totalOutput}</div>
-                        <div><strong>Avg Efficiency:</strong> <span style="color: #3498db; font-weight: bold;">${monthData.teamSummary.avgEfficiency}%</span></div>
+                        <div><strong>Avg Efficiency:</strong> <span style="color: #3498db; font-weight: bold;">${monthData.teamSummary.avgEfficiency.toFixed(1)}%</span></div>
                     </div>
                 </div>
                 

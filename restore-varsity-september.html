@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restore Varsity September Data</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .btn {
+            background: #007bff;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        .btn:hover { background: #0056b3; }
+        .success { color: #28a745; font-weight: bold; }
+        .error { color: #dc3545; font-weight: bold; }
+        .info { color: #17a2b8; font-weight: bold; }
+        #log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 20px;
+            height: 400px;
+            overflow-y: auto;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Restore Varsity September Data</h1>
+        <p>This will move Varsity September 2025 data from weekly finalized reports to historical monthly data.</p>
+        
+        <button class="btn" onclick="restoreVarsitySeptember()">🚀 Restore Varsity September</button>
+        <button class="btn" onclick="checkCurrentData()">🔍 Check Current Data</button>
+        <button class="btn" onclick="clearLog()">🧹 Clear Log</button>
+        
+        <div id="log"></div>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'success' ? 'success' : type === 'error' ? 'error' : 'info';
+            logDiv.innerHTML += `<span class="${className}">${timestamp}: ${message}</span>\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+
+        function checkCurrentData() {
+            log('🔍 Checking current localStorage data...');
+            
+            // Check varsity finalized reports
+            const varsityFinalized = localStorage.getItem('varsity_finalizedReports');
+            if (varsityFinalized) {
+                const reports = JSON.parse(varsityFinalized);
+                log(`Varsity Finalized Reports: Found ${Object.keys(reports).length} entries`);
+                
+                // Check for September
+                const septemberReports = Object.keys(reports).filter(key => key.includes('2025-09'));
+                log(`September finalized reports found: ${septemberReports.length}`);
+                log(`September week IDs: ${septemberReports.join(', ')}`);
+            } else {
+                log('Varsity Finalized Reports: Missing', 'error');
+            }
+            
+            // Check varsity historical data
+            const varsityHistorical = localStorage.getItem('varsity_historical_data');
+            if (varsityHistorical) {
+                const historical = JSON.parse(varsityHistorical);
+                log(`Varsity Historical Data: Found ${Object.keys(historical).length} months`);
+                log(`Months: ${Object.keys(historical).join(', ')}`);
+                
+                if (historical['September 2025']) {
+                    log('September 2025 already in historical data ✅', 'success');
+                } else {
+                    log('September 2025 NOT in historical data ❌', 'error');
+                }
+            } else {
+                log('Varsity Historical Data: Missing', 'error');
+            }
+        }
+
+        function restoreVarsitySeptember() {
+            log('🔧 Starting Varsity September data restoration...');
+            
+            try {
+                // Get varsity finalized reports
+                const varsityFinalized = localStorage.getItem('varsity_finalizedReports');
+                if (!varsityFinalized) {
+                    log('❌ No varsity finalized reports found', 'error');
+                    return;
+                }
+                
+                const reports = JSON.parse(varsityFinalized);
+                const septemberReports = {};
+                
+                // Filter September 2025 reports
+                Object.keys(reports).forEach(weekId => {
+                    if (weekId.includes('2025-09')) {
+                        septemberReports[weekId] = reports[weekId];
+                    }
+                });
+                
+                if (Object.keys(septemberReports).length === 0) {
+                    log('❌ No September 2025 finalized reports found', 'error');
+                    return;
+                }
+                
+                log(`✅ Found ${Object.keys(septemberReports).length} September finalized reports`);
+                log(`September weeks: ${Object.keys(septemberReports).map(id => {
+                    const date = new Date(id);
+                    const day = date.getDate();
+                    if (day <= 7) return 'Week 1';
+                    if (day <= 14) return 'Week 2';
+                    if (day <= 21) return 'Week 3';
+                    return 'Week 4';
+                }).join(', ')}`);
+                
+                // Create monthly summary from weekly data
+                const monthlyData = createMonthlyDataFromWeeklyReports(septemberReports);
+                
+                // Get or create varsity historical data
+                let varsityHistorical = {};
+                const existingHistorical = localStorage.getItem('varsity_historical_data');
+                if (existingHistorical) {
+                    varsityHistorical = JSON.parse(existingHistorical);
+                }
+                
+                // Add September 2025 to historical data
+                varsityHistorical['September 2025'] = {
+                    isComplete: true,
+                    monthlyData: monthlyData,
+                    teamSummary: {
+                        totalMembers: Object.keys(monthlyData).length,
+                        totalWorkingDays: Object.values(monthlyData).reduce((sum, member) => sum + member.target, 0),
+                        totalOutput: parseFloat(Object.values(monthlyData).reduce((sum, member) => sum + member.totalOutput, 0).toFixed(1)),
+                        avgRating: parseFloat((Object.values(monthlyData).reduce((sum, member) => sum + (member.monthlyRating || 0), 0) / Object.keys(monthlyData).length).toFixed(1)),
+                        avgEfficiency: parseFloat((Object.values(monthlyData).reduce((sum, member) => sum + (member.efficiency || 0), 0) / Object.keys(monthlyData).length).toFixed(1))
+                    }
+                };
+                
+                // Save updated historical data
+                localStorage.setItem('varsity_historical_data', JSON.stringify(varsityHistorical));
+                
+                log('✅ Successfully restored Varsity September 2025 to historical data', 'success');
+                log(`Team Summary: ${Object.keys(monthlyData).length} members, ${varsityHistorical['September 2025'].teamSummary.totalOutput} total output, ${varsityHistorical['September 2025'].teamSummary.avgEfficiency}% avg efficiency`);
+                
+            } catch (error) {
+                log(`❌ Error during restoration: ${error.message}`, 'error');
+                console.error('Restoration error:', error);
+            }
+        }
+
+        function createMonthlyDataFromWeeklyReports(weeklyReports) {
+            const monthlyData = {};
+            
+            // Process each weekly report
+            Object.values(weeklyReports).forEach(weekReport => {
+                Object.entries(weekReport.memberData).forEach(([memberName, memberWeekData]) => {
+                    if (!monthlyData[memberName]) {
+                        monthlyData[memberName] = {
+                            weeks: [],
+                            totalOutput: 0,
+                            target: memberWeekData.target || 0,
+                            efficiency: 0,
+                            monthlyRating: memberWeekData.monthlyRating || 0
+                        };
+                    }
+                    
+                    // Add week data
+                    const weekNum = getWeekNumberFromDate(weekReport.weekId);
+                    monthlyData[memberName].weeks.push({
+                        week: weekNum,
+                        output: parseFloat((memberWeekData.totalOutput || 0).toFixed(1)),
+                        quality: parseFloat((memberWeekData.averageQuality || 0).toFixed(1)),
+                        efficiency: parseFloat((memberWeekData.efficiency || 0).toFixed(1))
+                    });
+                    
+                    monthlyData[memberName].totalOutput += memberWeekData.totalOutput || 0;
+                });
+            });
+            
+            // Calculate final efficiency and format totals
+            Object.keys(monthlyData).forEach(memberName => {
+                const member = monthlyData[memberName];
+                member.totalOutput = parseFloat(member.totalOutput.toFixed(1));
+                member.efficiency = parseFloat(((member.totalOutput / member.target) * 100).toFixed(1));
+                
+                // Sort weeks by week number
+                member.weeks.sort((a, b) => a.week - b.week);
+            });
+            
+            return monthlyData;
+        }
+
+        function getWeekNumberFromDate(weekId) {
+            const date = new Date(weekId);
+            const day = date.getDate();
+            if (day <= 7) return 1;
+            if (day <= 14) return 2;
+            if (day <= 21) return 3;
+            return 4;
+        }
+
+        // Auto-check data on load
+        window.onload = function() {
+            log('🚀 Varsity September Restoration Tool Ready');
+            setTimeout(checkCurrentData, 500);
+        };
+    </script>
+</body>
+</html>
