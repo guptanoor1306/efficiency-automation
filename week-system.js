@@ -156,7 +156,7 @@ class WeekSystem {
     getWeeksForSelector() {
         return this.weeks.map(week => ({
             id: week.id,
-            label: `Week ${week.weekNumber} (${week.dateRange})`,
+            label: week.label || `Week ${week.weekNumber} (${week.dateRange})`,
             monthYear: `${week.monthName} ${week.year}`,
             isPast: week.isPast,
             isCurrent: week.isCurrent,

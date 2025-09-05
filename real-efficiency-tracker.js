@@ -1484,21 +1484,34 @@ class RealEfficiencyTracker {
         
         let optionsHTML = '<option value="">Select a period...</option>';
         
+        // Determine current working month from this.currentWeek
+        const currentWorkingMonth = this.currentWeek ? `${this.currentWeek.monthName} ${this.currentWeek.year}` : null;
+        
         Object.keys(monthGroups).forEach(monthYear => {
-            const isCurrentMonth = monthYear === this.currentMonth;
+            const isCurrentWorkingMonth = monthYear === currentWorkingMonth;
             const isCompleteMonth = this.historicalData[this.currentTeam]?.[monthYear]?.isComplete;
             
             if (isCompleteMonth) {
                 // Show monthly view for completed months
                 optionsHTML += `<option value="MONTH_${monthYear}">📊 ${monthYear} (Monthly Summary)</option>`;
-            } else if (isCurrentMonth) {
-                // Show weekly options for current month
+            } else if (isCurrentWorkingMonth) {
+                // Show weekly options for current working month
                 optionsHTML += `<optgroup label="📅 ${monthYear} - Current Month">`;
                 monthGroups[monthYear].forEach(week => {
-                    const statusIcon = week.isCurrent ? '▶️' : week.isPast ? '✅' : '⏳';
+                    const statusIcon = week.id === this.currentWeek?.id ? '▶️' : '⏳';
                     optionsHTML += `<option value="${week.id}">${statusIcon} ${week.label}</option>`;
                 });
                 optionsHTML += '</optgroup>';
+            } else {
+                // Show other active months (not complete, not current working month)
+                const hasWeeks = monthGroups[monthYear].length > 0;
+                if (hasWeeks) {
+                    optionsHTML += `<optgroup label="📅 ${monthYear}">`;
+                    monthGroups[monthYear].forEach(week => {
+                        optionsHTML += `<option value="${week.id}">⏳ ${week.label}</option>`;
+                    });
+                    optionsHTML += '</optgroup>';
+                }
             }
         });
         
