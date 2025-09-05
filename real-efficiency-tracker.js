@@ -1402,21 +1402,14 @@ class RealEfficiencyTracker {
     }
     
     getActiveTeamMembers(team) {
-        // Get current date to determine active members
-        const now = new Date();
-        const currentYear = now.getFullYear();
-        const currentMonth = now.getMonth(); // 0-based: 0=Jan, 8=Sep
-        
-        // For B2B team: Satyam Gupta removed from September 2025 onwards
+        // For B2B team: Satyam Gupta is completely removed from all input fields
+        // He should only appear in historical data and person view for past months
         if (team === 'b2b') {
-            // If current date is September 2025 or later, exclude Satyam
-            if (currentYear > 2025 || (currentYear === 2025 && currentMonth >= 8)) {
-                console.log('📅 Satyam Gupta removed from B2B team for current/future months');
-                return this.teamConfigs[team].members.filter(member => member.name !== 'Satyam Gupta');
-            }
+            console.log('📅 Satyam Gupta removed from B2B team for all current inputs');
+            return this.teamConfigs[team].members.filter(member => member.name !== 'Satyam Gupta');
         }
         
-        // For all other teams or past months, return all configured members
+        // For all other teams, return all configured members
         return this.teamConfigs[team].members;
     }
     
