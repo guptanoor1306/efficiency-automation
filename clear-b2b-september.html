@@ -59,6 +59,7 @@
         
         <button class="btn" onclick="checkCurrentStatus()">🔍 Check Current Status</button>
         <button class="btn danger" onclick="clearB2BSeptember()">🧹 Clear B2B September</button>
+        <button class="btn danger" onclick="clearAllSeptemberData()">💣 Clear ALL September Data</button>
         <button class="btn" onclick="clearLog()">📝 Clear Log</button>
         
         <div id="log"></div>
@@ -195,6 +196,74 @@
             } catch (error) {
                 log(`❌ Error during clearing: ${error.message}`, 'error');
                 console.error('Clearing error:', error);
+            }
+        }
+
+        function clearAllSeptemberData() {
+            log('💣 Starting COMPLETE September clearing for ALL teams...', 'warning');
+            log('This will clear September data for B2B, Varsity, Harish, and Zero1 teams', 'warning');
+            
+            try {
+                let totalChanges = 0;
+                const teams = ['b2b', 'varsity', 'harish', 'zero1'];
+                
+                teams.forEach(team => {
+                    log(`Clearing ${team.toUpperCase()} September data...`, 'info');
+                    
+                    // Clear historical data
+                    const historicalKey = `${team}_historical_data`;
+                    const historical = localStorage.getItem(historicalKey);
+                    if (historical) {
+                        const data = JSON.parse(historical);
+                        if (data['September 2025']) {
+                            delete data['September 2025'];
+                            localStorage.setItem(historicalKey, JSON.stringify(data));
+                            log(`✅ Removed September from ${team} historical data`);
+                            totalChanges++;
+                        }
+                    }
+                    
+                    // Clear finalized reports
+                    const finalizedKey = `${team}_finalizedReports`;
+                    const finalized = localStorage.getItem(finalizedKey);
+                    if (finalized) {
+                        const reports = JSON.parse(finalized);
+                        const septemberKeys = Object.keys(reports).filter(key => key.includes('2025-09'));
+                        if (septemberKeys.length > 0) {
+                            septemberKeys.forEach(key => delete reports[key]);
+                            localStorage.setItem(finalizedKey, JSON.stringify(reports));
+                            log(`✅ Removed ${septemberKeys.length} September finalized reports from ${team}`);
+                            totalChanges++;
+                        }
+                    }
+                    
+                    // Clear week entries
+                    const entriesKey = `${team}_weekEntries`;
+                    const entries = localStorage.getItem(entriesKey);
+                    if (entries) {
+                        const weekEntries = JSON.parse(entries);
+                        const septemberKeys = Object.keys(weekEntries).filter(key => key.includes('2025-09'));
+                        if (septemberKeys.length > 0) {
+                            septemberKeys.forEach(key => delete weekEntries[key]);
+                            localStorage.setItem(entriesKey, JSON.stringify(weekEntries));
+                            log(`✅ Removed ${septemberKeys.length} September week entries from ${team}`);
+                            totalChanges++;
+                        }
+                    }
+                });
+                
+                if (totalChanges > 0) {
+                    log('🎉 COMPLETE September clearing completed!', 'success');
+                    log(`Made ${totalChanges} changes across all teams`, 'success');
+                    log('All teams now have clean September state for testing', 'success');
+                    log('Refresh the main app to see the changes', 'info');
+                } else {
+                    log('ℹ️ No September data found to clear');
+                }
+                
+            } catch (error) {
+                log(`❌ Error during complete clearing: ${error.message}`, 'error');
+                console.error('Complete clearing error:', error);
             }
         }
 

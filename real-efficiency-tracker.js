@@ -1553,15 +1553,20 @@ class RealEfficiencyTracker {
         
         weekSelect.innerHTML = optionsHTML;
         
-        // Update placeholder text based on view
+        // Update placeholder text and label based on view
         const placeholder = weekSelect.querySelector('option[value=""]');
-        if (placeholder) {
+        const label = document.getElementById('period-selector-label');
+        
+        if (placeholder && label) {
             if (currentView === 'monthly') {
                 placeholder.textContent = 'Select a month...';
+                label.textContent = 'Select Month:';
             } else if (currentView === 'weekly') {
                 placeholder.textContent = 'Select a week...';
+                label.textContent = 'Select Week:';
             } else {
                 placeholder.textContent = 'Select a period...';
+                label.textContent = 'Select Period:';
             }
         }
     }
@@ -1644,51 +1649,61 @@ class RealEfficiencyTracker {
     }
     
     resetFiltersOnTeamSwitch() {
-        console.log(`🔄 Resetting filters for team switch to ${this.currentTeam}`);
-        
-        // Reset week/month selector to default
-        const weekSelect = document.getElementById('week-select');
-        if (weekSelect) {
-            weekSelect.value = '';
-            weekSelect.innerHTML = '<option value="">Select a period...</option>';
-        }
-        
-        // Reset person selector to default
-        const personSelect = document.getElementById('person-select');
-        if (personSelect) {
-            personSelect.value = '';
-        }
-        
-        // Reset to weekly view by default
-        const weeklyBtn = document.querySelector('.view-btn[data-view="weekly"]');
-        const monthlyBtn = document.querySelector('.view-btn[data-view="monthly"]');
-        const personBtn = document.querySelector('.view-btn[data-view="person"]');
-        
-        if (weeklyBtn && monthlyBtn && personBtn) {
-            // Reset button states
-            [weeklyBtn, monthlyBtn, personBtn].forEach(btn => btn.classList.remove('active'));
-            weeklyBtn.classList.add('active');
+        try {
+            console.log(`🔄 Resetting filters for team switch to ${this.currentTeam}`);
             
-            // Show weekly view
-            this.showWeeklyView();
+            // Reset week/month selector to default
+            const weekSelect = document.getElementById('week-select');
+            if (weekSelect) {
+                weekSelect.value = '';
+                weekSelect.innerHTML = '<option value="">Loading periods...</option>';
+            }
+            
+            // Reset person selector to default
+            const personSelect = document.getElementById('person-select');
+            if (personSelect) {
+                personSelect.value = '';
+            }
+            
+            // Reset to weekly view by default
+            const weeklyBtn = document.querySelector('.view-btn[data-view="weekly"]');
+            const monthlyBtn = document.querySelector('.view-btn[data-view="monthly"]');
+            const personBtn = document.querySelector('.view-btn[data-view="person"]');
+            
+            if (weeklyBtn && monthlyBtn && personBtn) {
+                // Reset button states
+                [weeklyBtn, monthlyBtn, personBtn].forEach(btn => btn.classList.remove('active'));
+                weeklyBtn.classList.add('active');
+            }
+            
+            // Clear any displayed data
+            const dataContainer = document.getElementById('data-container');
+            if (dataContainer) {
+                dataContainer.innerHTML = '<p>Please select a week to view data.</p>';
+            }
+            
+            // Clear week info
+            const weekInfo = document.getElementById('week-info');
+            if (weekInfo) {
+                weekInfo.style.display = 'none';
+            }
+            
+            // Clear monthly table if exists
+            const monthlyTable = document.getElementById('monthly-table');
+            if (monthlyTable) monthlyTable.remove();
+            
+            // Clear person view if exists
+            const personView = document.getElementById('person-view');
+            if (personView) personView.style.display = 'none';
+            
+            // Reset current week to null
+            this.currentWeek = null;
+            
+            console.log(`✅ Filters reset for ${this.currentTeam}`);
+        } catch (error) {
+            console.error('Error resetting filters:', error);
+            this.showMessage('Filter reset completed with some minor issues', 'warning');
         }
-        
-        // Clear any displayed data
-        const dataContainer = document.getElementById('data-container');
-        if (dataContainer) {
-            dataContainer.innerHTML = '<p>Please select a week to view data.</p>';
-        }
-        
-        // Clear week info
-        const weekInfo = document.getElementById('week-info');
-        if (weekInfo) {
-            weekInfo.style.display = 'none';
-        }
-        
-        // Repopulate the week selector for this team
-        this.populateWeekSelector();
-        
-        console.log(`✅ Filters reset for ${this.currentTeam}`);
     }
     
     updateViewButtonStates(activeView) {
@@ -3662,6 +3677,11 @@ class RealEfficiencyTracker {
     async switchTeam(newTeam) {
         try {
             console.log(`Switching from ${this.currentTeam} to ${newTeam}`);
+            
+            // Save current team data before switching
+            if (this.currentTeam) {
+                this.saveTeamSpecificData();
+            }
             
             this.currentTeam = newTeam;
             

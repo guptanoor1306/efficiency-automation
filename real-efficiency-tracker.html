@@ -409,14 +409,7 @@
 
         <div class="main-grid" style="grid-template-columns: 250px 1fr;">
             <div class="sidebar">
-                <div class="week-selector">
-                    <label for="week-select">Select Week:</label>
-                    <select id="week-select">
-                        <option value="">Loading weeks...</option>
-                    </select>
-                </div>
-                
-                <div class="view-navigation" style="margin-top: 20px;">
+                <div class="view-navigation">
                     <h3 style="color: #2c3e50; margin-bottom: 10px; font-size: 14px;">Views</h3>
                     <button class="btn view-btn active" data-view="weekly" onclick="tracker.showWeeklyView()" style="width: 100%; margin-bottom: 8px; font-size: 13px; padding: 8px;">
                         <i class="fas fa-calendar-week"></i> Weekly
@@ -427,6 +420,13 @@
                     <button class="btn view-btn" data-view="person" onclick="tracker.showPersonView()" style="width: 100%; margin-bottom: 8px; font-size: 13px; padding: 8px; background: #9b59b6;">
                         <i class="fas fa-user-chart"></i> Person View
                     </button>
+                </div>
+                
+                <div class="week-selector" style="margin-top: 20px;">
+                    <label for="week-select" id="period-selector-label">Select Period:</label>
+                    <select id="week-select">
+                        <option value="">Loading periods...</option>
+                    </select>
                 </div>
             </div>
 
