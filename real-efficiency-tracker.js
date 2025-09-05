@@ -1435,14 +1435,20 @@ class RealEfficiencyTracker {
             // Initialize week selector
             this.populateWeekSelector();
             
-            // Load real data from Google Sheets (includes Varsity members)
-            await this.loadRealData();
+            // Set current week BEFORE loading external data
+            this.setCurrentWeek();
             
             // Set up event listeners
             this.setupEventListeners();
             
-            // Set current week
-            this.setCurrentWeek();
+            // Load real data from Google Sheets (includes Varsity members) - this may timeout
+            await this.loadRealData();
+            
+            // Ensure week selector is populated after everything
+            this.populateWeekSelector();
+            
+            // Hide any loading indicators
+            this.hideLoadingIndicators();
             
             // Update summary stats
             
@@ -1468,7 +1474,31 @@ class RealEfficiencyTracker {
         } catch (error) {
             console.error('Initialization error:', error);
             this.showMessage('System initialized with limited functionality. Some features may not work.', 'error');
+            // Still try to hide loading indicators even on error
+            this.hideLoadingIndicators();
         }
+    }
+    
+    hideLoadingIndicators() {
+        // Hide loading messages
+        const loadingElements = document.querySelectorAll('[id*="loading"], [class*="loading"]');
+        loadingElements.forEach(el => el.style.display = 'none');
+        
+        // Hide "Loading weeks..." from week selector
+        const weekSelect = document.getElementById('week-select');
+        if (weekSelect && weekSelect.innerHTML.includes('Loading weeks...')) {
+            this.populateWeekSelector();
+        }
+        
+        // Hide "Loading efficiency data..." message
+        const loadingMessages = document.querySelectorAll('*');
+        loadingMessages.forEach(el => {
+            if (el.textContent && el.textContent.includes('Loading efficiency data')) {
+                el.style.display = 'none';
+            }
+        });
+        
+        console.log('✅ Loading indicators hidden');
     }
     
     populateWeekSelector() {
@@ -1525,13 +1555,28 @@ class RealEfficiencyTracker {
         try {
             this.showMessage('Loading data from Google Sheets...', 'info');
             
-            // Try to load real data from Google Sheets
-            this.sheetData = await this.sheetsAPI.readSheetData();
+            // Add timeout to prevent hanging
+            const timeout = new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Timeout')), 5000)
+            );
             
-            if (this.sheetData && this.sheetData.length > 0) {
-                this.showMessage(`Loaded ${this.sheetData.length} records from Google Sheets`, 'success');
-            } else {
-                this.showMessage('Using fallback data - Google Sheets connection failed', 'error');
+            // Try to load real data from Google Sheets with timeout
+            try {
+                this.sheetData = await Promise.race([
+                    this.sheetsAPI.readSheetData(),
+                    timeout
+                ]);
+                
+                if (this.sheetData && this.sheetData.length > 0) {
+                    this.showMessage(`Loaded ${this.sheetData.length} records from Google Sheets`, 'success');
+                } else {
+                    this.showMessage('Using local data - Google Sheets returned no data', 'info');
+                    this.sheetData = [];
+                }
+            } catch (error) {
+                console.log('Google Sheets loading failed or timed out:', error);
+                this.showMessage('Using local data - Google Sheets unavailable', 'info');
+                this.sheetData = [];
             }
             
             // Extract and render team members
@@ -1561,11 +1606,27 @@ class RealEfficiencyTracker {
 
     
     setCurrentWeek() {
-        const currentWeek = this.weekSystem.getCurrentWeek();
+        let currentWeek = this.weekSystem.getCurrentWeek();
+        
+        // If no current week found, default to October Week 1
+        if (!currentWeek) {
+            const octoberWeeks = this.weekSystem.getWeeksForMonth('October', 2025);
+            if (octoberWeeks.length > 0) {
+                currentWeek = octoberWeeks[0];
+                console.log('⚠️ No current week found, defaulting to October Week 1');
+            }
+        }
+        
         if (currentWeek) {
-            document.getElementById('week-select').value = currentWeek.id;
+            const weekSelect = document.getElementById('week-select');
+            if (weekSelect) {
+                weekSelect.value = currentWeek.id;
+            }
             this.currentWeek = currentWeek;
             this.updateWeekInfo();
+            console.log('✅ Current week set to:', currentWeek.label);
+        } else {
+            console.error('❌ Could not set current week - no weeks available');
         }
     }
     
