@@ -2758,7 +2758,7 @@ class RealEfficiencyTracker {
                                     ${member.weeks.slice(0, 4).map(week => {
                                         // Handle both B2B format (numbers) and Varsity format (objects)
                                         const output = typeof week === 'number' ? week : week.output;
-                                        return `<td>${output}</td>`;
+                                        return `<td>${typeof output === 'number' ? output.toFixed(1) : output}</td>`;
                                     }).join('')}
                                     <td style="font-weight: bold; color: #3498db;">${member.totalOutput.toFixed(1)}</td>
                                 </tr>
@@ -4541,19 +4541,37 @@ class RealEfficiencyTracker {
         const historicalKey = `${this.currentTeam}_historical_data`;
         const storedHistoricalData = localStorage.getItem(historicalKey);
         
+        console.log(`🔍 Loading historical data for ${this.currentTeam} with key: ${historicalKey}`);
+        
         if (storedHistoricalData) {
             try {
                 const parsedData = JSON.parse(storedHistoricalData);
                 if (!this.historicalData[this.currentTeam]) {
                     this.historicalData[this.currentTeam] = {};
                 }
-                // Merge stored data with existing historical data
-                Object.assign(this.historicalData[this.currentTeam], parsedData);
                 
-                console.log(`Loaded stored historical data for ${this.currentTeam}:`, Object.keys(this.historicalData[this.currentTeam]));
+                // ONLY merge data that doesn't exist in hardcoded data
+                // This prevents overwriting hardcoded data and ensures team isolation
+                Object.keys(parsedData).forEach(monthYear => {
+                    if (!this.historicalData[this.currentTeam][monthYear]) {
+                        this.historicalData[this.currentTeam][monthYear] = parsedData[monthYear];
+                        console.log(`📅 Added stored month ${monthYear} for ${this.currentTeam}`);
+                    } else {
+                        console.log(`⚠️ Skipped ${monthYear} for ${this.currentTeam} - already exists in hardcoded data`);
+                    }
+                });
+                
+                console.log(`✅ Final historical data for ${this.currentTeam}:`, Object.keys(this.historicalData[this.currentTeam]));
+                console.log(`📊 Complete months for ${this.currentTeam}:`, 
+                    Object.keys(this.historicalData[this.currentTeam]).filter(month => 
+                        this.historicalData[this.currentTeam][month]?.isComplete
+                    )
+                );
             } catch (error) {
                 console.error('Error loading stored historical data:', error);
             }
+        } else {
+            console.log(`ℹ️ No stored historical data found for ${this.currentTeam}`);
         }
     }
     
