@@ -1395,6 +1395,9 @@ class RealEfficiencyTracker {
         // Load team-specific data after currentTeam is set
         this.loadTeamSpecificData();
         
+        // Also load any stored historical data for this team
+        this.loadStoredHistoricalData();
+        
         this.init();
     }
     
@@ -2712,8 +2715,8 @@ class RealEfficiencyTracker {
                                 <tr>
                                     <td style="text-align: left; font-weight: 600;">${memberName}</td>
                                     <td>${member.target}</td>
-                                    <td>${member.totalOutput}</td>
-                                    <td style="font-weight: bold; color: #27ae60;">${member.monthlyRating}</td>
+                                    <td>${member.totalOutput.toFixed(1)}</td>
+                                    <td style="font-weight: bold; color: #27ae60;">${member.monthlyRating.toFixed(1)}</td>
                                     <td>
                                         <span class="efficiency-score ${this.getEfficiencyClass((efficiency/member.target) * 100)}">
                                             ${((member.totalOutput/member.target) * 100).toFixed(1)}%
@@ -2757,7 +2760,7 @@ class RealEfficiencyTracker {
                                         const output = typeof week === 'number' ? week : week.output;
                                         return `<td>${output}</td>`;
                                     }).join('')}
-                                    <td style="font-weight: bold; color: #3498db;">${member.totalOutput}</td>
+                                    <td style="font-weight: bold; color: #3498db;">${member.totalOutput.toFixed(1)}</td>
                                 </tr>
                             `;
                         }).join('')}
@@ -3511,6 +3514,9 @@ class RealEfficiencyTracker {
             
             // Load team-specific data (week entries and finalized reports)
             this.loadTeamSpecificData();
+            
+            // Load stored historical data for this team
+            this.loadStoredHistoricalData();
             
             // Update current team shortcuts
             this.teamMembers = this.getActiveTeamMembers(this.currentTeam);
@@ -4518,11 +4524,37 @@ class RealEfficiencyTracker {
     saveTeamSpecificData() {
         const teamKey = `${this.currentTeam}_week_entries`;
         const finalizedKey = `${this.currentTeam}_finalized_reports`;
+        const historicalKey = `${this.currentTeam}_historical_data`;
         
         localStorage.setItem(teamKey, JSON.stringify(this.weekEntries));
         localStorage.setItem(finalizedKey, JSON.stringify(this.finalizedReports || {}));
+        localStorage.setItem(historicalKey, JSON.stringify(this.historicalData[this.currentTeam] || {}));
         
-        console.log(`Saved data for ${this.currentTeam}`);
+        console.log(`Saved data for ${this.currentTeam}`, {
+            weekEntries: Object.keys(this.weekEntries).length,
+            finalizedReports: Object.keys(this.finalizedReports || {}).length,
+            historicalData: Object.keys(this.historicalData[this.currentTeam] || {}).length
+        });
+    }
+    
+    loadStoredHistoricalData() {
+        const historicalKey = `${this.currentTeam}_historical_data`;
+        const storedHistoricalData = localStorage.getItem(historicalKey);
+        
+        if (storedHistoricalData) {
+            try {
+                const parsedData = JSON.parse(storedHistoricalData);
+                if (!this.historicalData[this.currentTeam]) {
+                    this.historicalData[this.currentTeam] = {};
+                }
+                // Merge stored data with existing historical data
+                Object.assign(this.historicalData[this.currentTeam], parsedData);
+                
+                console.log(`Loaded stored historical data for ${this.currentTeam}:`, Object.keys(this.historicalData[this.currentTeam]));
+            } catch (error) {
+                console.error('Error loading stored historical data:', error);
+            }
+        }
     }
     
     convertArrayDataToObjects(arrayData) {

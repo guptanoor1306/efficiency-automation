@@ -15,12 +15,12 @@ class WeekSystem {
         const weeks = [];
         const currentDate = new Date();
         
-        // Generate weeks for 2025 and some future months
+        // Generate weeks for 2025 only (up to December)
         const startYear = 2025;
-        const endYear = currentDate.getFullYear() + 1;
+        const endYear = 2025;
         
         for (let year = startYear; year <= endYear; year++) {
-            const monthLimit = year === endYear ? currentDate.getMonth() + 3 : 11;
+            const monthLimit = 11; // December (0-based index)
             
             for (let month = 0; month <= monthLimit; month++) {
                 const monthName = new Date(year, month, 1).toLocaleDateString('en-US', { month: 'long' });
