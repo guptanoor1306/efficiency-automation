@@ -1475,6 +1475,10 @@ class RealEfficiencyTracker {
         const weekSelect = document.getElementById('week-select');
         const weeks = this.weekSystem.getWeeksForSelector();
         
+        // Determine current view mode
+        const activeViewBtn = document.querySelector('.view-btn.active');
+        const currentView = activeViewBtn ? activeViewBtn.getAttribute('data-view') : 'weekly';
+        
         // Group weeks by month
         const monthGroups = {};
         weeks.forEach(week => {
@@ -1494,31 +1498,72 @@ class RealEfficiencyTracker {
             const isCurrentWorkingMonth = monthYear === currentWorkingMonth;
             const isCompleteMonth = this.historicalData[this.currentTeam]?.[monthYear]?.isComplete;
             
-            if (isCompleteMonth) {
-                // Show monthly view for completed months
-                optionsHTML += `<option value="MONTH_${monthYear}">📊 ${monthYear} (Monthly Summary)</option>`;
-            } else if (isCurrentWorkingMonth) {
-                // Show weekly options for current working month
-                optionsHTML += `<optgroup label="📅 ${monthYear} - Current Month">`;
-                monthGroups[monthYear].forEach(week => {
-                    const statusIcon = week.id === this.currentWeek?.id ? '▶️' : '⏳';
-                    optionsHTML += `<option value="${week.id}">${statusIcon} ${week.label}</option>`;
-                });
-                optionsHTML += '</optgroup>';
+            // Filter options based on current view
+            if (currentView === 'monthly') {
+                // In monthly view, only show completed months
+                if (isCompleteMonth) {
+                    optionsHTML += `<option value="MONTH_${monthYear}">📊 ${monthYear} (Monthly Summary)</option>`;
+                }
+            } else if (currentView === 'weekly') {
+                // In weekly view, only show weekly options (not completed months)
+                if (!isCompleteMonth) {
+                    if (isCurrentWorkingMonth) {
+                        // Show weekly options for current working month
+                        optionsHTML += `<optgroup label="📅 ${monthYear} - Current Month">`;
+                        monthGroups[monthYear].forEach(week => {
+                            const statusIcon = week.id === this.currentWeek?.id ? '▶️' : '⏳';
+                            optionsHTML += `<option value="${week.id}">${statusIcon} ${week.label}</option>`;
+                        });
+                        optionsHTML += '</optgroup>';
+                    } else {
+                        // Show other active months (not complete, not current working month)
+                        const hasWeeks = monthGroups[monthYear].length > 0;
+                        if (hasWeeks) {
+                            optionsHTML += `<optgroup label="📅 ${monthYear}">`;
+                            monthGroups[monthYear].forEach(week => {
+                                optionsHTML += `<option value="${week.id}">⏳ ${week.label}</option>`;
+                            });
+                            optionsHTML += '</optgroup>';
+                        }
+                    }
+                }
             } else {
-                // Show other active months (not complete, not current working month)
-                const hasWeeks = monthGroups[monthYear].length > 0;
-                if (hasWeeks) {
-                    optionsHTML += `<optgroup label="📅 ${monthYear}">`;
+                // For person view or default, show all options
+                if (isCompleteMonth) {
+                    optionsHTML += `<option value="MONTH_${monthYear}">📊 ${monthYear} (Monthly Summary)</option>`;
+                } else if (isCurrentWorkingMonth) {
+                    optionsHTML += `<optgroup label="📅 ${monthYear} - Current Month">`;
                     monthGroups[monthYear].forEach(week => {
-                        optionsHTML += `<option value="${week.id}">⏳ ${week.label}</option>`;
+                        const statusIcon = week.id === this.currentWeek?.id ? '▶️' : '⏳';
+                        optionsHTML += `<option value="${week.id}">${statusIcon} ${week.label}</option>`;
                     });
                     optionsHTML += '</optgroup>';
+                } else {
+                    const hasWeeks = monthGroups[monthYear].length > 0;
+                    if (hasWeeks) {
+                        optionsHTML += `<optgroup label="📅 ${monthYear}">`;
+                        monthGroups[monthYear].forEach(week => {
+                            optionsHTML += `<option value="${week.id}">⏳ ${week.label}</option>`;
+                        });
+                        optionsHTML += '</optgroup>';
+                    }
                 }
             }
         });
         
         weekSelect.innerHTML = optionsHTML;
+        
+        // Update placeholder text based on view
+        const placeholder = weekSelect.querySelector('option[value=""]');
+        if (placeholder) {
+            if (currentView === 'monthly') {
+                placeholder.textContent = 'Select a month...';
+            } else if (currentView === 'weekly') {
+                placeholder.textContent = 'Select a week...';
+            } else {
+                placeholder.textContent = 'Select a period...';
+            }
+        }
     }
     
     async loadRealData() {
@@ -1596,6 +1641,73 @@ class RealEfficiencyTracker {
         // Fallback to current calendar week
         console.log(`⚠️ No incomplete weeks found for ${this.currentTeam}, using calendar current`);
         return this.weekSystem.getCurrentWeek();
+    }
+    
+    resetFiltersOnTeamSwitch() {
+        console.log(`🔄 Resetting filters for team switch to ${this.currentTeam}`);
+        
+        // Reset week/month selector to default
+        const weekSelect = document.getElementById('week-select');
+        if (weekSelect) {
+            weekSelect.value = '';
+            weekSelect.innerHTML = '<option value="">Select a period...</option>';
+        }
+        
+        // Reset person selector to default
+        const personSelect = document.getElementById('person-select');
+        if (personSelect) {
+            personSelect.value = '';
+        }
+        
+        // Reset to weekly view by default
+        const weeklyBtn = document.querySelector('.view-btn[data-view="weekly"]');
+        const monthlyBtn = document.querySelector('.view-btn[data-view="monthly"]');
+        const personBtn = document.querySelector('.view-btn[data-view="person"]');
+        
+        if (weeklyBtn && monthlyBtn && personBtn) {
+            // Reset button states
+            [weeklyBtn, monthlyBtn, personBtn].forEach(btn => btn.classList.remove('active'));
+            weeklyBtn.classList.add('active');
+            
+            // Show weekly view
+            this.showWeeklyView();
+        }
+        
+        // Clear any displayed data
+        const dataContainer = document.getElementById('data-container');
+        if (dataContainer) {
+            dataContainer.innerHTML = '<p>Please select a week to view data.</p>';
+        }
+        
+        // Clear week info
+        const weekInfo = document.getElementById('week-info');
+        if (weekInfo) {
+            weekInfo.style.display = 'none';
+        }
+        
+        // Repopulate the week selector for this team
+        this.populateWeekSelector();
+        
+        console.log(`✅ Filters reset for ${this.currentTeam}`);
+    }
+    
+    updateViewButtonStates(activeView) {
+        const viewButtons = document.querySelectorAll('.view-btn');
+        viewButtons.forEach(btn => {
+            btn.classList.remove('active');
+            // Set data-view attribute if not present
+            if (!btn.hasAttribute('data-view')) {
+                if (btn.textContent.includes('Weekly')) btn.setAttribute('data-view', 'weekly');
+                else if (btn.textContent.includes('Monthly')) btn.setAttribute('data-view', 'monthly');
+                else if (btn.textContent.includes('Person')) btn.setAttribute('data-view', 'person');
+            }
+        });
+        
+        // Set active view
+        const activeBtn = document.querySelector(`.view-btn[data-view="${activeView}"]`);
+        if (activeBtn) {
+            activeBtn.classList.add('active');
+        }
     }
     
     updateWeekInfo() {
@@ -2652,6 +2764,12 @@ class RealEfficiencyTracker {
     }
     
     showMonthlyView(monthYear) {
+        // Update view button states
+        this.updateViewButtonStates('monthly');
+        
+        // Refresh dropdown for monthly view
+        this.populateWeekSelector();
+        
         // Auto-detect monthYear if not provided
         if (!monthYear) {
             const weekSelect = document.getElementById('week-select');
@@ -2660,7 +2778,7 @@ class RealEfficiencyTracker {
                 monthYear = selectedValue.replace('MONTH_', '');
             } else {
                 // Default to first available month
-                monthYear = Object.keys(this.historicalData)[0];
+                monthYear = Object.keys(this.historicalData[this.currentTeam] || {})[0];
             }
         }
         
@@ -2803,11 +2921,17 @@ class RealEfficiencyTracker {
     }
     
     showWeeklyView() {
+        // Update view button states
+        this.updateViewButtonStates('weekly');
+        
         // Hide other views
         const monthlyTable = document.getElementById('monthly-table');
         const personView = document.getElementById('person-view');
         if (monthlyTable) monthlyTable.remove();
         if (personView) personView.style.display = 'none';
+        
+        // Refresh dropdown for weekly view
+        this.populateWeekSelector();
         
         // Update view buttons
         this.updateViewButtons('weekly');
@@ -3567,6 +3691,9 @@ class RealEfficiencyTracker {
             }
             
             // Refresh the interface for the new team
+            // Reset all filters and views when switching teams
+            this.resetFiltersOnTeamSwitch();
+            
             // Set the current week for this team (team-specific)
             this.setCurrentWeek();
             
@@ -5337,6 +5464,12 @@ class RealEfficiencyTracker {
     }
     
     showPersonView() {
+        // Update view button states
+        this.updateViewButtonStates('person');
+        
+        // Refresh dropdown for person view (show all periods)
+        this.populateWeekSelector();
+        
         // Hide other views
         const weeklyData = document.getElementById('efficiency-data');
         const monthlyTable = document.getElementById('monthly-table');
