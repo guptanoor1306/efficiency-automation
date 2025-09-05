@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nuclear Clear September Data</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .warning-box {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .btn {
+            background: #007bff;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        .btn.nuclear {
+            background: #dc3545;
+            font-weight: bold;
+        }
+        .btn:hover { 
+            opacity: 0.8;
+        }
+        .success { color: #28a745; font-weight: bold; }
+        .error { color: #dc3545; font-weight: bold; }
+        .info { color: #17a2b8; font-weight: bold; }
+        .warning { color: #ffc107; font-weight: bold; }
+        #log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 20px;
+            height: 500px;
+            overflow-y: auto;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>☢️ Nuclear Clear September Data</h1>
+        
+        <div class="warning-box">
+            <h2>⚠️ WARNING: COMPLETE DATA DESTRUCTION</h2>
+            <p><strong>This tool will completely obliterate ALL September 2025 data from ALL teams.</strong></p>
+            <ul>
+                <li>🗑️ Deletes ALL historical September data</li>
+                <li>🗑️ Deletes ALL finalized September reports</li>
+                <li>🗑️ Deletes ALL September week entries</li>
+                <li>🗑️ Clears ALL localStorage September references</li>
+                <li>🗑️ Works across B2B, Varsity, Harish, and Zero1 teams</li>
+            </ul>
+            <p><strong>This is irreversible and designed for testing team isolation.</strong></p>
+        </div>
+        
+        <button class="btn" onclick="scanAllSeptember()">🔍 Scan All September Data</button>
+        <button class="btn nuclear" onclick="nuclearClearSeptember()">☢️ NUCLEAR CLEAR ALL SEPTEMBER</button>
+        <button class="btn" onclick="clearLog()">📝 Clear Log</button>
+        
+        <div id="log"></div>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'success' ? 'success' : type === 'error' ? 'error' : type === 'warning' ? 'warning' : 'info';
+            logDiv.innerHTML += `<span class="${className}">${timestamp}: ${message}</span>\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+
+        function scanAllSeptember() {
+            log('🔍 Scanning ALL September data across all teams...', 'info');
+            
+            const teams = ['b2b', 'varsity', 'harish', 'zero1'];
+            let totalFound = 0;
+            
+            teams.forEach(team => {
+                log(`\n📋 Scanning ${team.toUpperCase()} team:`, 'info');
+                
+                // Check historical data
+                const historicalKey = `${team}_historical_data`;
+                const historical = localStorage.getItem(historicalKey);
+                if (historical) {
+                    try {
+                        const data = JSON.parse(historical);
+                        if (data['September 2025']) {
+                            log(`  ✅ Found September in ${team} historical data`, 'warning');
+                            totalFound++;
+                        } else {
+                            log(`  ❌ No September in ${team} historical data`);
+                        }
+                    } catch (e) {
+                        log(`  ⚠️ Error reading ${team} historical data: ${e.message}`, 'error');
+                    }
+                } else {
+                    log(`  ❌ No ${team} historical data found`);
+                }
+                
+                // Check finalized reports
+                const finalizedKey = `${team}_finalizedReports`;
+                const finalized = localStorage.getItem(finalizedKey);
+                if (finalized) {
+                    try {
+                        const reports = JSON.parse(finalized);
+                        const septemberKeys = Object.keys(reports).filter(key => key.includes('2025-09'));
+                        if (septemberKeys.length > 0) {
+                            log(`  ✅ Found ${septemberKeys.length} September finalized reports in ${team}`, 'warning');
+                            log(`    Keys: ${septemberKeys.join(', ')}`);
+                            totalFound++;
+                        } else {
+                            log(`  ❌ No September finalized reports in ${team}`);
+                        }
+                    } catch (e) {
+                        log(`  ⚠️ Error reading ${team} finalized reports: ${e.message}`, 'error');
+                    }
+                } else {
+                    log(`  ❌ No ${team} finalized reports found`);
+                }
+                
+                // Check week entries
+                const entriesKey = `${team}_weekEntries`;
+                const entries = localStorage.getItem(entriesKey);
+                if (entries) {
+                    try {
+                        const weekEntries = JSON.parse(entries);
+                        const septemberKeys = Object.keys(weekEntries).filter(key => key.includes('2025-09'));
+                        if (septemberKeys.length > 0) {
+                            log(`  ✅ Found ${septemberKeys.length} September week entries in ${team}`, 'warning');
+                            log(`    Keys: ${septemberKeys.join(', ')}`);
+                            totalFound++;
+                        } else {
+                            log(`  ❌ No September week entries in ${team}`);
+                        }
+                    } catch (e) {
+                        log(`  ⚠️ Error reading ${team} week entries: ${e.message}`, 'error');
+                    }
+                } else {
+                    log(`  ❌ No ${team} week entries found`);
+                }
+            });
+            
+            log(`\n🎯 SCAN COMPLETE: Found ${totalFound} September data stores`, totalFound > 0 ? 'warning' : 'success');
+            if (totalFound > 0) {
+                log('☢️ Use "NUCLEAR CLEAR" to remove all September data', 'warning');
+            } else {
+                log('✅ No September data found - system is clean', 'success');
+            }
+        }
+
+        function nuclearClearSeptember() {
+            log('☢️ INITIATING NUCLEAR SEPTEMBER CLEARING...', 'error');
+            log('⚠️ THIS WILL DESTROY ALL SEPTEMBER DATA', 'error');
+            
+            const teams = ['b2b', 'varsity', 'harish', 'zero1'];
+            let totalCleared = 0;
+            
+            teams.forEach(team => {
+                log(`\n💣 Nuking ${team.toUpperCase()} September data...`, 'warning');
+                
+                // Clear historical data
+                const historicalKey = `${team}_historical_data`;
+                try {
+                    const historical = localStorage.getItem(historicalKey);
+                    if (historical) {
+                        const data = JSON.parse(historical);
+                        if (data['September 2025']) {
+                            delete data['September 2025'];
+                            localStorage.setItem(historicalKey, JSON.stringify(data));
+                            log(`  ☢️ DESTROYED September historical data for ${team}`, 'success');
+                            totalCleared++;
+                        }
+                    }
+                } catch (e) {
+                    log(`  ❌ Error clearing ${team} historical: ${e.message}`, 'error');
+                }
+                
+                // Clear finalized reports
+                const finalizedKey = `${team}_finalizedReports`;
+                try {
+                    const finalized = localStorage.getItem(finalizedKey);
+                    if (finalized) {
+                        const reports = JSON.parse(finalized);
+                        const septemberKeys = Object.keys(reports).filter(key => key.includes('2025-09'));
+                        if (septemberKeys.length > 0) {
+                            septemberKeys.forEach(key => delete reports[key]);
+                            localStorage.setItem(finalizedKey, JSON.stringify(reports));
+                            log(`  ☢️ DESTROYED ${septemberKeys.length} finalized reports for ${team}`, 'success');
+                            totalCleared++;
+                        }
+                    }
+                } catch (e) {
+                    log(`  ❌ Error clearing ${team} finalized: ${e.message}`, 'error');
+                }
+                
+                // Clear week entries
+                const entriesKey = `${team}_weekEntries`;
+                try {
+                    const entries = localStorage.getItem(entriesKey);
+                    if (entries) {
+                        const weekEntries = JSON.parse(entries);
+                        const septemberKeys = Object.keys(weekEntries).filter(key => key.includes('2025-09'));
+                        if (septemberKeys.length > 0) {
+                            septemberKeys.forEach(key => delete weekEntries[key]);
+                            localStorage.setItem(entriesKey, JSON.stringify(weekEntries));
+                            log(`  ☢️ DESTROYED ${septemberKeys.length} week entries for ${team}`, 'success');
+                            totalCleared++;
+                        }
+                    }
+                } catch (e) {
+                    log(`  ❌ Error clearing ${team} entries: ${e.message}`, 'error');
+                }
+            });
+            
+            // Additional nuclear cleanup - remove any stray September references
+            log('\n🧹 Additional cleanup...', 'info');
+            try {
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && key.includes('september') || key.includes('September') || key.includes('2025-09')) {
+                        log(`  🗑️ Removing stray key: ${key}`, 'warning');
+                        localStorage.removeItem(key);
+                        totalCleared++;
+                        i--; // Adjust index as localStorage.length changes
+                    }
+                }
+            } catch (e) {
+                log(`  ⚠️ Additional cleanup warning: ${e.message}`, 'warning');
+            }
+            
+            log(`\n🎉 NUCLEAR CLEARING COMPLETE!`, 'success');
+            log(`☢️ Destroyed ${totalCleared} September data stores`, 'success');
+            log(`✅ ALL September data has been obliterated`, 'success');
+            log(`🔄 Refresh the main app to see clean state`, 'info');
+            log(`📝 All teams should now show September as available for input`, 'info');
+        }
+
+        // Auto-scan on load
+        window.onload = function() {
+            log('☢️ Nuclear September Clearing Tool Ready', 'warning');
+            log('⚠️ This tool will completely destroy all September data', 'warning');
+            setTimeout(scanAllSeptember, 1000);
+        };
+    </script>
+</body>
+</html>
