@@ -1912,7 +1912,7 @@ class RealEfficiencyTracker {
         const efficiencyDisplay = document.getElementById(`efficiency-${memberName}`);
         
         if (weekTotalDisplay) {
-            weekTotalDisplay.textContent = totalDays.toFixed(2);
+            weekTotalDisplay.textContent = totalDays.toFixed(1);
         }
         
         if (targetDisplay) {
@@ -1920,7 +1920,7 @@ class RealEfficiencyTracker {
         }
         
         if (efficiencyDisplay) {
-            efficiencyDisplay.textContent = efficiency.toFixed(2) + '%';
+            efficiencyDisplay.textContent = efficiency.toFixed(1) + '%';
             // Color code efficiency
             if (efficiency >= 90) {
                 efficiencyDisplay.style.color = '#28a745'; // Green
@@ -1933,9 +1933,9 @@ class RealEfficiencyTracker {
         
         // Show calculation in console for debugging
         console.log(`${memberName} calculation:`, {
-            'Total Days Used': totalDays.toFixed(2),
+            'Total Days Used': totalDays.toFixed(1),
             'Effective Working Days': effectiveWorkingDays,
-            'Efficiency': efficiency.toFixed(2) + '%'
+            'Efficiency': efficiency.toFixed(1) + '%'
         });
     }
     
@@ -2100,7 +2100,7 @@ class RealEfficiencyTracker {
         const weeklyRating = weeklyRatingInput ? parseFloat(weeklyRatingInput.value) || 0 : 0;
         
         // Update displays
-        document.getElementById('week-total-display').textContent = weekTotal.toFixed(2);
+        document.getElementById('week-total-display').textContent = weekTotal.toFixed(1);
         document.getElementById('member-target').textContent = effectiveWorkingDays; // Target = effective working days
         
         // Show calculation guidance if no data entered yet
@@ -2110,19 +2110,19 @@ class RealEfficiencyTracker {
                 'Working Days': workingDays,
                 'Leave Days': leaveDays,
                 'Effective Working Days (Target)': effectiveWorkingDays,
-                'Expected Total Output': calculatedOutput.toFixed(2),
+                'Expected Total Output': calculatedOutput.toFixed(1),
                 'Expected Efficiency': efficiency.toFixed(1) + '%'
             });
         }
         
         // Show breakdown in console for debugging
         console.log('Week Summary:', {
-            'Week Total (Sum of Outputs)': weekTotal.toFixed(2),
+            'Week Total (Sum of Outputs)': weekTotal.toFixed(1),
             'Weekly Rating (Quality)': weeklyRating,
             'Working Days': workingDays,
             'Leave Days': leaveDays,
             'Target (Effective Working Days)': effectiveWorkingDays,
-            'Expected Output Based on Targets': calculatedOutput.toFixed(2)
+            'Expected Output Based on Targets': calculatedOutput.toFixed(1)
         });
     }
     
@@ -2398,7 +2398,7 @@ class RealEfficiencyTracker {
                 const rating = parseFloat(ratingSelect?.value) || 0;
                 const target = workingDays - leaveDays;
                 const totalOutput = this.calculateMemberTotalOutput(member.name);
-                const efficiency = target > 0 ? ((totalOutput / target) * 100).toFixed(2) : 0;
+                const efficiency = target > 0 ? ((totalOutput / target) * 100).toFixed(1) : 0;
                 
                 // Get work type values based on current team
                 let teamWorkTypes;
@@ -2432,7 +2432,7 @@ class RealEfficiencyTracker {
                 
                 // Add summary data
                 rowData.push(
-                    totalOutput.toFixed(2),
+                    totalOutput.toFixed(1),
                     workingDays,
                     leaveDays,
                     rating,
@@ -2703,7 +2703,7 @@ class RealEfficiencyTracker {
                                     <td style="font-weight: bold; color: #27ae60;">${member.monthlyRating}</td>
                                     <td>
                                         <span class="efficiency-score ${this.getEfficiencyClass((efficiency/member.target) * 100)}">
-                                            ${((member.totalOutput/member.target) * 100).toFixed(2)}%
+                                            ${((member.totalOutput/member.target) * 100).toFixed(1)}%
                                         </span>
                                     </td>
                                     <td>
@@ -3074,8 +3074,8 @@ class RealEfficiencyTracker {
                 weekSummary.weekName,
                 weekSummary.dateRange,
                 weekSummary.teamCount,
-                weekSummary.avgOutput.toFixed(2),
-                weekSummary.avgRating.toFixed(2),
+                weekSummary.avgOutput.toFixed(1),
+                weekSummary.avgRating.toFixed(1),
                 weekSummary.avgEfficiency.toFixed(1),
                 weekSummary.finalizedAt,
                 'AUTO_FINALIZED'
@@ -3192,11 +3192,18 @@ class RealEfficiencyTracker {
             
             // 6. Update current week to first week of next month
             const nextMonthWeeks = this.weekSystem.getWeeksForMonth(nextMonth.month, nextMonth.year);
+            console.log(`Next month weeks found: ${nextMonthWeeks.length}`);
             if (nextMonthWeeks.length > 0) {
                 this.currentWeek = nextMonthWeeks[0];
-                this.loadWeekData();
+                console.log(`Moving to week: ${this.currentWeek.label}`);
+                
+                // Force refresh the week selector and data
+                this.populateWeekSelector();
                 this.updateWeekInfo();
-                this.populateWeekSelector(); // Refresh week dropdown
+                this.loadWeekData();
+                this.generateTeamDataRows();
+            } else {
+                console.error('No weeks found for next month:', nextMonth);
             }
             
             // 7. Show success message
@@ -3409,7 +3416,7 @@ class RealEfficiencyTracker {
                 
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 20px;">
                     <div style="background: #e8f5e8; padding: 12px; border-radius: 6px; text-align: center;">
-                        <div style="font-size: 20px; font-weight: bold; color: #28a745;">${weekSummary.avgOutput.toFixed(2)}</div>
+                        <div style="font-size: 20px; font-weight: bold; color: #28a745;">${weekSummary.avgOutput.toFixed(1)}</div>
                         <div style="color: #6c757d; font-size: 12px;">Avg Output (Days)</div>
                     </div>
                     <div style="background: #e3f2fd; padding: 12px; border-radius: 6px; text-align: center;">

@@ -13,43 +13,69 @@ class WeekSystem {
     
     generateWeeksFrom2025() {
         const weeks = [];
-        const startDate = new Date('2025-01-06'); // First Monday of 2025
         const currentDate = new Date();
         
-        // Add some weeks into the future for planning
-        const endDate = new Date(currentDate);
-        endDate.setMonth(endDate.getMonth() + 3);
+        // Generate weeks for 2025 and some future months
+        const startYear = 2025;
+        const endYear = currentDate.getFullYear() + 1;
         
-        let weekStart = new Date(startDate);
-        let weekNumber = 1;
-        
-        while (weekStart <= endDate) {
-            const weekEnd = new Date(weekStart);
-            weekEnd.setDate(weekStart.getDate() + 4); // Friday
+        for (let year = startYear; year <= endYear; year++) {
+            const monthLimit = year === endYear ? currentDate.getMonth() + 3 : 11;
             
-            const week = {
-                id: this.getWeekId(weekStart),
-                weekNumber: weekNumber,
-                year: weekStart.getFullYear(),
-                month: weekStart.getMonth() + 1,
-                monthName: weekStart.toLocaleDateString('en-US', { month: 'long' }),
-                startDate: new Date(weekStart),
-                endDate: new Date(weekEnd),
-                dateRange: `${this.formatDate(weekStart)} - ${this.formatDate(weekEnd)}`,
-                days: this.generateWeekDays(weekStart),
-                isPast: weekEnd < currentDate,
-                isCurrent: this.isCurrentWeek(weekStart, weekEnd, currentDate),
-                isFuture: weekStart > currentDate
-            };
-            
-            weeks.push(week);
-            
-            // Move to next Monday
-            weekStart.setDate(weekStart.getDate() + 7);
-            weekNumber++;
+            for (let month = 0; month <= monthLimit; month++) {
+                const monthName = new Date(year, month, 1).toLocaleDateString('en-US', { month: 'long' });
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+                
+                // Week 1: 1-7
+                weeks.push(this.createFixedWeek(year, month, monthName, 1, 1, 7, currentDate));
+                
+                // Week 2: 8-14
+                weeks.push(this.createFixedWeek(year, month, monthName, 2, 8, 14, currentDate));
+                
+                // Week 3: 15-21
+                weeks.push(this.createFixedWeek(year, month, monthName, 3, 15, 21, currentDate));
+                
+                // Week 4: 22 to end of month
+                weeks.push(this.createFixedWeek(year, month, monthName, 4, 22, daysInMonth, currentDate));
+            }
         }
         
         return weeks;
+    }
+    
+    createFixedWeek(year, month, monthName, weekNum, startDay, endDay, currentDate) {
+        const startDate = new Date(year, month, startDay);
+        const endDate = new Date(year, month, endDay);
+        const weekId = `${year}-${String(month + 1).padStart(2, '0')}-${String(startDay).padStart(2, '0')}`;
+        
+        // Calculate working days (Monday-Friday only)
+        let workingDays = 0;
+        for (let day = startDay; day <= endDay; day++) {
+            const dayOfWeek = new Date(year, month, day).getDay();
+            if (dayOfWeek >= 1 && dayOfWeek <= 5) { // Monday = 1, Friday = 5
+                workingDays++;
+            }
+        }
+        
+        // Target calculation: 5 for first 3 weeks, working days for week 4
+        const target = weekNum <= 3 ? 5 : workingDays;
+        
+        return {
+            id: weekId,
+            weekNumber: weekNum,
+            year: year,
+            month: month + 1,
+            monthName: monthName,
+            startDate: startDate,
+            endDate: endDate,
+            dateRange: `${monthName.substr(0,3)} ${startDay}-${endDay}, ${year}`,
+            label: `Week ${weekNum} (${monthName.substr(0,3)} ${startDay}-${endDay})`,
+            workingDays: workingDays,
+            target: target,
+            isPast: endDate < currentDate,
+            isCurrent: currentDate >= startDate && currentDate <= endDate,
+            isFuture: startDate > currentDate
+        };
     }
     
     generateWeekDays(weekStart) {
