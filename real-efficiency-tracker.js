@@ -1402,14 +1402,20 @@ class RealEfficiencyTracker {
     }
     
     getActiveTeamMembers(team) {
+        console.log(`🔍 getActiveTeamMembers called for team: ${team}`);
+        console.log(`🔍 Available members in config:`, this.teamConfigs[team]?.members?.map(m => m.name || m));
+        
         // For B2B team: Satyam Gupta is completely removed from all input fields
         // He should only appear in historical data and person view for past months
         if (team === 'b2b') {
-            console.log('📅 Satyam Gupta removed from B2B team for all current inputs');
-            return this.teamConfigs[team].members.filter(member => member.name !== 'Satyam Gupta');
+            console.log('📅 Removing Satyam Gupta from B2B team for all current inputs');
+            const filteredMembers = this.teamConfigs[team].members.filter(member => member.name !== 'Satyam Gupta');
+            console.log(`🔍 Filtered B2B members:`, filteredMembers.map(m => m.name || m));
+            return filteredMembers;
         }
         
         // For all other teams, return all configured members
+        console.log(`🔍 Returning all members for ${team}`);
         return this.teamConfigs[team].members;
     }
     
@@ -3726,15 +3732,13 @@ class RealEfficiencyTracker {
             // Reset all filters and views when switching teams
             this.resetFiltersOnTeamSwitch();
             
-            // Set the current week for this team (team-specific)
-            this.setCurrentWeek();
-            
+            // Generate empty rows for the new team (without auto-loading data)
             this.generateTeamDataRows();
-            this.loadAllMembersData();
             
-            // Check finalization status for the new team
-            if (this.currentWeek) {
-                this.checkWeekFinalizationStatus();
+            // Show message prompting user to select a period
+            const dataContainer = document.getElementById('data-container');
+            if (dataContainer) {
+                dataContainer.innerHTML = '<p style="text-align: center; color: #6c757d; font-style: italic; padding: 20px;">Please select a period above to view and enter data.</p>';
             }
             
             // Update page title
