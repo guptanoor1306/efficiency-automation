@@ -143,20 +143,49 @@
                     }
                 }
                 
-                // Keep the finalized reports (so data isn't lost, just moved back to weekly view)
+                // ALSO remove September finalized reports to make weeks editable again
                 const b2bFinalized = localStorage.getItem('b2b_finalizedReports');
                 if (b2bFinalized) {
                     const reports = JSON.parse(b2bFinalized);
                     const septemberReports = Object.keys(reports).filter(key => key.includes('2025-09'));
                     
                     if (septemberReports.length > 0) {
-                        log(`✅ Keeping ${septemberReports.length} B2B September finalized reports`, 'success');
-                        log('These will now appear as weekly options instead of monthly summary');
+                        log(`Found ${septemberReports.length} B2B September finalized reports`, 'info');
+                        
+                        // Remove September finalized reports
+                        septemberReports.forEach(weekId => {
+                            delete reports[weekId];
+                        });
+                        
+                        localStorage.setItem('b2b_finalizedReports', JSON.stringify(reports));
+                        log(`✅ Removed ${septemberReports.length} September finalized reports`, 'success');
+                        log('September weeks are now editable again', 'success');
+                        changesM = true;
+                    } else {
+                        log('ℹ️ No September finalized reports found');
+                    }
+                }
+                
+                // ALSO clear September week entries to start fresh
+                const b2bWeekEntries = localStorage.getItem('b2b_weekEntries');
+                if (b2bWeekEntries) {
+                    const weekEntries = JSON.parse(b2bWeekEntries);
+                    const septemberEntries = Object.keys(weekEntries).filter(key => key.includes('2025-09'));
+                    
+                    if (septemberEntries.length > 0) {
+                        septemberEntries.forEach(weekId => {
+                            delete weekEntries[weekId];
+                        });
+                        
+                        localStorage.setItem('b2b_weekEntries', JSON.stringify(weekEntries));
+                        log(`✅ Cleared ${septemberEntries.length} September week entries`, 'success');
+                        changesM = true;
                     }
                 }
                 
                 if (changesM) {
                     log('🎉 B2B September clearing completed!', 'success');
+                    log('September is now completely reset for B2B team', 'success');
                     log('Now all teams should have equal access to September 2025', 'success');
                     log('Refresh the main app and test team switching', 'info');
                 } else {
