@@ -242,17 +242,35 @@
             // Additional nuclear cleanup - remove any stray September references
             log('\n🧹 Additional cleanup...', 'info');
             try {
+                const allKeys = [];
                 for (let i = 0; i < localStorage.length; i++) {
-                    const key = localStorage.key(i);
-                    if (key && key.includes('september') || key.includes('September') || key.includes('2025-09')) {
+                    allKeys.push(localStorage.key(i));
+                }
+                
+                allKeys.forEach(key => {
+                    if (key && (key.includes('september') || key.includes('September') || key.includes('2025-09'))) {
                         log(`  🗑️ Removing stray key: ${key}`, 'warning');
                         localStorage.removeItem(key);
                         totalCleared++;
-                        i--; // Adjust index as localStorage.length changes
                     }
-                }
+                });
             } catch (e) {
                 log(`  ⚠️ Additional cleanup warning: ${e.message}`, 'warning');
+            }
+            
+            // NUCLEAR OPTION: Clear ALL localStorage and force complete refresh
+            log('\n☢️ NUCLEAR OPTION: Complete localStorage wipe...', 'error');
+            try {
+                const confirmWipe = confirm('⚠️ NUCLEAR OPTION: Clear ALL localStorage data?\n\nThis will remove EVERYTHING including all team data.\nOnly do this if September data persists after normal clearing.\n\nClick OK to proceed with complete wipe.');
+                
+                if (confirmWipe) {
+                    localStorage.clear();
+                    log('☢️ COMPLETE LOCALSTORAGE WIPE EXECUTED', 'error');
+                    log('🔄 You MUST refresh the page now to reinitialize', 'warning');
+                    totalCleared += 50; // Arbitrary large number to indicate complete wipe
+                }
+            } catch (e) {
+                log(`  ⚠️ Nuclear wipe error: ${e.message}`, 'error');
             }
             
             log(`\n🎉 NUCLEAR CLEARING COMPLETE!`, 'success');
