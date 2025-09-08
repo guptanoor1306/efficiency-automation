@@ -1471,7 +1471,7 @@ class RealEfficiencyTracker {
     refreshCurrentDisplay() {
         try {
             if (this.currentWeek) {
-                this.showWeekInfo();
+                this.updateWeekInfo();
                 this.loadWeekData();
             }
         } catch (error) {

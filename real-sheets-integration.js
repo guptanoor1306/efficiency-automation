@@ -25,9 +25,9 @@ class RealSheetsAPI {
         // API Key for reading public data (if sheets are public)
         this.apiKey = 'AIzaSyBK1YXBwBm3q2SPhUGGLVCkOo8dX9fM-KY'; // Replace with your actual API key
         
-        // Separate Web App URLs for reading and writing
-        this.readWebAppUrl = 'https://script.google.com/macros/s/AKfycbzdkzDD0ZSJDQR0Iz3N6tSzOqp1HEbrygCy3edKyeQKffPzCmqCpjD-ZjgHS45ljNo/exec'; // For reading data sheet
-        this.writeWebAppUrl = 'https://script.google.com/macros/s/AKfycbyb0geUpjTe-k9SPT7bkVaXC3od3ObpR5XNVZ29EIVibMirvWAOS0MaD5FoTN2G4nw/exec'; // For writing weekly data
+        // FIXED: Use same Web App URL for both reading and writing current data (September onwards)
+        this.readWebAppUrl = 'https://script.google.com/macros/s/AKfycbyb0geUpjTe-k9SPT7bkVaXC3od3ObpR5XNVZ29EIVibMirvWAOS0MaD5FoTN2G4nw/exec'; // Current data (Sep+)
+        this.writeWebAppUrl = 'https://script.google.com/macros/s/AKfycbyb0geUpjTe-k9SPT7bkVaXC3od3ObpR5XNVZ29EIVibMirvWAOS0MaD5FoTN2G4nw/exec'; // Current data (Sep+)
     }
     
     async authenticate() {
