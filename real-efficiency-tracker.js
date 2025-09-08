@@ -3970,8 +3970,8 @@ class RealEfficiencyTracker {
         this.finalizedReports = finalizedReports;
         this.saveTeamSpecificData();
         
-        // CRITICAL: Save current week data permanently AND force sync to Google Sheets
-        console.log('💾 Finalizing week - forcing comprehensive save to Google Sheets...');
+        // CRITICAL: Save current week data permanently AND force sync to Supabase
+        console.log('💾 Finalizing week - forcing comprehensive save to Supabase...');
         
         // Save locally first
         await this.saveWeekDataSilently();
@@ -5453,27 +5453,31 @@ class RealEfficiencyTracker {
             finalizedReportsData: this.finalizedReports
         });
         
-        // CRITICAL: Always try to sync with Google Sheets to get latest data from other browsers
-        console.log(`🔄 Loading latest data from Google Sheets for ${this.currentTeam}...`);
-        await this.syncWithGoogleSheetsOnLoad();
+        // CRITICAL: Always try to sync with Supabase to get latest data from other browsers
+        console.log(`🔄 Loading latest data from Supabase for ${this.currentTeam}...`);
+        await this.syncWithSupabaseOnLoad();
     }
     
-    // Sync with Google Sheets when loading data
-    async syncWithGoogleSheetsOnLoad() {
+    // Sync with Supabase when loading data
+    async syncWithSupabaseOnLoad() {
         try {
-            console.log(`🔄 Syncing ${this.currentTeam} data with Google Sheets...`);
+            console.log(`🔄 Syncing ${this.currentTeam} data with Supabase...`);
             
-            // Try to read latest data from Google Sheets
-            const sheetData = await this.readFromGoogleSheets();
-            
-            if (sheetData && sheetData.length > 0) {
-                // Merge with local data using conflict resolution
-                await this.mergeSheetDataWithLocal(sheetData);
-                console.log(`✅ Synced ${this.currentTeam} data with Google Sheets`);
+            // Try to read latest data from Supabase for current week
+            if (this.currentWeek) {
+                const supabaseData = await this.supabaseAPI.loadWeekData(this.currentTeam, this.currentWeek);
+                
+                if (supabaseData && supabaseData.length > 0) {
+                    // Populate UI with Supabase data
+                    this.populateUIFromSupabaseData(supabaseData);
+                    console.log(`✅ Synced ${supabaseData.length} entries from Supabase for ${this.currentWeek}`);
+                } else {
+                    console.log(`ℹ️ No Supabase data found for ${this.currentTeam} ${this.currentWeek}`);
+                }
             }
             
         } catch (error) {
-            console.warn(`⚠️ Could not sync with Google Sheets on load:`, error.message);
+            console.warn(`⚠️ Could not sync with Supabase on load:`, error.message);
             console.log(`📱 Using local data for ${this.currentTeam}`);
         }
     }
