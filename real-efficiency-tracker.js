@@ -1501,14 +1501,14 @@ class RealEfficiencyTracker {
             
             // Load current week data
             if (this.currentWeek) {
-                const weekData = await this.supabaseAPI.loadWeekData(this.currentTeam, this.currentWeek);
+                const weekData = await this.supabaseAPI.loadWeekData(this.currentTeam, this.currentWeek.id);
                 if (weekData && weekData.length > 0) {
-                    console.log(`✅ Loaded ${weekData.length} entries for ${this.currentWeek}`);
+                    console.log(`✅ Loaded ${weekData.length} entries for ${this.currentWeek.id}`);
                     
                     // Convert Supabase data to local format
                     this.populateUIFromSupabaseData(weekData);
                 } else {
-                    console.log(`ℹ️ No data found for ${this.currentTeam} ${this.currentWeek}`);
+                    console.log(`ℹ️ No data found for ${this.currentTeam} ${this.currentWeek.id}`);
                 }
             }
             
@@ -5465,14 +5465,14 @@ class RealEfficiencyTracker {
             
             // Try to read latest data from Supabase for current week
             if (this.currentWeek) {
-                const supabaseData = await this.supabaseAPI.loadWeekData(this.currentTeam, this.currentWeek);
+                const supabaseData = await this.supabaseAPI.loadWeekData(this.currentTeam, this.currentWeek.id);
                 
                 if (supabaseData && supabaseData.length > 0) {
                     // Populate UI with Supabase data
                     this.populateUIFromSupabaseData(supabaseData);
-                    console.log(`✅ Synced ${supabaseData.length} entries from Supabase for ${this.currentWeek}`);
+                    console.log(`✅ Synced ${supabaseData.length} entries from Supabase for ${this.currentWeek.id}`);
                 } else {
-                    console.log(`ℹ️ No Supabase data found for ${this.currentTeam} ${this.currentWeek}`);
+                    console.log(`ℹ️ No Supabase data found for ${this.currentTeam} ${this.currentWeek.id}`);
                 }
             }
             
@@ -5785,7 +5785,7 @@ class RealEfficiencyTracker {
                 const savePromises = Object.entries(weekData).map(async ([memberName, memberData]) => {
                     return await this.supabaseAPI.saveWeekData(
                         this.currentTeam,
-                        this.currentWeek,
+                        this.currentWeek.id,
                         memberName,
                         memberData
                     );
