@@ -3953,10 +3953,10 @@ class RealEfficiencyTracker {
         console.log('💾 Finalizing week - forcing comprehensive save to Supabase...');
         
         try {
-            // Save locally first
-            console.log('📝 Step 1: Saving locally...');
-            await this.saveWeekDataSilently();
-            console.log('✅ Step 1 complete: Local save done');
+            // Save locally first (collect data from UI and store in weekEntries)
+            console.log('📝 Step 1: Collecting and saving data locally...');
+            await this.saveWeekData(); // This populates weekEntries from UI
+            console.log('✅ Step 1 complete: Data collected and saved locally');
             
             // Then force sync to Database with extra retries for finalization
             console.log('📝 Step 2: Starting Supabase save...');
