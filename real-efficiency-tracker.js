@@ -1561,7 +1561,7 @@ class RealEfficiencyTracker {
             });
             
             // Trigger calculations to update efficiency displays
-            this.calculateAllMembersEfficiency();
+            this.calculateTotals();
             
             console.log('✅ UI populated from Supabase data');
         } catch (error) {
