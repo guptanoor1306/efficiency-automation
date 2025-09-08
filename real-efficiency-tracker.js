@@ -1477,6 +1477,124 @@ class RealEfficiencyTracker {
     }
     
 
+    // UTILITY: Clear all September data for all teams (admin function)
+    async clearAllSeptemberData() {
+        const confirmed = confirm(`🧹 ADMIN FUNCTION: Clear ALL September 2025 data for ALL teams?\n\nThis will clear:\n- B2B Team September data\n- Varsity Team September data\n- Zero1 (Bratish) Team September data\n- Zero1 (Harish) Team September data\n\nThis action cannot be undone!`);
+        
+        if (!confirmed) return;
+        
+        console.log('🧹 Starting comprehensive September data cleanup...');
+        this.showMessage('🧹 Clearing all September data for all teams...', 'info');
+        
+        const originalTeam = this.currentTeam;
+        const teams = ['b2b', 'varsity', 'zero1', 'harish'];
+        let totalCleared = 0;
+        
+        for (const team of teams) {
+            try {
+                console.log(`🗑️ Clearing September data for ${team} team...`);
+                
+                // Switch to team
+                this.currentTeam = team;
+                await this.loadTeamSpecificData();
+                
+                // Get September weeks
+                const septemberWeeks = this.weekSystem.getWeeksForMonth('September', 2025);
+                console.log(`Found ${septemberWeeks.length} September weeks for ${team}`);
+                
+                // Clear week entries
+                septemberWeeks.forEach(week => {
+                    Object.keys(this.weekEntries).forEach(entryKey => {
+                        if (entryKey.startsWith(week.id)) {
+                            delete this.weekEntries[entryKey];
+                            totalCleared++;
+                            console.log(`🗑️ Cleared ${team}: ${entryKey}`);
+                        }
+                    });
+                    
+                    // Clear finalized reports
+                    const weekKey = week.id;
+                    if (this.finalizedReports[weekKey]) {
+                        delete this.finalizedReports[weekKey];
+                        console.log(`🗑️ Cleared ${team} finalized: ${weekKey}`);
+                    }
+                });
+                
+                // Save cleared data for this team
+                this.saveTeamSpecificData();
+                
+                console.log(`✅ Cleared September data for ${team} team`);
+                
+            } catch (error) {
+                console.error(`❌ Error clearing ${team} team data:`, error);
+            }
+        }
+        
+        // Clear from Google Sheets for all teams
+        try {
+            await this.clearAllSeptemberFromSheets();
+            console.log('✅ Cleared September data from all Google Sheets');
+        } catch (error) {
+            console.warn('⚠️ Could not clear from Google Sheets:', error);
+        }
+        
+        // Restore original team
+        this.currentTeam = originalTeam;
+        await this.loadTeamSpecificData();
+        
+        // Refresh display
+        this.populateWeekSelector();
+        this.loadWeekData();
+        this.updateButtonVisibility();
+        
+        console.log(`✅ September cleanup complete! Cleared ${totalCleared} entries across all teams`);
+        this.showMessage(`✅ September data cleared for all teams! (${totalCleared} entries removed)`, 'success');
+        
+        return totalCleared;
+    }
+    
+    // Clear September data from Google Sheets for all teams
+    async clearAllSeptemberFromSheets() {
+        const teams = ['B2B', 'VARSITY', 'ZERO1', 'HARISH'];
+        const promises = teams.map(async (team) => {
+            try {
+                const webAppUrl = this.sheetsAPI.writeWebAppUrl;
+                const sheetName = `${team}_Weekly_Tracking`;
+                
+                const payload = {
+                    action: 'clearSeptemberData',
+                    spreadsheetId: '1s_q5uyLKNcWL_JdiP05BOu2gmO_VvxFZROx0ZzwB64U',
+                    sheetName: sheetName,
+                    month: '2025-09'
+                };
+                
+                console.log(`Clearing September from ${sheetName}:`, payload);
+                
+                const response = await fetch(webAppUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
+                const result = await response.json();
+                console.log(`${team} sheet clear result:`, result);
+                
+                return result;
+                
+            } catch (error) {
+                console.error(`Error clearing ${team} sheet:`, error);
+                return { success: false, error: error.message };
+            }
+        });
+        
+        const results = await Promise.all(promises);
+        console.log('All sheet clear results:', results);
+        
+        return results;
+    }
+
     // UTILITY: Clear current team's data for selected period
     async clearCurrentTeamData() {
         if (!this.currentWeek) {
@@ -2069,15 +2187,15 @@ class RealEfficiencyTracker {
     
     setCurrentWeek() {
         try {
-            // Find the first incomplete week for this team
-            const currentWeek = this.getFirstIncompleteWeek();
-            if (currentWeek) {
+        // Find the first incomplete week for this team
+        const currentWeek = this.getFirstIncompleteWeek();
+        if (currentWeek) {
                 const weekSelect = document.getElementById('week-select');
                 if (weekSelect) {
                     weekSelect.value = currentWeek.id;
                 }
-                this.currentWeek = currentWeek;
-                this.updateWeekInfo();
+            this.currentWeek = currentWeek;
+            this.updateWeekInfo();
                 console.log(`Set current week: ${currentWeek.label}`);
             } else {
                 // Fallback to first available week
@@ -2217,11 +2335,11 @@ class RealEfficiencyTracker {
             if (weekInfo) weekInfo.style.display = 'block';
             if (weekTitle) {
                 weekTitle.textContent = 
-                    `Week ${this.currentWeek.weekNumber} - ${this.currentWeek.monthName} ${this.currentWeek.year}`;
+            `Week ${this.currentWeek.weekNumber} - ${this.currentWeek.monthName} ${this.currentWeek.year}`;
             }
             if (weekDates) {
                 weekDates.textContent = 
-                    `${this.currentWeek.dateRange} (Monday to Friday)`;
+            `${this.currentWeek.dateRange} (Monday to Friday)`;
             }
         } catch (error) {
             console.warn('Error updating week info:', error);
@@ -6747,3 +6865,21 @@ let tracker;
 document.addEventListener('DOMContentLoaded', () => {
     tracker = new RealEfficiencyTracker();
 });
+
+// Admin function for console access
+function showAdminButtons() {
+    const adminBtn = document.getElementById('admin-clear-september');
+    if (adminBtn) {
+        adminBtn.style.display = 'inline-flex';
+        console.log('✅ Admin September clear button is now visible');
+    }
+}
+
+// Quick console command for clearing September data
+function clearAllSeptember() {
+    if (tracker) {
+        tracker.clearAllSeptemberData();
+    } else {
+        console.error('Tracker not initialized yet');
+    }
+}
