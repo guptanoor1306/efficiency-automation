@@ -1560,8 +1560,12 @@ class RealEfficiencyTracker {
                 }
             });
             
-            // Trigger calculations to update efficiency displays
-            this.calculateTotals();
+            // Trigger calculations to update efficiency displays (with safety check)
+            try {
+                this.calculateTotals();
+            } catch (error) {
+                console.log('⚠️ Skipping calculations - UI elements not ready:', error.message);
+            }
             
             console.log('✅ UI populated from Supabase data');
         } catch (error) {
@@ -2964,9 +2968,15 @@ class RealEfficiencyTracker {
         let weekTotal = 0;
         let calculatedOutput = 0;
         
-        // Get working days and leave days
+        // Get working days and leave days (with safety checks)
         const workingDaysSelect = document.getElementById('working-days');
         const leaveDaysSelect = document.getElementById('leave-days');
+        
+        if (!workingDaysSelect || !leaveDaysSelect) {
+            console.log('⚠️ Working days or leave days elements not found, skipping calculations');
+            return;
+        }
+        
         const workingDays = parseInt(workingDaysSelect.value) || 5;
         const leaveDays = parseFloat(leaveDaysSelect.value) || 0;
         
