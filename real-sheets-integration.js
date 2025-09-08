@@ -95,14 +95,12 @@ class RealSheetsAPI {
             console.log(`📖 Reading data from range: ${range}`);
             console.log(`🔗 Using new script URL: ${webAppUrl}`);
             
-            // Use GET request with proper CORS headers
+            // Use simple GET request (no custom headers to avoid preflight)
             const url = `${webAppUrl}?action=readData&range=${encodeURIComponent(range)}`;
             
             const response = await fetch(url, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                }
+                method: 'GET'
+                // No custom headers to avoid CORS preflight
             });
             
             if (!response.ok) {
