@@ -3273,76 +3273,76 @@ class RealEfficiencyTracker {
     
     // REMOVED: saveToGoogleSheets() method to prevent duplicate calls
     // Use writeToGoogleSheetsDirectly() instead
-    
+            
     // Direct write to Google Sheets without nested calls
     async writeToGoogleSheetsDirectly() {
-        // Prepare data for new WeeklyTracking sheet
-        const weekData = [];
-        const currentDate = new Date().toISOString();
-        
-        // Add current week data for all members (only those with data)
-        this.teamMembers.forEach(member => {
-            const workingDaysSelect = document.querySelector(`[data-member="${member.name}"].working-days-select`);
-            const leaveDaysSelect = document.querySelector(`[data-member="${member.name}"].leave-days-select`);
-            const ratingSelect = document.querySelector(`[data-member="${member.name}"].weekly-rating-input`);
+            // Prepare data for new WeeklyTracking sheet
+            const weekData = [];
+            const currentDate = new Date().toISOString();
             
-            const workingDays = parseInt(workingDaysSelect?.value) || 5;
+        // Add current week data for all members (only those with data)
+            this.teamMembers.forEach(member => {
+                const workingDaysSelect = document.querySelector(`[data-member="${member.name}"].working-days-select`);
+                const leaveDaysSelect = document.querySelector(`[data-member="${member.name}"].leave-days-select`);
+                const ratingSelect = document.querySelector(`[data-member="${member.name}"].weekly-rating-input`);
+                
+                const workingDays = parseInt(workingDaysSelect?.value) || 5;
             const leaveDays = parseFloat(leaveDaysSelect?.value) || 0;
-            const rating = parseFloat(ratingSelect?.value) || 0;
-            const target = workingDays - leaveDays;
-            const totalOutput = this.calculateMemberTotalOutput(member.name);
-            const efficiency = target > 0 ? ((totalOutput / target) * 100).toFixed(1) : 0;
+                const rating = parseFloat(ratingSelect?.value) || 0;
+                const target = workingDays - leaveDays;
+                const totalOutput = this.calculateMemberTotalOutput(member.name);
+                const efficiency = target > 0 ? ((totalOutput / target) * 100).toFixed(1) : 0;
             
             // Skip members with no work data (unless it's a finalized week)
             const isFinalized = this.isWeekFinalized();
             if (totalOutput === 0 && !isFinalized) {
                 return; // Skip this member
             }
-            
-            // Get work type values based on current team
-            let teamWorkTypes;
-            if (this.currentTeam === 'zero1') {
-                teamWorkTypes = this.zero1WorkTypes;
-            } else if (this.currentTeam === 'harish') {
-                teamWorkTypes = this.harishWorkTypes;
-            } else if (this.currentTeam === 'varsity') {
-                teamWorkTypes = this.varsityWorkTypes;
-            } else {
-                teamWorkTypes = this.workTypes; // B2B uses original types
-            }
-            
-            const workTypes = {};
-            Object.keys(teamWorkTypes).forEach(workType => {
-                const input = document.querySelector(`[data-member="${member.name}"][data-work="${workType}"]`);
-                workTypes[workType] = parseFloat(input?.value) || 0;
-            });
-            
-            // Create dynamic row with team-specific work type values
-            const rowData = [
-                currentDate,
-                this.currentWeek?.id || '',
-                member.name
-            ];
-            
+                
+                // Get work type values based on current team
+                let teamWorkTypes;
+                if (this.currentTeam === 'zero1') {
+                    teamWorkTypes = this.zero1WorkTypes;
+                } else if (this.currentTeam === 'harish') {
+                    teamWorkTypes = this.harishWorkTypes;
+                } else if (this.currentTeam === 'varsity') {
+                    teamWorkTypes = this.varsityWorkTypes;
+                } else {
+                    teamWorkTypes = this.workTypes; // B2B uses original types
+                }
+                
+                const workTypes = {};
+                Object.keys(teamWorkTypes).forEach(workType => {
+                    const input = document.querySelector(`[data-member="${member.name}"][data-work="${workType}"]`);
+                    workTypes[workType] = parseFloat(input?.value) || 0;
+                });
+                
+                // Create dynamic row with team-specific work type values
+                const rowData = [
+                    currentDate,
+                    this.currentWeek?.id || '',
+                    member.name
+                ];
+                
             // Add work type values dynamically based on team
-            Object.keys(teamWorkTypes).forEach(workType => {
-                rowData.push(workTypes[workType] || 0);
+                Object.keys(teamWorkTypes).forEach(workType => {
+                    rowData.push(workTypes[workType] || 0);
+                });
+                
+                // Add summary data
+                rowData.push(
+                    totalOutput.toFixed(1),
+                    workingDays,
+                    leaveDays,
+                    rating,
+                    target,
+                    efficiency + '%',
+                    'Saved'
+                );
+                
+                weekData.push(rowData);
             });
             
-            // Add summary data
-            rowData.push(
-                totalOutput.toFixed(1),
-                workingDays,
-                leaveDays,
-                rating,
-                target,
-                efficiency + '%',
-                'Saved'
-            );
-            
-            weekData.push(rowData);
-        });
-        
         if (weekData.length === 0) {
             console.log('No data to sync - all members have zero output');
             return { success: true, message: 'No data to sync' };
@@ -3350,7 +3350,7 @@ class RealEfficiencyTracker {
         
         return await this.writeToGoogleSheets(weekData);
     }
-
+    
     async writeToGoogleSheets(weekData) {
         // UPDATED: Use new Google Apps Script Web App URL with CORS support
         const webAppUrl = 'https://script.google.com/macros/s/AKfycbzlHCtcCiaqYOtF7GEauuvAVPIT7z-2DMhXDWHNtIijF4P4HS7SewZg9_Qa6VUG0q0/exec';
@@ -3955,8 +3955,9 @@ class RealEfficiencyTracker {
         try {
             // Save locally first (collect data from UI and store in weekEntries)
             console.log('📝 Step 1: Collecting and saving data locally...');
-            await this.saveWeekData(); // This populates weekEntries from UI
+            await this.saveWeekDataSilently(); // This populates weekEntries from UI
             console.log('✅ Step 1 complete: Data collected and saved locally');
+            console.log('🔍 weekEntries after save:', Object.keys(this.weekEntries || {}));
             
             // Then force sync to Database with extra retries for finalization
             console.log('📝 Step 2: Starting Supabase save...');
