@@ -5765,15 +5765,28 @@ class RealEfficiencyTracker {
                 const weekData = {};
                 const teamMembers = this.getActiveTeamMembers(this.currentTeam);
                 
-                // Collect data for each team member
+                // Collect data from stored weekEntries instead of UI (which might have changed)
                 teamMembers.forEach(member => {
-                    const memberData = this.collectMemberData(member.name);
-                    console.log(`🔍 Collected data for ${member.name}:`, memberData);
-                    if (memberData && memberData.hasData) {
+                    const entryKey = `${this.currentWeek.id}_${member.name}`;
+                    const storedEntry = this.weekEntries[entryKey];
+                    console.log(`🔍 Looking for stored entry ${entryKey}:`, storedEntry);
+                    
+                    if (storedEntry && storedEntry.workTypes && Object.keys(storedEntry.workTypes).length > 0) {
+                        // Convert stored entry to Supabase format
+                        const memberData = {
+                            weekId: storedEntry.weekId,
+                            memberName: storedEntry.memberName,
+                            workTypes: storedEntry.workTypes,
+                            workingDays: storedEntry.workingDays || 5,
+                            leaveDays: storedEntry.leaveDays || 0,
+                            weeklyRating: storedEntry.weeklyRating || 0,
+                            weekTotal: storedEntry.totalOutput || 0,
+                            hasData: true
+                        };
                         weekData[member.name] = memberData;
-                        console.log(`✅ Added ${member.name} to weekData`);
+                        console.log(`✅ Added ${member.name} from stored data:`, memberData);
                     } else {
-                        console.log(`⚠️ No data for ${member.name} (hasData: ${memberData?.hasData})`);
+                        console.log(`⚠️ No stored data for ${member.name} (entry: ${entryKey})`);
                     }
                 });
                 
