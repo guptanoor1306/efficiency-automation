@@ -3952,16 +3952,39 @@ class RealEfficiencyTracker {
         // CRITICAL: Save current week data permanently AND force sync to Supabase
         console.log('💾 Finalizing week - forcing comprehensive save to Supabase...');
         
+        // IMPORTANT: Capture the week we're finalizing BEFORE any UI changes
+        const finalizingWeek = this.currentWeek;
+        const finalizingWeekId = this.currentWeek.id;
+        console.log(`🔍 Finalizing week: ${finalizingWeekId}`);
+        
         try {
-            // Save locally first (collect data from UI and store in weekEntries)
+            // Save locally first (collect data from UI for the specific week being finalized)
             console.log('📝 Step 1: Collecting and saving data locally...');
-            await this.saveWeekDataSilently(); // This populates weekEntries from UI
-            console.log('✅ Step 1 complete: Data collected and saved locally');
+            
+            // Collect data directly from UI for the finalizing week
+            let savedCount = 0;
+            this.teamMembers.forEach(member => {
+                const entryKey = `${finalizingWeekId}_${member.name}`;
+                const weekEntry = this.collectMemberData(member.name);
+                
+                if (weekEntry) {
+                    // Ensure the weekEntry has the correct week ID
+                    weekEntry.weekId = finalizingWeekId;
+                    this.weekEntries[entryKey] = weekEntry;
+                    savedCount++;
+                    console.log(`✅ Saved data for ${member.name} in week ${finalizingWeekId}`);
+                }
+            });
+            
+            // Save to localStorage
+            this.saveTeamSpecificData();
+            
+            console.log(`✅ Step 1 complete: Collected data for ${savedCount} members`);
             console.log('🔍 weekEntries after save:', Object.keys(this.weekEntries || {}));
             
             // Then force sync to Database with extra retries for finalization
             console.log('📝 Step 2: Starting Supabase save...');
-            await this.autoSaveToDatabase(weekSummary);
+            await this.autoSaveToDatabase(weekSummary, finalizingWeekId);
             console.log('✅ Step 2 complete: Supabase save done');
             
         } catch (error) {
@@ -3984,16 +4007,17 @@ class RealEfficiencyTracker {
         }, 1000); // Small delay to ensure all data is saved
     }
     
-    async autoSaveToDatabase(weekSummary) {
+    async autoSaveToDatabase(weekSummary, specificWeekId = null) {
         try {
+            const weekIdToSave = specificWeekId || this.currentWeek?.id;
             console.log('📝 Auto-saving finalized week to Supabase...');
             console.log('🔍 Current team:', this.currentTeam);
-            console.log('🔍 Current week:', this.currentWeek?.id);
-            console.log('🔍 Has current week?', !!this.currentWeek);
+            console.log('🔍 Week to save:', weekIdToSave);
+            console.log('🔍 Specific week provided?', !!specificWeekId);
             
             // Force a comprehensive save of all current week data to Supabase
             // This ensures that when a week is finalized, all data is backed up
-            const result = await this.saveToSupabaseWithRetry(5); // Aggressive retry for finalization
+            const result = await this.saveToSupabaseWithRetry(5, weekIdToSave); // Aggressive retry for finalization
             
             if (result.success) {
                 console.log('✅ Finalized week data saved to Supabase');
@@ -5747,13 +5771,15 @@ class RealEfficiencyTracker {
     }
     
     // NEW: Save to Supabase with retry mechanism
-    async saveToSupabaseWithRetry(maxRetries = 3) {
+    async saveToSupabaseWithRetry(maxRetries = 3, specificWeekId = null) {
+        const weekIdToUse = specificWeekId || this.currentWeek?.id;
         console.log(`💾 Saving to Supabase (max retries: ${maxRetries})`);
+        console.log(`🔍 Using week ID: ${weekIdToUse}`);
         
-        // Check if we have a current week selected
-        if (!this.currentWeek) {
-            console.log('⚠️ No current week selected');
-            return { success: false, error: 'No current week selected' };
+        // Check if we have a week to work with
+        if (!weekIdToUse) {
+            console.log('⚠️ No week ID available');
+            return { success: false, error: 'No week ID available' };
         }
         
         let lastError = null;
@@ -5766,9 +5792,9 @@ class RealEfficiencyTracker {
                 const weekData = {};
                 const teamMembers = this.getActiveTeamMembers(this.currentTeam);
                 
-                // Collect data from stored weekEntries instead of UI (which might have changed)
+                // Collect data from stored weekEntries for the specific week
                 teamMembers.forEach(member => {
-                    const entryKey = `${this.currentWeek.id}_${member.name}`;
+                    const entryKey = `${weekIdToUse}_${member.name}`;
                     const storedEntry = this.weekEntries[entryKey];
                     console.log(`🔍 Looking for stored entry ${entryKey}:`, storedEntry);
                     
@@ -5802,7 +5828,7 @@ class RealEfficiencyTracker {
                 const savePromises = Object.entries(weekData).map(async ([memberName, memberData]) => {
                     return await this.supabaseAPI.saveWeekData(
                         this.currentTeam,
-                        this.currentWeek.id,
+                        weekIdToUse,
                         memberName,
                         memberData
                     );
