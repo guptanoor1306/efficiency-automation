@@ -201,6 +201,9 @@ class RealEfficiencyTracker {
         this.teamMembers = this.getActiveTeamMembers(this.currentTeam);
         this.workLevels = this.teamConfigs[this.currentTeam].workLevels;
         
+        // Flag to prevent multiple simultaneous saves
+        this.isSyncingToSheets = false;
+        
         // Historical data from Google Sheets - January to May 2025 (completed months)
         // Organized by team: this.historicalData[team][month]
         this.historicalData = {
@@ -3056,8 +3059,13 @@ class RealEfficiencyTracker {
         // Save to localStorage with timestamp
         this.saveTeamSpecificData();
         
-        // IMPROVED: Always try to sync to Google Sheets with retry mechanism
-        await this.saveToGoogleSheetsWithRetry();
+        // IMPROVED: Try to sync to Google Sheets (single call, no duplicates)
+        try {
+            await this.saveToGoogleSheetsWithRetry();
+        } catch (error) {
+            console.error('Google Sheets sync failed:', error);
+            // Continue without blocking - data is already saved locally
+        }
         
         this.showMessage(`Week data saved for ${savedCount} team members! Data is stored in Local Storage and Google Sheets.`, 'success');
         
@@ -3175,105 +3183,86 @@ class RealEfficiencyTracker {
         return totalDays;
     }
     
-    async saveToGoogleSheets() {
-        try {
-            this.showMessage('Saving to Google Sheets...', 'info');
+    // REMOVED: saveToGoogleSheets() method to prevent duplicate calls
+    // Use writeToGoogleSheetsDirectly() instead
+    
+    // Direct write to Google Sheets without nested calls
+    async writeToGoogleSheetsDirectly() {
+        // Prepare data for new WeeklyTracking sheet
+        const weekData = [];
+        const currentDate = new Date().toISOString();
+        
+        // Add current week data for all members (only those with data)
+        this.teamMembers.forEach(member => {
+            const workingDaysSelect = document.querySelector(`[data-member="${member.name}"].working-days-select`);
+            const leaveDaysSelect = document.querySelector(`[data-member="${member.name}"].leave-days-select`);
+            const ratingSelect = document.querySelector(`[data-member="${member.name}"].weekly-rating-input`);
             
-            // Prepare data for new WeeklyTracking sheet
-            const weekData = [];
-            const currentDate = new Date().toISOString();
+            const workingDays = parseInt(workingDaysSelect?.value) || 5;
+            const leaveDays = parseFloat(leaveDaysSelect?.value) || 0;
+            const rating = parseFloat(ratingSelect?.value) || 0;
+            const target = workingDays - leaveDays;
+            const totalOutput = this.calculateMemberTotalOutput(member.name);
+            const efficiency = target > 0 ? ((totalOutput / target) * 100).toFixed(1) : 0;
             
-            // No longer sending headers with every save - Google Apps Script handles headers
-            
-            // Add current week data for all members
-            this.teamMembers.forEach(member => {
-                const workingDaysSelect = document.querySelector(`[data-member="${member.name}"].working-days-select`);
-                const leaveDaysSelect = document.querySelector(`[data-member="${member.name}"].leave-days-select`);
-                const ratingSelect = document.querySelector(`[data-member="${member.name}"].weekly-rating-input`);
-                
-                const workingDays = parseInt(workingDaysSelect?.value) || 5;
-                const leaveDays = parseFloat(leaveDaysSelect?.value) || 0;
-                const rating = parseFloat(ratingSelect?.value) || 0;
-                const target = workingDays - leaveDays;
-                const totalOutput = this.calculateMemberTotalOutput(member.name);
-                const efficiency = target > 0 ? ((totalOutput / target) * 100).toFixed(1) : 0;
-                
-                // Skip members with no work data (unless it's a finalized week)
-                const isFinalized = this.isWeekFinalized();
-                if (totalOutput === 0 && !isFinalized) {
-                    return; // Skip this member
-                }
-                
-                // Get work type values based on current team
-                let teamWorkTypes;
-                if (this.currentTeam === 'zero1') {
-                    teamWorkTypes = this.zero1WorkTypes;
-                } else if (this.currentTeam === 'harish') {
-                    teamWorkTypes = this.harishWorkTypes;
-                } else if (this.currentTeam === 'varsity') {
-                    teamWorkTypes = this.varsityWorkTypes;
-                } else {
-                    teamWorkTypes = this.workTypes; // B2B uses original types
-                }
-                
-                const workTypes = {};
-                Object.keys(teamWorkTypes).forEach(workType => {
-                    const input = document.querySelector(`[data-member="${member.name}"][data-work="${workType}"]`);
-                    workTypes[workType] = parseFloat(input?.value) || 0;
-                });
-                
-                // Create dynamic row with team-specific work type values
-                const rowData = [
-                    currentDate,
-                    this.currentWeek?.id || '',
-                    member.name
-                ];
-                
-                // Add work type values dynamically based on team
-                Object.keys(teamWorkTypes).forEach(workType => {
-                    rowData.push(workTypes[workType] || 0);
-                });
-                
-                // Add summary data
-                rowData.push(
-                    totalOutput.toFixed(1),
-                    workingDays,
-                    leaveDays,
-                    rating,
-                    target,
-                    efficiency + '%',
-                    'Saved'
-                );
-                
-                weekData.push(rowData);
-            });
-            
-            // Save to localStorage for immediate access
-            const weekKey = this.currentWeek?.id || 'current';
-            const savedData = JSON.parse(localStorage.getItem('weekly_tracking_data')) || {};
-            savedData[weekKey] = {
-                weekId: this.currentWeek?.id,
-                weekName: `Week ${this.currentWeek?.weekNumber} - ${this.currentWeek?.monthName} ${this.currentWeek?.year}`,
-                data: weekData,
-                savedAt: currentDate
-            };
-            localStorage.setItem('weekly_tracking_data', JSON.stringify(savedData));
-            
-            // Try to save to actual Google Sheets
-            try {
-                await this.writeToGoogleSheets(weekData);
-                this.showMessage('✅ Data saved successfully! Stored in Local Storage + Google Sheets', 'success');
-        } catch (error) {
-                console.error('Google Sheets save error:', error);
-                this.showMessage('✅ Data saved to Local Storage. Google Sheets sync pending...', 'success');
+            // Skip members with no work data (unless it's a finalized week)
+            const isFinalized = this.isWeekFinalized();
+            if (totalOutput === 0 && !isFinalized) {
+                return; // Skip this member
             }
             
-        } catch (error) {
-            console.error('Error saving data:', error);
-            this.showMessage('⚠️ Save failed. Please try again.', 'error');
+            // Get work type values based on current team
+            let teamWorkTypes;
+            if (this.currentTeam === 'zero1') {
+                teamWorkTypes = this.zero1WorkTypes;
+            } else if (this.currentTeam === 'harish') {
+                teamWorkTypes = this.harishWorkTypes;
+            } else if (this.currentTeam === 'varsity') {
+                teamWorkTypes = this.varsityWorkTypes;
+            } else {
+                teamWorkTypes = this.workTypes; // B2B uses original types
+            }
+            
+            const workTypes = {};
+            Object.keys(teamWorkTypes).forEach(workType => {
+                const input = document.querySelector(`[data-member="${member.name}"][data-work="${workType}"]`);
+                workTypes[workType] = parseFloat(input?.value) || 0;
+            });
+            
+            // Create dynamic row with team-specific work type values
+            const rowData = [
+                currentDate,
+                this.currentWeek?.id || '',
+                member.name
+            ];
+            
+            // Add work type values dynamically based on team
+            Object.keys(teamWorkTypes).forEach(workType => {
+                rowData.push(workTypes[workType] || 0);
+            });
+            
+            // Add summary data
+            rowData.push(
+                totalOutput.toFixed(1),
+                workingDays,
+                leaveDays,
+                rating,
+                target,
+                efficiency + '%',
+                'Saved'
+            );
+            
+            weekData.push(rowData);
+        });
+        
+        if (weekData.length === 0) {
+            console.log('No data to sync - all members have zero output');
+            return { success: true, message: 'No data to sync' };
         }
+        
+        return await this.writeToGoogleSheets(weekData);
     }
-    
+
     async writeToGoogleSheets(weekData) {
         // Google Apps Script Web App URL for writing (FormData deployment)
         const webAppUrl = 'https://script.google.com/macros/s/AKfycbyb0geUpjTe-k9SPT7bkVaXC3od3ObpR5XNVZ29EIVibMirvWAOS0MaD5FoTN2G4nw/exec';
@@ -5529,45 +5518,58 @@ class RealEfficiencyTracker {
     
     // Improved Google Sheets sync with retry mechanism
     async saveToGoogleSheetsWithRetry(maxRetries = 3) {
-        let lastError = null;
-        
-        for (let attempt = 1; attempt <= maxRetries; attempt++) {
-            try {
-                console.log(`🔄 Attempting Google Sheets sync (attempt ${attempt}/${maxRetries})`);
-                
-                const result = await this.saveToGoogleSheets();
-                
-                if (result && result.success !== false) {
-                    console.log(`✅ Google Sheets sync successful on attempt ${attempt}`);
-                    
-                    // Mark as synced
-                    this.markAsSynced();
-                    return { success: true, attempt: attempt };
-                }
-                
-            } catch (error) {
-                lastError = error;
-                console.warn(`❌ Google Sheets sync failed on attempt ${attempt}:`, error.message);
-                
-                if (attempt < maxRetries) {
-                    // Wait before retrying (exponential backoff)
-                    const delay = Math.pow(2, attempt) * 1000; // 2s, 4s, 8s
-                    console.log(`⏳ Waiting ${delay}ms before retry...`);
-                    await new Promise(resolve => setTimeout(resolve, delay));
-                }
-            }
+        // Prevent multiple simultaneous saves
+        if (this.isSyncingToSheets) {
+            console.log('⚠️ Sync already in progress, skipping duplicate save');
+            return { success: false, error: 'Sync already in progress' };
         }
         
-        console.error(`❌ All ${maxRetries} sync attempts failed. Last error:`, lastError);
+        this.isSyncingToSheets = true;
+        let lastError = null;
         
-        // Store for later sync
-        this.storeForLaterSync();
-        
-        return { 
-            success: false, 
-            error: lastError?.message || 'Sync failed after all retries',
-            storedForLater: true
-        };
+        try {
+            for (let attempt = 1; attempt <= maxRetries; attempt++) {
+                try {
+                    console.log(`🔄 Attempting Google Sheets sync (attempt ${attempt}/${maxRetries})`);
+                    
+                    const result = await this.writeToGoogleSheetsDirectly();
+                    
+                    if (result && result.success !== false) {
+                        console.log(`✅ Google Sheets sync successful on attempt ${attempt}`);
+                        
+                        // Mark as synced
+                        this.markAsSynced();
+                        return { success: true, attempt: attempt };
+                    }
+                    
+                } catch (error) {
+                    lastError = error;
+                    console.warn(`❌ Google Sheets sync failed on attempt ${attempt}:`, error.message);
+                    
+                    if (attempt < maxRetries) {
+                        // Wait before retrying (exponential backoff)
+                        const delay = Math.pow(2, attempt) * 1000; // 2s, 4s, 8s
+                        console.log(`⏳ Waiting ${delay}ms before retry...`);
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                    }
+                }
+            }
+            
+            console.error(`❌ All ${maxRetries} sync attempts failed. Last error:`, lastError);
+            
+            // Store for later sync
+            this.storeForLaterSync();
+            
+            return { 
+                success: false, 
+                error: lastError?.message || 'Sync failed after all retries',
+                storedForLater: true
+            };
+            
+        } finally {
+            // Always reset the flag
+            this.isSyncingToSheets = false;
+        }
     }
     
     // Mark data as synced
