@@ -1408,70 +1408,95 @@ class RealEfficiencyTracker {
         this.startSyncStatusUpdates();
     }
     
-    // UTILITY: Clear Bratish team September data that's not on the sheet
-    async clearBratishSeptemberData() {
-        console.log('🧹 Clearing Bratish team September data...');
+    // UTILITY: Clear current team's data for selected period
+    async clearCurrentTeamData() {
+        if (!this.currentWeek) {
+            this.showMessage('Please select a week first', 'error');
+            return;
+        }
         
-        // Switch to Zero1 (Bratish) team temporarily
-        const originalTeam = this.currentTeam;
-        this.currentTeam = 'zero1';
+        const teamName = this.teamConfigs[this.currentTeam]?.name || this.currentTeam;
+        const confirmed = confirm(`Are you sure you want to clear data for ${teamName} - ${this.currentWeek.label}?\n\nThis action cannot be undone.`);
         
-        // Load the team data
-        await this.loadTeamSpecificData();
+        if (!confirmed) return;
         
-        // Find September 2025 weeks
-        const septemberWeeks = this.weekSystem.getWeeksForMonth('September', 2025);
+        console.log(`🧹 Clearing ${teamName} data for ${this.currentWeek.label}...`);
+        
         let clearedCount = 0;
         
-        septemberWeeks.forEach(week => {
-            // Clear week entries for all members
-            Object.keys(this.weekEntries).forEach(entryKey => {
-                if (entryKey.startsWith(week.id)) {
-                    delete this.weekEntries[entryKey];
-                    clearedCount++;
-                    console.log(`🗑️ Cleared entry: ${entryKey}`);
-                }
-            });
-            
-            // Clear finalized reports for September weeks
-            const weekKey = week.id;
-            if (this.finalizedReports[weekKey]) {
-                delete this.finalizedReports[weekKey];
-                console.log(`🗑️ Cleared finalized report: ${weekKey}`);
+        // Clear week entries for current week
+        Object.keys(this.weekEntries).forEach(entryKey => {
+            if (entryKey.startsWith(this.currentWeek.id)) {
+                delete this.weekEntries[entryKey];
+                clearedCount++;
+                console.log(`🗑️ Cleared entry: ${entryKey}`);
             }
         });
+        
+        // Clear finalized reports for current week
+        const weekKey = this.currentWeek.id;
+        if (this.finalizedReports[weekKey]) {
+            delete this.finalizedReports[weekKey];
+            console.log(`🗑️ Cleared finalized report: ${weekKey}`);
+        }
         
         // Save the cleared data
         this.saveTeamSpecificData();
         
-        // Also clear from Google Sheets
+        // Clear from Google Sheets
         try {
-            await this.clearSeptemberFromGoogleSheets();
-            console.log('✅ Cleared September data from Google Sheets');
+            await this.clearWeekFromGoogleSheets(this.currentWeek.id);
+            console.log('✅ Cleared week data from Google Sheets');
         } catch (error) {
             console.warn('⚠️ Could not clear from Google Sheets:', error);
         }
         
-        // Restore original team
-        this.currentTeam = originalTeam;
-        await this.loadTeamSpecificData();
+        // Refresh the display
+        this.loadWeekData();
+        this.updateButtonVisibility();
         
-        console.log(`✅ Cleared ${clearedCount} September entries for Bratish team`);
-        this.showMessage(`Cleared ${clearedCount} September entries for Bratish team`, 'success');
+        console.log(`✅ Cleared ${clearedCount} entries for ${teamName} - ${this.currentWeek.label}`);
+        this.showMessage(`Cleared ${clearedCount} entries for ${teamName} - ${this.currentWeek.label}`, 'success');
         
         return clearedCount;
     }
     
-    // Clear September data from Google Sheets
-    async clearSeptemberFromGoogleSheets() {
-        // This would need to be implemented in the Google Apps Script
-        // For now, we'll just log the intent
-        console.log('📝 TODO: Implement clearing September data from Google Sheets');
-        
-        // The Google Apps Script would need a new function to:
-        // 1. Find all rows for ZERO1_Weekly_Tracking sheet
-        // 2. Delete rows where Week ID contains '2025-09-'
-        // 3. Return success confirmation
+    // Clear specific week data from Google Sheets
+    async clearWeekFromGoogleSheets(weekId) {
+        try {
+            const webAppUrl = this.sheetsAPI.writeWebAppUrl;
+            const sheetName = `${this.currentTeam.toUpperCase()}_Weekly_Tracking`;
+            
+            const payload = {
+                action: 'clearWeekData',
+                spreadsheetId: '1s_q5uyLKNcWL_JdiP05BOu2gmO_VvxFZROx0ZzwB64U',
+                sheetName: sheetName,
+                weekId: weekId
+            };
+            
+            console.log('Clearing week data from Google Sheets:', payload);
+            
+            const response = await fetch(webAppUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload)
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                console.log('✅ Week data cleared from Google Sheets');
+                return result;
+            } else {
+                throw new Error(result.error || 'Failed to clear data from Google Sheets');
+            }
+            
+        } catch (error) {
+            console.error('Error clearing week data from Google Sheets:', error);
+            throw error;
+        }
     }
     
     // Force sync with Google Sheets
@@ -1623,6 +1648,65 @@ class RealEfficiencyTracker {
         }
         
         return validation.isValid;
+    }
+    
+    // Update visibility of sync and clear buttons based on week status
+    updateButtonVisibility() {
+        const syncBtn = document.getElementById('sync-btn');
+        const clearBtn = document.getElementById('clear-data-btn');
+        
+        if (!syncBtn || !clearBtn || !this.currentWeek) {
+            return;
+        }
+        
+        // Check if current week has any data
+        const hasData = this.weekHasData();
+        
+        // Check if current week is finalized
+        const isFinalized = this.isWeekFinalized();
+        
+        // Show sync button only if week has data or is finalized
+        if (hasData || isFinalized) {
+            syncBtn.style.display = 'inline-flex';
+        } else {
+            syncBtn.style.display = 'none';
+        }
+        
+        // Show clear button only if week has data
+        if (hasData) {
+            clearBtn.style.display = 'inline-flex';
+        } else {
+            clearBtn.style.display = 'none';
+        }
+        
+        console.log(`Button visibility updated: hasData=${hasData}, isFinalized=${isFinalized}`);
+    }
+    
+    // Check if current week has any data
+    weekHasData() {
+        if (!this.currentWeek || !this.weekEntries) return false;
+        
+        // Check if any team member has data for this week
+        const hasEntries = Object.keys(this.weekEntries).some(entryKey => 
+            entryKey.startsWith(this.currentWeek.id)
+        );
+        
+        if (hasEntries) return true;
+        
+        // Also check if there's any data in the UI inputs
+        const workTypeInputs = document.querySelectorAll('input[data-worktype]');
+        return Array.from(workTypeInputs).some(input => 
+            parseFloat(input.value || 0) > 0
+        );
+    }
+    
+    // Check if current week is finalized
+    isWeekFinalized() {
+        if (!this.currentWeek || !this.finalizedReports) return false;
+        
+        const weekKey = this.currentWeek.id;
+        return this.finalizedReports.hasOwnProperty(weekKey) && 
+               this.finalizedReports[weekKey] !== null;
     }
     
     // Update sync status display
@@ -2032,6 +2116,9 @@ class RealEfficiencyTracker {
     
     loadWeekData() {
         if (!this.currentWeek) return;
+        
+        // Update button visibility whenever week data is loaded
+        setTimeout(() => this.updateButtonVisibility(), 100);
         
         // Show the efficiency data section
         document.getElementById('efficiency-data').style.display = 'block';
@@ -2735,6 +2822,9 @@ class RealEfficiencyTracker {
         await this.saveToGoogleSheetsWithRetry();
         
         this.showMessage(`Week data saved for ${savedCount} team members! Data is stored in Local Storage and Google Sheets.`, 'success');
+        
+        // Update button visibility after saving
+        this.updateButtonVisibility();
     }
     
     async saveWeekDataSilently() {
@@ -2876,6 +2966,12 @@ class RealEfficiencyTracker {
                 const totalOutput = this.calculateMemberTotalOutput(member.name);
                 const efficiency = target > 0 ? ((totalOutput / target) * 100).toFixed(1) : 0;
                 
+                // Skip members with no work data (unless it's a finalized week)
+                const isFinalized = this.isWeekFinalized();
+                if (totalOutput === 0 && !isFinalized) {
+                    return; // Skip this member
+                }
+                
                 // Get work type values based on current team
                 let teamWorkTypes;
                 if (this.currentTeam === 'zero1') {
@@ -2956,7 +3052,9 @@ class RealEfficiencyTracker {
                 action: 'writeWeekData',
                 spreadsheetId: '1s_q5uyLKNcWL_JdiP05BOu2gmO_VvxFZROx0ZzwB64U',
                 sheetName: `${this.currentTeam.toUpperCase()}_Weekly_Tracking`, // Team-specific sheet
-                data: weekData.slice(1) // Skip header row, send only data rows
+                data: weekData, // Send complete data including headers
+                teamName: this.currentTeam,
+                weekId: this.currentWeek?.id
             };
             
             console.log('Sending data to Google Apps Script:', payload);
