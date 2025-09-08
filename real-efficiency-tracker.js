@@ -5362,7 +5362,8 @@ class RealEfficiencyTracker {
             finalizedReportsData: this.finalizedReports
         });
         
-        // IMPROVED: Try to sync with Google Sheets on load
+        // CRITICAL: Always try to sync with Google Sheets to get latest data from other browsers
+        console.log(`🔄 Loading latest data from Google Sheets for ${this.currentTeam}...`);
         await this.syncWithGoogleSheetsOnLoad();
     }
     
@@ -5390,38 +5391,81 @@ class RealEfficiencyTracker {
     async readFromGoogleSheets() {
         try {
             const sheetName = `${this.currentTeam.toUpperCase()}_Weekly_Tracking`;
-            const range = `${sheetName}!A1:Z1000`;
+            console.log(`📖 Attempting to read from sheet: ${sheetName}`);
             
-            // Use the existing read method but for the specific team sheet
-            return await this.sheetsAPI.readSheetData(range);
+            // Use direct API call to read from team-specific sheet
+            const webAppUrl = this.sheetsAPI.writeWebAppUrl; // Use write URL since it has better access
+            
+            const payload = {
+                action: 'readWeekData',
+                spreadsheetId: '1s_q5uyLKNcWL_JdiP05BOu2gmO_VvxFZROx0ZzwB64U',
+                sheetName: sheetName,
+                teamName: this.currentTeam
+            };
+            
+            console.log('Reading payload:', payload);
+            
+            const response = await fetch(webAppUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload)
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            console.log(`📊 Retrieved ${data?.values?.length || 0} rows from ${sheetName}`);
+            
+            return data?.values || [];
             
         } catch (error) {
             console.error('Error reading from Google Sheets:', error);
-            return null;
+            return [];
         }
     }
     
     // Merge Google Sheets data with local data using conflict resolution
     async mergeSheetDataWithLocal(sheetData) {
-        if (!sheetData || sheetData.length === 0) return;
+        if (!sheetData || sheetData.length === 0) {
+            console.log('No sheet data to merge');
+            return;
+        }
+        
+        console.log(`🔄 Merging ${sheetData.length} rows from Google Sheets...`);
         
         const localMetadata = this.getSyncMetadata();
         let hasConflicts = false;
         let mergedCount = 0;
         
-        // Convert sheet data to the format we use locally
-        sheetData.forEach(sheetRow => {
-            if (!sheetRow.timestamp || !sheetRow.weekId || !sheetRow.memberName) return;
+        // Skip header row and convert sheet data to local format
+        const dataRows = sheetData.slice(1); // Skip header row
+        
+        dataRows.forEach((row, index) => {
+            if (!row || row.length < 3) return;
             
-            const entryKey = `${sheetRow.weekId}_${sheetRow.memberName}`;
-            const sheetTimestamp = new Date(sheetRow.timestamp);
+            // Extract basic data from row: [Timestamp, Week ID, Member Name, ...work types..., Week Total, Working Days, Leave Days, Rating, Target, Efficiency, Status]
+            const timestamp = row[0];
+            const weekId = row[1];
+            const memberName = row[2];
+            
+            if (!timestamp || !weekId || !memberName) {
+                console.log(`Skipping invalid row ${index}:`, row);
+                return;
+            }
+            
+            const entryKey = `${weekId}_${memberName}`;
+            const sheetTimestamp = new Date(timestamp);
             
             // Check if we have local data for this entry
             const localEntry = this.weekEntries[entryKey];
             
             if (!localEntry) {
-                // No local data, use sheet data
-                this.weekEntries[entryKey] = this.convertSheetRowToEntry(sheetRow);
+                // No local data, create entry from sheet data
+                this.weekEntries[entryKey] = this.convertSheetRowToEntry(row);
                 mergedCount++;
                 console.log(`📥 Added new entry from sheet: ${entryKey}`);
                 
@@ -5431,7 +5475,7 @@ class RealEfficiencyTracker {
                 
                 if (sheetTimestamp > localTimestamp) {
                     // Sheet data is newer, use it
-                    this.weekEntries[entryKey] = this.convertSheetRowToEntry(sheetRow);
+                    this.weekEntries[entryKey] = this.convertSheetRowToEntry(row);
                     mergedCount++;
                     hasConflicts = true;
                     console.log(`🔄 Updated entry from sheet (newer): ${entryKey}`);
@@ -5456,29 +5500,103 @@ class RealEfficiencyTracker {
         
         // Save the merged data
         this.saveTeamSpecificData();
+        
+        console.log(`✅ Merge complete. Total local entries: ${Object.keys(this.weekEntries).length}`);
+        
+        // Refresh the UI with the merged data
+        if (mergedCount > 0 && this.currentWeek) {
+            this.populateUIWithSheetData();
+        }
     }
     
     // Convert sheet row to internal entry format
-    convertSheetRowToEntry(sheetRow) {
+    convertSheetRowToEntry(row) {
+        // Row format: [Timestamp, Week ID, Member Name, ...work types..., Week Total, Working Days, Leave Days, Rating, Target, Efficiency, Status]
+        const timestamp = row[0];
+        const weekId = row[1]; 
+        const memberName = row[2];
+        
+        // Get team work types to know how many columns they occupy
+        let teamWorkTypes;
+        if (this.currentTeam === 'zero1') {
+            teamWorkTypes = this.zero1WorkTypes;
+        } else if (this.currentTeam === 'harish') {
+            teamWorkTypes = this.harishWorkTypes;
+        } else if (this.currentTeam === 'varsity') {
+            teamWorkTypes = this.varsityWorkTypes;
+        } else {
+            teamWorkTypes = this.workTypes; // B2B uses original types
+        }
+        
+        const workTypeKeys = Object.keys(teamWorkTypes);
+        const workTypeData = {};
+        
+        // Extract work type values starting from column 3
+        let colIndex = 3;
+        workTypeKeys.forEach(workType => {
+            workTypeData[workType] = parseFloat(row[colIndex] || 0);
+            colIndex++;
+        });
+        
+        // Summary data comes after work types
+        const weekTotal = parseFloat(row[colIndex] || 0); colIndex++;
+        const workingDays = parseInt(row[colIndex] || 5); colIndex++;
+        const leaveDays = parseFloat(row[colIndex] || 0); colIndex++;
+        const rating = parseFloat(row[colIndex] || 0); colIndex++;
+        // Skip target, efficiency, status columns
+        
         return {
-            weekId: sheetRow.weekId,
-            memberId: sheetRow.memberName,
-            lastUpdated: sheetRow.timestamp,
-            workTypes: {
-                ost: { mon: 0, tue: 0, wed: 0, thu: 0, fri: 0 },
-                screen: { mon: 0, tue: 0, wed: 0, thu: 0, fri: 0 },
-                firstcut: { mon: 0, tue: 0, wed: 0, thu: 0, fri: 0 },
-                hand: { mon: 0, tue: 0, wed: 0, thu: 0, fri: 0 },
-                fss: { mon: 0, tue: 0, wed: 0, thu: 0, fri: 0 },
-                character: { mon: 0, tue: 0, wed: 0, thu: 0, fri: 0 },
-                vo: { mon: 0, tue: 0, wed: 0, thu: 0, fri: 0 },
-                intro: { mon: 0, tue: 0, wed: 0, thu: 0, fri: 0 }
-            },
+            weekId: weekId,
+            memberId: memberName,
+            lastUpdated: timestamp,
+            workingDays: workingDays,
+            leaveDays: leaveDays,
+            weeklyRating: rating,
+            workTypeData: workTypeData, // Store the actual work type values
             totals: {
-                weekTotal: parseFloat(sheetRow.weekTotal) || 0,
+                weekTotal: weekTotal,
                 dailyTotals: { mon: 0, tue: 0, wed: 0, thu: 0, fri: 0 }
             }
         };
+    }
+    
+    // Populate UI inputs with data loaded from Google Sheets
+    populateUIWithSheetData() {
+        if (!this.currentWeek) return;
+        
+        console.log('🎨 Populating UI with Google Sheets data...');
+        
+        this.teamMembers.forEach(member => {
+            const memberName = member.name || member;
+            const entryKey = `${this.currentWeek.id}_${memberName}`;
+            const entry = this.weekEntries[entryKey];
+            
+            if (!entry || !entry.workTypeData) return;
+            
+            console.log(`Populating data for ${memberName}:`, entry);
+            
+            // Populate work type inputs
+            Object.keys(entry.workTypeData).forEach(workType => {
+                const input = document.querySelector(`[data-member="${memberName}"][data-work="${workType}"]`);
+                if (input) {
+                    input.value = entry.workTypeData[workType] || 0;
+                }
+            });
+            
+            // Populate working days, leave days, rating
+            const workingDaysSelect = document.querySelector(`[data-member="${memberName}"].working-days-select`);
+            const leaveDaysSelect = document.querySelector(`[data-member="${memberName}"].leave-days-select`);
+            const ratingSelect = document.querySelector(`[data-member="${memberName}"].weekly-rating-input`);
+            
+            if (workingDaysSelect) workingDaysSelect.value = entry.workingDays || 5;
+            if (leaveDaysSelect) leaveDaysSelect.value = entry.leaveDays || 0;
+            if (ratingSelect) ratingSelect.value = entry.weeklyRating || '';
+            
+            // Recalculate totals for this member
+            this.calculateMemberTotal(memberName);
+        });
+        
+        console.log('✅ UI populated with Google Sheets data');
     }
     
     // Save team-specific data to localStorage with sync metadata
