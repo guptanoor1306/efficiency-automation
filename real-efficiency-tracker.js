@@ -3,7 +3,8 @@
 
 class RealEfficiencyTracker {
     constructor() {
-        this.sheetsAPI = new RealSheetsAPI();
+        this.supabaseAPI = new SupabaseAPI();
+        this.sheetsAPI = new RealSheetsAPI(); // Keep for fallback during transition
         this.weekSystem = new WeekSystem();
         this.currentWeek = null;
         this.currentMember = null;
@@ -1439,21 +1440,44 @@ class RealEfficiencyTracker {
         }
     }
     
-    // Async initialization for Google Sheets and advanced features
+    // Async initialization for Supabase and Google Sheets
     async initializeAsync() {
         try {
-            console.log('🔄 Loading Google Sheets data...');
+            console.log('🔄 Initializing database connections...');
             
-            // Load real data from Google Sheets (with timeout)
+            // Initialize Supabase first (primary database)
+            try {
+                await this.supabaseAPI.initializeSupabase();
+                const healthCheck = await this.supabaseAPI.healthCheck();
+                if (healthCheck) {
+                    console.log('✅ Supabase connection established');
+                    this.updateSyncStatus('✅ Connected to Database', 'success');
+                } else {
+                    console.warn('⚠️ Supabase health check failed');
+                    this.updateSyncStatus('⚠️ Database connection issues', 'warning');
+                }
+            } catch (e) {
+                console.error('❌ Supabase initialization failed:', e);
+                this.updateSyncStatus('❌ Database offline', 'error');
+            }
+            
+            // Load data from Supabase first, then Google Sheets as backup
             const timeout = new Promise((_, reject) => 
                 setTimeout(() => reject(new Error('Timeout')), 8000)
             );
             
             try {
-                await Promise.race([this.loadRealData(), timeout]);
-                console.log('✅ Google Sheets data loaded');
+                console.log('🔄 Loading data from Supabase...');
+                await Promise.race([this.loadFromSupabase(), timeout]);
+                console.log('✅ Supabase data loaded');
             } catch (e) {
-                console.warn('⚠️ Google Sheets timeout, using local data:', e.message);
+                console.warn('⚠️ Supabase timeout, trying Google Sheets:', e.message);
+                try {
+                    await Promise.race([this.loadRealData(), timeout]);
+                    console.log('✅ Google Sheets data loaded as backup');
+                } catch (e2) {
+                    console.warn('⚠️ All data sources timeout, using local data:', e2.message);
+                }
             }
             
             // Update UI with loaded data
@@ -1464,6 +1488,88 @@ class RealEfficiencyTracker {
         } catch (error) {
             console.error('❌ Async initialization error:', error);
             this.showMessage('✅ System ready! (Google Sheets sync may be limited)', 'warning');
+        }
+    }
+
+    // Load data from Supabase
+    async loadFromSupabase() {
+        try {
+            console.log(`📊 Loading data from Supabase for team: ${this.currentTeam}`);
+            
+            // Load team configuration
+            const teamData = await this.supabaseAPI.loadTeamData(this.currentTeam);
+            if (teamData) {
+                console.log(`✅ Loaded team config for ${teamData.name}`);
+                // Team config is already set in constructor, but we could update here if needed
+            }
+            
+            // Load current week data
+            if (this.currentWeek) {
+                const weekData = await this.supabaseAPI.loadWeekData(this.currentTeam, this.currentWeek);
+                if (weekData && weekData.length > 0) {
+                    console.log(`✅ Loaded ${weekData.length} entries for ${this.currentWeek}`);
+                    
+                    // Convert Supabase data to local format
+                    this.populateUIFromSupabaseData(weekData);
+                } else {
+                    console.log(`ℹ️ No data found for ${this.currentTeam} ${this.currentWeek}`);
+                }
+            }
+            
+            return true;
+        } catch (error) {
+            console.error('❌ Error loading from Supabase:', error);
+            throw error;
+        }
+    }
+
+    // Populate UI from Supabase data
+    populateUIFromSupabaseData(weekEntries) {
+        try {
+            console.log('🎨 Populating UI from Supabase data:', weekEntries);
+            
+            weekEntries.forEach(entry => {
+                const memberName = entry.member_name;
+                const workTypeData = entry.work_type_data;
+                
+                // Populate work type inputs
+                Object.entries(workTypeData).forEach(([workType, value]) => {
+                    const input = document.querySelector(`[data-member="${memberName}"][data-work="${workType}"]`);
+                    if (input && value > 0) {
+                        input.value = value;
+                    }
+                });
+                
+                // Set working days and leave days
+                const workingDaysSelect = document.querySelector(`[data-member="${memberName}"][data-field="working-days"]`);
+                if (workingDaysSelect) {
+                    workingDaysSelect.value = entry.working_days || 5;
+                }
+                
+                const leaveDaysSelect = document.querySelector(`[data-member="${memberName}"][data-field="leave-days"]`);
+                if (leaveDaysSelect) {
+                    leaveDaysSelect.value = entry.leave_days || 0;
+                }
+                
+                // Set weekly rating
+                const ratingInput = document.querySelector(`[data-member="${memberName}"][data-field="weekly-rating"]`);
+                if (ratingInput) {
+                    ratingInput.value = entry.weekly_rating || 0;
+                }
+                
+                // Update week total display
+                const totalDisplay = document.getElementById(`week-total-${memberName}`);
+                if (totalDisplay) {
+                    totalDisplay.textContent = entry.week_total.toFixed(2);
+                }
+            });
+            
+            // Trigger calculations to update efficiency displays
+            this.calculateAllMembersEfficiency();
+            
+            console.log('✅ UI populated from Supabase data');
+        } catch (error) {
+            console.error('❌ Error populating UI from Supabase:', error);
         }
     }
     
@@ -3059,11 +3165,20 @@ class RealEfficiencyTracker {
         // Save to localStorage with timestamp
         this.saveTeamSpecificData();
         
-        // IMPROVED: Try to sync to Google Sheets (single call, no duplicates)
+        // IMPROVED: Save to Supabase (primary) and Google Sheets (backup)
         try {
+            // Primary save to Supabase
+            const supabaseResult = await this.saveToSupabaseWithRetry();
+            if (supabaseResult.success) {
+                console.log('✅ Primary save to Supabase successful');
+            } else {
+                console.warn('⚠️ Supabase save failed, will still save to Google Sheets');
+            }
+            
+            // Backup save to Google Sheets
             await this.saveToGoogleSheetsWithRetry();
         } catch (error) {
-            console.error('Google Sheets sync failed:', error);
+            console.error('Sync failed:', error);
             // Continue without blocking - data is already saved locally
         }
         
@@ -5640,6 +5755,62 @@ class RealEfficiencyTracker {
         return JSON.parse(localStorage.getItem(syncKey) || '{}');
     }
     
+    // NEW: Save to Supabase with retry mechanism
+    async saveToSupabaseWithRetry(maxRetries = 3) {
+        console.log(`💾 Saving to Supabase (max retries: ${maxRetries})`);
+        
+        let lastError = null;
+        
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                console.log(`📝 Supabase save attempt ${attempt}/${maxRetries}`);
+                
+                // Get current week data
+                const weekData = this.collectAllMemberData();
+                if (!weekData || Object.keys(weekData).length === 0) {
+                    console.log('⚠️ No data to save to Supabase');
+                    return { success: true, message: 'No data to save' };
+                }
+
+                // Save each member's data to Supabase
+                const savePromises = Object.entries(weekData).map(async ([memberName, memberData]) => {
+                    return await this.supabaseAPI.saveWeekData(
+                        this.currentTeam,
+                        this.currentWeek,
+                        memberName,
+                        memberData
+                    );
+                });
+
+                const results = await Promise.all(savePromises);
+                
+                // Check if all saves succeeded
+                const failed = results.filter(result => !result.success);
+                if (failed.length > 0) {
+                    throw new Error(`Failed to save ${failed.length} member(s): ${failed.map(f => f.error).join(', ')}`);
+                }
+
+                console.log(`✅ Successfully saved ${results.length} members to Supabase`);
+                this.updateSyncStatus('✅ Synced to Database', 'success');
+                return { success: true, message: `Saved ${results.length} members` };
+
+            } catch (error) {
+                console.error(`❌ Supabase save attempt ${attempt} failed:`, error);
+                lastError = error;
+                
+                if (attempt < maxRetries) {
+                    const delay = Math.pow(2, attempt) * 1000; // Exponential backoff
+                    console.log(`⏳ Retrying in ${delay}ms...`);
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+            }
+        }
+
+        console.error(`❌ All Supabase save attempts failed:`, lastError);
+        this.updateSyncStatus('❌ Database sync failed', 'error');
+        return { success: false, error: lastError.message };
+    }
+
     // Improved Google Sheets sync with retry mechanism
     async saveToGoogleSheetsWithRetry(maxRetries = 3) {
         // Prevent multiple simultaneous saves
