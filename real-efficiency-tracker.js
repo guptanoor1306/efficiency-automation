@@ -3183,13 +3183,7 @@ class RealEfficiencyTracker {
             const weekData = [];
             const currentDate = new Date().toISOString();
             
-            // Create headers if needed
-            weekData.push([
-                'Timestamp', 'Week ID', 'Member Name', 'OST', 'Screen Capture', '1st Cut', 
-                'Hand Animation', 'FSS Animation', 'Character', 'VO Animation', 'Intro',
-                'Week Total (Days)', 'Working Days', 'Leave Days', 'Quality Rating', 
-                'Target', 'Efficiency %', 'Status'
-            ]);
+            // No longer sending headers with every save - Google Apps Script handles headers
             
             // Add current week data for all members
             this.teamMembers.forEach(member => {
@@ -3235,7 +3229,7 @@ class RealEfficiencyTracker {
                     member.name
                 ];
                 
-                // Add work type values dynamically
+                // Add work type values dynamically based on team
                 Object.keys(teamWorkTypes).forEach(workType => {
                     rowData.push(workTypes[workType] || 0);
                 });
@@ -3285,14 +3279,35 @@ class RealEfficiencyTracker {
         const webAppUrl = 'https://script.google.com/macros/s/AKfycbyb0geUpjTe-k9SPT7bkVaXC3od3ObpR5XNVZ29EIVibMirvWAOS0MaD5FoTN2G4nw/exec';
         
         try {
+            // Get team work types for header information
+            let teamWorkTypes;
+            if (this.currentTeam === 'zero1') {
+                teamWorkTypes = this.zero1WorkTypes;
+            } else if (this.currentTeam === 'harish') {
+                teamWorkTypes = this.harishWorkTypes;
+            } else if (this.currentTeam === 'varsity') {
+                teamWorkTypes = this.varsityWorkTypes;
+            } else {
+                teamWorkTypes = this.workTypes; // B2B uses original types
+            }
+            
+            // Create headers for Google Apps Script
+            const headers = ['Timestamp', 'Week ID', 'Member Name'];
+            Object.keys(teamWorkTypes).forEach(workType => {
+                headers.push(teamWorkTypes[workType].name);
+            });
+            headers.push('Week Total (Days)', 'Working Days', 'Leave Days', 'Quality Rating', 'Target', 'Efficiency %', 'Status');
+            
             // Prepare data for Google Apps Script
             const payload = {
                 action: 'writeWeekData',
                 spreadsheetId: '1s_q5uyLKNcWL_JdiP05BOu2gmO_VvxFZROx0ZzwB64U',
                 sheetName: `${this.currentTeam.toUpperCase()}_Weekly_Tracking`, // Team-specific sheet
-                data: weekData, // Send complete data including headers
+                headers: headers, // Send team-specific headers
+                data: weekData, // Send only data rows (no headers)
                 teamName: this.currentTeam,
-                weekId: this.currentWeek?.id
+                weekId: this.currentWeek?.id,
+                replaceData: true // Flag to replace data for this week instead of appending
             };
             
             console.log('Sending data to Google Apps Script:', payload);
@@ -6881,5 +6896,49 @@ function clearAllSeptember() {
         tracker.clearAllSeptemberData();
     } else {
         console.error('Tracker not initialized yet');
+    }
+}
+
+// Debug function to check sync data format
+function debugSyncData() {
+    if (tracker && tracker.currentWeek) {
+        console.log('🔍 Current team:', tracker.currentTeam);
+        console.log('🔍 Current week:', tracker.currentWeek.id);
+        console.log('🔍 Team members:', tracker.teamMembers.map(m => m.name || m));
+        
+        // Get team work types
+        let teamWorkTypes;
+        if (tracker.currentTeam === 'zero1') {
+            teamWorkTypes = tracker.zero1WorkTypes;
+        } else if (tracker.currentTeam === 'harish') {
+            teamWorkTypes = tracker.harishWorkTypes;
+        } else if (tracker.currentTeam === 'varsity') {
+            teamWorkTypes = tracker.varsityWorkTypes;
+        } else {
+            teamWorkTypes = tracker.workTypes;
+        }
+        
+        console.log('🔍 Work types for team:', Object.keys(teamWorkTypes));
+        console.log('🔍 Work type names:', Object.values(teamWorkTypes).map(wt => wt.name));
+        
+        // Check if any data exists
+        const hasData = tracker.teamMembers.some(member => {
+            const memberName = member.name || member;
+            return Object.keys(teamWorkTypes).some(workType => {
+                const input = document.querySelector(`[data-member="${memberName}"][data-work="${workType}"]`);
+                return parseFloat(input?.value || 0) > 0;
+            });
+        });
+        
+        console.log('🔍 Has data to sync:', hasData);
+        
+        return {
+            team: tracker.currentTeam,
+            week: tracker.currentWeek.id,
+            workTypes: Object.keys(teamWorkTypes),
+            hasData: hasData
+        };
+    } else {
+        console.error('Tracker or current week not ready');
     }
 }
