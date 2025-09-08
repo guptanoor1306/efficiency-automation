@@ -26,8 +26,8 @@ class RealSheetsAPI {
         this.apiKey = 'AIzaSyBK1YXBwBm3q2SPhUGGLVCkOo8dX9fM-KY'; // Replace with your actual API key
         
         // UPDATED: Use new Google Apps Script URL with CORS support
-        this.readWebAppUrl = 'https://script.google.com/macros/s/AKfycbzUmB0C1TganOyuhhItu4LCX8rtwzVzyrMyyHCvZ_SbotT7OLiCa6beyGwaCtD3m1M/exec'; // WORKING SCRIPT
-        this.writeWebAppUrl = 'https://script.google.com/macros/s/AKfycbzUmB0C1TganOyuhhItu4LCX8rtwzVzyrMyyHCvZ_SbotT7OLiCa6beyGwaCtD3m1M/exec'; // WORKING SCRIPT
+        this.readWebAppUrl = 'https://script.google.com/macros/s/AKfycbzlHCtcCiaqYOtF7GEauuvAVPIT7z-2DMhXDWHNtIijF4P4HS7SewZg9_Qa6VUG0q0/exec'; // NEW WORKING SCRIPT
+        this.writeWebAppUrl = 'https://script.google.com/macros/s/AKfycbzlHCtcCiaqYOtF7GEauuvAVPIT7z-2DMhXDWHNtIijF4P4HS7SewZg9_Qa6VUG0q0/exec'; // NEW WORKING SCRIPT
     }
     
     async authenticate() {
