@@ -503,17 +503,11 @@
                     </table>
 
                     <div class="save-section">
-                        <button class="btn btn-success" onclick="tracker.saveWeekData()">
-                            <i class="fas fa-save"></i> Save Week Data
+                        <button id="finalize-btn" class="btn btn-success sleek-btn" onclick="tracker.finalizeWeeklyReport()" style="display: flex;">
+                            <i class="fas fa-check-circle"></i> Finalize Week
                         </button>
-                        <button class="btn" onclick="tracker.finalizeWeeklyReport()" style="background: #e74c3c; color: white;">
-                            <i class="fas fa-check-circle"></i> Finalize & Lock Week
-                        </button>
-                        <button id="clear-data-btn" class="btn sleek-btn" onclick="tracker.clearCurrentTeamData()" style="background: #f39c12; color: white; display: none;">
+                        <button id="clear-data-btn" class="btn sleek-btn" onclick="tracker.clearCurrentTeamData()" style="background: #dc3545; color: white; display: flex; margin-left: 10px;">
                             <i class="fas fa-trash"></i> Clear Data
-                        </button>
-                        <button id="sync-btn" class="btn sleek-btn" onclick="tracker.forceSync()" style="background: #9b59b6; color: white; display: none;">
-                            <i class="fas fa-sync"></i> Sync to Database
                         </button>
                         <button id="admin-clear-september" class="btn sleek-btn" onclick="tracker.clearAllSeptemberData()" style="background: #dc3545; color: white; font-size: 11px; display: none;">
                             <i class="fas fa-trash-alt"></i> Admin: Clear All Sep

@@ -1944,34 +1944,25 @@ class RealEfficiencyTracker {
     
     // Update visibility of sync and clear buttons based on week status
     updateButtonVisibility() {
-        const syncBtn = document.getElementById('sync-btn');
+        const finalizeBtn = document.getElementById('finalize-btn');
         const clearBtn = document.getElementById('clear-data-btn');
         
-        if (!syncBtn || !clearBtn || !this.currentWeek) {
+        if (!finalizeBtn || !clearBtn || !this.currentWeek) {
             return;
         }
-        
-        // Check if current week has any data
-        const hasData = this.weekHasData();
         
         // Check if current week is finalized
         const isFinalized = this.isWeekFinalized();
         
-        // Show sync button only if week has data or is finalized
-        if (hasData || isFinalized) {
-            syncBtn.style.display = 'inline-flex';
+        if (isFinalized) {
+            // Week is finalized - show only clear button
+            finalizeBtn.style.display = 'none';
+            clearBtn.style.display = 'flex';
         } else {
-            syncBtn.style.display = 'none';
+            // Week not finalized - show both buttons
+            finalizeBtn.style.display = 'flex';
+            clearBtn.style.display = 'flex';
         }
-        
-        // Show clear button only if week has data
-        if (hasData) {
-            clearBtn.style.display = 'inline-flex';
-        } else {
-            clearBtn.style.display = 'none';
-        }
-        
-        console.log(`Button visibility updated: hasData=${hasData}, isFinalized=${isFinalized}`);
     }
     
     // Check if current week has any data
@@ -3161,20 +3152,8 @@ class RealEfficiencyTracker {
         // Save to localStorage with timestamp
         this.saveTeamSpecificData();
         
-        // Save to Supabase database
-        try {
-            const supabaseResult = await this.saveToSupabaseWithRetry();
-            if (supabaseResult.success) {
-                console.log('✅ Data saved to Supabase successfully');
-            } else {
-                console.warn('⚠️ Supabase save failed:', supabaseResult.error);
-            }
-        } catch (error) {
-            console.error('Database sync failed:', error);
-            // Continue without blocking - data is already saved locally
-        }
-        
-        this.showMessage(`Week data saved for ${savedCount} team members! Data is stored in Local Storage and Database.`, 'success');
+        // Only save locally - database save happens on finalize
+        this.showMessage(`Week data saved locally for ${savedCount} team members! Click "Finalize Week" to save to database.`, 'success');
         
         // Update button visibility after saving
         this.updateButtonVisibility();
