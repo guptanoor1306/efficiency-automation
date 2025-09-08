@@ -5377,8 +5377,9 @@ class RealEfficiencyTracker {
     // Read data from Google Sheets for current team
     async readFromGoogleSheets() {
         try {
+            // CORRECT: Use the proper sheet naming that exists in the current spreadsheet
             const sheetName = `${this.currentTeam.toUpperCase()}_Weekly_Tracking`;
-            console.log(`📖 Attempting to read from sheet: ${sheetName}`);
+            console.log(`📖 Attempting to read from sheet: ${sheetName} in current data spreadsheet`);
             
             // Use the existing readSheetData method with team-specific range
             const range = `${sheetName}!A1:Z1000`;

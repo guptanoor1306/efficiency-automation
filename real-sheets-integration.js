@@ -3,8 +3,8 @@
 
 class RealSheetsAPI {
     constructor() {
-        // Main reading sheet (existing B2B data)
-        this.readSpreadsheetId = '1q_TbY63cGAeZgzSb25IIG6Vl5bWzOHZyGL5CitMMBdA';
+        // FIXED: Use current data spreadsheet for September onwards
+        this.readSpreadsheetId = '1s_q5uyLKNcWL_JdiP05BOu2gmO_VvxFZROx0ZzwB64U';
         // New sheet for weekly tracking data
         this.writeSpreadsheetId = '1s_q5uyLKNcWL_JdiP05BOu2gmO_VvxFZROx0ZzwB64U';
         this.writeSheetName = 'Weekly Tracking';
