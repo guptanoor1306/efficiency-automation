@@ -3267,7 +3267,7 @@ class RealEfficiencyTracker {
 
     async writeToGoogleSheets(weekData) {
         // UPDATED: Use new Google Apps Script Web App URL with CORS support
-        const webAppUrl = 'https://script.google.com/macros/s/AKfycbwqpUXPi-wF_KhUIzztZkeia5EC43rkBy1TJlW98aXsZlq11sjISubjZ5nU0YTOCuk/exec';
+        const webAppUrl = 'https://script.google.com/macros/s/AKfycbzUmB0C1TganOyuhhItu4LCX8rtwzVzyrMyyHCvZ_SbotT7OLiCa6beyGwaCtD3m1M/exec';
         
         try {
             // Get team work types for header information
