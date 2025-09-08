@@ -1402,10 +1402,78 @@ class RealEfficiencyTracker {
         // Also load any stored historical data for this team
         this.loadStoredHistoricalData();
         
-        this.init();
-        
-        // Start sync status updates
-        this.startSyncStatusUpdates();
+        // Initialize immediately after construction
+        this.initializeSync();
+    }
+    
+    // Synchronous initialization that always works
+    initializeSync() {
+        try {
+            console.log('🚀 Starting tracker initialization...');
+            
+            // Setup basic UI immediately
+            this.populateWeekSelector();
+            this.setupTeamSwitching();
+            this.setupEventListeners();
+            
+            // Set a default current week
+            this.setCurrentWeek();
+            
+            // Start sync status updates
+            this.startSyncStatusUpdates();
+            
+            // Hide loading, show initial state
+            document.getElementById('loading').style.display = 'none';
+            
+            // Async initialization for Google Sheets data
+            this.initializeAsync();
+            
+            console.log('✅ Basic initialization complete');
+            
+        } catch (error) {
+            console.error('❌ Initialization error:', error);
+            this.showMessage('⚠️ System initialized with limited functionality', 'warning');
+        }
+    }
+    
+    // Async initialization for Google Sheets and advanced features
+    async initializeAsync() {
+        try {
+            console.log('🔄 Loading Google Sheets data...');
+            
+            // Load real data from Google Sheets (with timeout)
+            const timeout = new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Timeout')), 8000)
+            );
+            
+            try {
+                await Promise.race([this.loadRealData(), timeout]);
+                console.log('✅ Google Sheets data loaded');
+            } catch (e) {
+                console.warn('⚠️ Google Sheets timeout, using local data:', e.message);
+            }
+            
+            // Update UI with loaded data
+            this.refreshCurrentDisplay();
+            
+            this.showMessage('✅ System ready! Select a team and period to begin.', 'success');
+            
+        } catch (error) {
+            console.error('❌ Async initialization error:', error);
+            this.showMessage('✅ System ready! (Google Sheets sync may be limited)', 'warning');
+        }
+    }
+    
+    // Refresh the current display
+    refreshCurrentDisplay() {
+        try {
+            if (this.currentWeek) {
+                this.showWeekInfo();
+                this.loadWeekData();
+            }
+        } catch (error) {
+            console.warn('Display refresh error:', error);
+        }
     }
     
     // UTILITY: Clear current team's data for selected period
@@ -1842,7 +1910,16 @@ class RealEfficiencyTracker {
     
     populateWeekSelector() {
         const weekSelect = document.getElementById('week-select');
-        if (!weekSelect) return;
+        if (!weekSelect) {
+            console.warn('Week selector element not found');
+            return;
+        }
+        
+        if (!this.weekSystem || !this.weekSystem.weeks) {
+            console.warn('Week system not ready');
+            weekSelect.innerHTML = '<option value="">Week system loading...</option>';
+            return;
+        }
         
         // Remember current selection
         const currentSelection = weekSelect.value;
@@ -1990,12 +2067,36 @@ class RealEfficiencyTracker {
 
     
     setCurrentWeek() {
-        // Find the first incomplete week for this team
-        const currentWeek = this.getFirstIncompleteWeek();
-        if (currentWeek) {
-            document.getElementById('week-select').value = currentWeek.id;
-            this.currentWeek = currentWeek;
-            this.updateWeekInfo();
+        try {
+            // Find the first incomplete week for this team
+            const currentWeek = this.getFirstIncompleteWeek();
+            if (currentWeek) {
+                const weekSelect = document.getElementById('week-select');
+                if (weekSelect) {
+                    weekSelect.value = currentWeek.id;
+                }
+                this.currentWeek = currentWeek;
+                this.updateWeekInfo();
+                console.log(`Set current week: ${currentWeek.label}`);
+            } else {
+                // Fallback to first available week
+                const firstWeek = this.weekSystem.weeks[0];
+                if (firstWeek) {
+                    this.currentWeek = firstWeek;
+                    const weekSelect = document.getElementById('week-select');
+                    if (weekSelect) {
+                        weekSelect.value = firstWeek.id;
+                    }
+                    console.log(`Fallback to first week: ${firstWeek.label}`);
+                }
+            }
+        } catch (error) {
+            console.warn('Error setting current week:', error);
+            // Ensure we have some week selected
+            const fallbackWeek = this.weekSystem.weeks[0];
+            if (fallbackWeek) {
+                this.currentWeek = fallbackWeek;
+            }
         }
     }
     
@@ -2107,11 +2208,23 @@ class RealEfficiencyTracker {
     updateWeekInfo() {
         if (!this.currentWeek) return;
         
-        document.getElementById('week-info').style.display = 'block';
-        document.getElementById('week-title').textContent = 
-            `Week ${this.currentWeek.weekNumber} - ${this.currentWeek.monthName} ${this.currentWeek.year}`;
-        document.getElementById('week-dates').textContent = 
-            `${this.currentWeek.dateRange} (Monday to Friday)`;
+        try {
+            const weekInfo = document.getElementById('week-info');
+            const weekTitle = document.getElementById('week-title');
+            const weekDates = document.getElementById('week-dates');
+            
+            if (weekInfo) weekInfo.style.display = 'block';
+            if (weekTitle) {
+                weekTitle.textContent = 
+                    `Week ${this.currentWeek.weekNumber} - ${this.currentWeek.monthName} ${this.currentWeek.year}`;
+            }
+            if (weekDates) {
+                weekDates.textContent = 
+                    `${this.currentWeek.dateRange} (Monday to Friday)`;
+            }
+        } catch (error) {
+            console.warn('Error updating week info:', error);
+        }
     }
     
     loadWeekData() {
