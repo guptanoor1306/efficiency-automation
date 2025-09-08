@@ -405,6 +405,17 @@
         </div>
 
         <div id="message-container"></div>
+        
+        <!-- IMPROVED: Data sync status display -->
+        <div id="sync-status" style="background: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); display: none;">
+            <h4 style="margin-bottom: 10px; color: #2c3e50;">📊 Data Sync Status</h4>
+            <div id="sync-details" style="font-size: 14px; color: #666;">
+                <div>Local Data: <span id="local-entries">0</span> entries</div>
+                <div>Last Synced: <span id="last-sync">Never</span></div>
+                <div>Sync Status: <span id="sync-state">Checking...</span></div>
+                <div>Failed Syncs: <span id="failed-count">0</span></div>
+            </div>
+        </div>
 
 
         <div class="main-grid" style="grid-template-columns: 250px 1fr;">
@@ -477,6 +488,12 @@
                         </button>
                         <button class="btn" onclick="tracker.finalizeWeeklyReport()" style="background: #e74c3c; color: white;">
                             <i class="fas fa-check-circle"></i> Finalize & Lock Week
+                        </button>
+                        <button class="btn" onclick="tracker.clearBratishSeptemberData()" style="background: #f39c12; color: white; font-size: 12px;">
+                            <i class="fas fa-trash"></i> Clear Bratish Sep Data
+                        </button>
+                        <button class="btn" onclick="tracker.forceSync()" style="background: #9b59b6; color: white; font-size: 12px;">
+                            <i class="fas fa-sync"></i> Force Sync
                         </button>
                         <div id="finalize-status" style="display: none; margin-top: 10px; padding: 10px; background: #d4edda; border: 1px solid #c3e6cb; border-radius: 5px; color: #155724;">
                             <i class="fas fa-check-circle" style="color: #28a745;"></i> Week finalized successfully!

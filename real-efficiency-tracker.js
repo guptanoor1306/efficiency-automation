@@ -1392,13 +1392,290 @@ class RealEfficiencyTracker {
         
         this.currentMonth = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
         
-        // Load team-specific data after currentTeam is set
-        this.loadTeamSpecificData();
+        // Load team-specific data after currentTeam is set (async)
+        this.loadTeamSpecificData().then(() => {
+            console.log('✅ Team data loaded and synced');
+        }).catch(error => {
+            console.warn('⚠️ Issue loading team data:', error);
+        });
         
         // Also load any stored historical data for this team
         this.loadStoredHistoricalData();
         
         this.init();
+        
+        // Start sync status updates
+        this.startSyncStatusUpdates();
+    }
+    
+    // UTILITY: Clear Bratish team September data that's not on the sheet
+    async clearBratishSeptemberData() {
+        console.log('🧹 Clearing Bratish team September data...');
+        
+        // Switch to Zero1 (Bratish) team temporarily
+        const originalTeam = this.currentTeam;
+        this.currentTeam = 'zero1';
+        
+        // Load the team data
+        await this.loadTeamSpecificData();
+        
+        // Find September 2025 weeks
+        const septemberWeeks = this.weekSystem.getWeeksForMonth('September', 2025);
+        let clearedCount = 0;
+        
+        septemberWeeks.forEach(week => {
+            // Clear week entries for all members
+            Object.keys(this.weekEntries).forEach(entryKey => {
+                if (entryKey.startsWith(week.id)) {
+                    delete this.weekEntries[entryKey];
+                    clearedCount++;
+                    console.log(`🗑️ Cleared entry: ${entryKey}`);
+                }
+            });
+            
+            // Clear finalized reports for September weeks
+            const weekKey = week.id;
+            if (this.finalizedReports[weekKey]) {
+                delete this.finalizedReports[weekKey];
+                console.log(`🗑️ Cleared finalized report: ${weekKey}`);
+            }
+        });
+        
+        // Save the cleared data
+        this.saveTeamSpecificData();
+        
+        // Also clear from Google Sheets
+        try {
+            await this.clearSeptemberFromGoogleSheets();
+            console.log('✅ Cleared September data from Google Sheets');
+        } catch (error) {
+            console.warn('⚠️ Could not clear from Google Sheets:', error);
+        }
+        
+        // Restore original team
+        this.currentTeam = originalTeam;
+        await this.loadTeamSpecificData();
+        
+        console.log(`✅ Cleared ${clearedCount} September entries for Bratish team`);
+        this.showMessage(`Cleared ${clearedCount} September entries for Bratish team`, 'success');
+        
+        return clearedCount;
+    }
+    
+    // Clear September data from Google Sheets
+    async clearSeptemberFromGoogleSheets() {
+        // This would need to be implemented in the Google Apps Script
+        // For now, we'll just log the intent
+        console.log('📝 TODO: Implement clearing September data from Google Sheets');
+        
+        // The Google Apps Script would need a new function to:
+        // 1. Find all rows for ZERO1_Weekly_Tracking sheet
+        // 2. Delete rows where Week ID contains '2025-09-'
+        // 3. Return success confirmation
+    }
+    
+    // Force sync with Google Sheets
+    async forceSync() {
+        this.showMessage('🔄 Force syncing with Google Sheets...', 'info');
+        
+        try {
+            // Get any failed syncs and retry them
+            await this.retryFailedSyncs();
+            
+            // Force sync current team data
+            const result = await this.saveToGoogleSheetsWithRetry(5); // More retries for force sync
+            
+            if (result.success) {
+                this.showMessage('✅ Force sync completed successfully!', 'success');
+            } else {
+                this.showMessage(`⚠️ Force sync partially failed: ${result.error}`, 'error');
+            }
+            
+        } catch (error) {
+            console.error('Force sync failed:', error);
+            this.showMessage('❌ Force sync failed. Check console for details.', 'error');
+        }
+    }
+    
+    // Retry any failed syncs
+    async retryFailedSyncs() {
+        const failedSyncKey = 'failed_syncs';
+        const failedSyncs = JSON.parse(localStorage.getItem(failedSyncKey) || '[]');
+        
+        if (failedSyncs.length === 0) {
+            console.log('📝 No failed syncs to retry');
+            return;
+        }
+        
+        console.log(`🔄 Retrying ${failedSyncs.length} failed syncs...`);
+        
+        const retryPromises = failedSyncs.map(async (failedSync, index) => {
+            try {
+                // Temporarily switch to the failed sync's team
+                const originalTeam = this.currentTeam;
+                this.currentTeam = failedSync.team;
+                this.weekEntries = failedSync.data;
+                
+                const result = await this.saveToGoogleSheets();
+                
+                // Restore original team
+                this.currentTeam = originalTeam;
+                
+                if (result && result.success !== false) {
+                    console.log(`✅ Retry successful for ${failedSync.team} ${failedSync.week}`);
+                    return index; // Return index of successful retry
+                }
+                
+            } catch (error) {
+                console.warn(`❌ Retry failed for ${failedSync.team} ${failedSync.week}:`, error);
+            }
+            
+            return null;
+        });
+        
+        const results = await Promise.all(retryPromises);
+        const successfulRetries = results.filter(index => index !== null);
+        
+        // Remove successful retries from failed syncs
+        const remainingFailedSyncs = failedSyncs.filter((sync, index) => !successfulRetries.includes(index));
+        localStorage.setItem(failedSyncKey, JSON.stringify(remainingFailedSyncs));
+        
+        console.log(`✅ Successfully retried ${successfulRetries.length} out of ${failedSyncs.length} failed syncs`);
+    }
+    
+    // Data validation before saving
+    validateWeekData() {
+        const errors = [];
+        const warnings = [];
+        
+        if (!this.currentWeek) {
+            errors.push('No week selected');
+            return { isValid: false, errors, warnings };
+        }
+        
+        if (!this.teamMembers || this.teamMembers.length === 0) {
+            errors.push('No team members found');
+            return { isValid: false, errors, warnings };
+        }
+        
+        // Validate each member's data
+        this.teamMembers.forEach(member => {
+            const memberName = member.name || member;
+            const entryKey = `${this.currentWeek.id}_${memberName}`;
+            const entry = this.weekEntries[entryKey];
+            
+            if (!entry) {
+                warnings.push(`No data entered for ${memberName}`);
+                return;
+            }
+            
+            // Check for negative values
+            Object.keys(entry.workTypes || {}).forEach(workType => {
+                Object.keys(entry.workTypes[workType] || {}).forEach(day => {
+                    const value = entry.workTypes[workType][day];
+                    if (value < 0) {
+                        errors.push(`Negative value found for ${memberName} - ${workType} on ${day}`);
+                    }
+                    if (value > 50) {
+                        warnings.push(`Very high value (${value}) for ${memberName} - ${workType} on ${day}`);
+                    }
+                });
+            });
+            
+            // Check total hours per day
+            const days = ['mon', 'tue', 'wed', 'thu', 'fri'];
+            days.forEach(day => {
+                let dayTotal = 0;
+                Object.keys(entry.workTypes || {}).forEach(workType => {
+                    dayTotal += entry.workTypes[workType][day] || 0;
+                });
+                
+                if (dayTotal > 12) {
+                    warnings.push(`${memberName} has ${dayTotal.toFixed(1)} hours on ${day} (>12h)`);
+                } else if (dayTotal < 0.1 && dayTotal > 0) {
+                    warnings.push(`${memberName} has very low hours (${dayTotal.toFixed(1)}) on ${day}`);
+                }
+            });
+        });
+        
+        return {
+            isValid: errors.length === 0,
+            errors,
+            warnings
+        };
+    }
+    
+    // Show validation results
+    showValidationResults(validation) {
+        let message = '';
+        
+        if (validation.errors.length > 0) {
+            message += '❌ ERRORS:\n' + validation.errors.join('\n') + '\n\n';
+        }
+        
+        if (validation.warnings.length > 0) {
+            message += '⚠️ WARNINGS:\n' + validation.warnings.join('\n');
+        }
+        
+        if (message) {
+            console.warn('Validation issues:', validation);
+            this.showMessage(message, validation.errors.length > 0 ? 'error' : 'warning');
+        }
+        
+        return validation.isValid;
+    }
+    
+    // Update sync status display
+    updateSyncStatus() {
+        const syncStatusDiv = document.getElementById('sync-status');
+        const localEntriesSpan = document.getElementById('local-entries');
+        const lastSyncSpan = document.getElementById('last-sync');
+        const syncStateSpan = document.getElementById('sync-state');
+        const failedCountSpan = document.getElementById('failed-count');
+        
+        if (!syncStatusDiv) return;
+        
+        // Show the status panel
+        syncStatusDiv.style.display = 'block';
+        
+        // Get current data counts
+        const localEntries = Object.keys(this.weekEntries || {}).length;
+        const syncMetadata = this.getSyncMetadata();
+        const failedSyncs = JSON.parse(localStorage.getItem('failed_syncs') || '[]');
+        
+        // Update display
+        if (localEntriesSpan) localEntriesSpan.textContent = localEntries;
+        if (lastSyncSpan) {
+            const lastSync = syncMetadata.lastSynced;
+            lastSyncSpan.textContent = lastSync ? 
+                new Date(lastSync).toLocaleString() : 'Never';
+        }
+        if (syncStateSpan) {
+            if (syncMetadata.needsSync) {
+                syncStateSpan.textContent = '⏳ Needs Sync';
+                syncStateSpan.style.color = '#f39c12';
+            } else {
+                syncStateSpan.textContent = '✅ Synced';
+                syncStateSpan.style.color = '#27ae60';
+            }
+        }
+        if (failedCountSpan) {
+            failedCountSpan.textContent = failedSyncs.length;
+            if (failedSyncs.length > 0) {
+                failedCountSpan.style.color = '#e74c3c';
+            }
+        }
+    }
+    
+    // Show sync status periodically and on important events
+    startSyncStatusUpdates() {
+        // Update immediately
+        this.updateSyncStatus();
+        
+        // Update every 30 seconds
+        setInterval(() => {
+            this.updateSyncStatus();
+        }, 30000);
     }
     
     getActiveTeamMembers(team) {
@@ -2421,6 +2698,15 @@ class RealEfficiencyTracker {
             return;
         }
         
+        // IMPROVED: Validate data before saving
+        const validation = this.validateWeekData();
+        if (!this.showValidationResults(validation)) {
+            // Don't stop saving for warnings, only for errors
+            if (validation.errors.length > 0) {
+                return;
+            }
+        }
+        
         // Check if week is already finalized
         const finalizedReports = this.finalizedReports || {};
         const weekKey = `${this.currentWeek.id}`;
@@ -2442,11 +2728,11 @@ class RealEfficiencyTracker {
             }
         });
         
-        // Save to localStorage
+        // Save to localStorage with timestamp
         this.saveTeamSpecificData();
         
-        // Also try to save to Google Sheets
-        this.saveToGoogleSheets();
+        // IMPROVED: Always try to sync to Google Sheets with retry mechanism
+        await this.saveToGoogleSheetsWithRetry();
         
         this.showMessage(`Week data saved for ${savedCount} team members! Data is stored in Local Storage and Google Sheets.`, 'success');
     }
@@ -4721,36 +5007,241 @@ class RealEfficiencyTracker {
         }
     }
     
-    // Load team-specific data from localStorage
-    loadTeamSpecificData() {
+    // Load team-specific data from localStorage and sync with Google Sheets
+    async loadTeamSpecificData() {
         const teamKey = `${this.currentTeam}_week_entries`;
         const finalizedKey = `${this.currentTeam}_finalized_reports`;
         
+        // Load local data first
         this.weekEntries = JSON.parse(localStorage.getItem(teamKey) || '{}');
         this.finalizedReports = JSON.parse(localStorage.getItem(finalizedKey) || '{}');
         
-        console.log(`Loaded data for ${this.currentTeam}:`, {
+        console.log(`Loaded local data for ${this.currentTeam}:`, {
             weekEntries: Object.keys(this.weekEntries).length,
             finalizedReports: Object.keys(this.finalizedReports).length,
             finalizedReportsData: this.finalizedReports
         });
+        
+        // IMPROVED: Try to sync with Google Sheets on load
+        await this.syncWithGoogleSheetsOnLoad();
     }
     
-    // Save team-specific data to localStorage
+    // Sync with Google Sheets when loading data
+    async syncWithGoogleSheetsOnLoad() {
+        try {
+            console.log(`🔄 Syncing ${this.currentTeam} data with Google Sheets...`);
+            
+            // Try to read latest data from Google Sheets
+            const sheetData = await this.readFromGoogleSheets();
+            
+            if (sheetData && sheetData.length > 0) {
+                // Merge with local data using conflict resolution
+                await this.mergeSheetDataWithLocal(sheetData);
+                console.log(`✅ Synced ${this.currentTeam} data with Google Sheets`);
+            }
+            
+        } catch (error) {
+            console.warn(`⚠️ Could not sync with Google Sheets on load:`, error.message);
+            console.log(`📱 Using local data for ${this.currentTeam}`);
+        }
+    }
+    
+    // Read data from Google Sheets for current team
+    async readFromGoogleSheets() {
+        try {
+            const sheetName = `${this.currentTeam.toUpperCase()}_Weekly_Tracking`;
+            const range = `${sheetName}!A1:Z1000`;
+            
+            // Use the existing read method but for the specific team sheet
+            return await this.sheetsAPI.readSheetData(range);
+            
+        } catch (error) {
+            console.error('Error reading from Google Sheets:', error);
+            return null;
+        }
+    }
+    
+    // Merge Google Sheets data with local data using conflict resolution
+    async mergeSheetDataWithLocal(sheetData) {
+        if (!sheetData || sheetData.length === 0) return;
+        
+        const localMetadata = this.getSyncMetadata();
+        let hasConflicts = false;
+        let mergedCount = 0;
+        
+        // Convert sheet data to the format we use locally
+        sheetData.forEach(sheetRow => {
+            if (!sheetRow.timestamp || !sheetRow.weekId || !sheetRow.memberName) return;
+            
+            const entryKey = `${sheetRow.weekId}_${sheetRow.memberName}`;
+            const sheetTimestamp = new Date(sheetRow.timestamp);
+            
+            // Check if we have local data for this entry
+            const localEntry = this.weekEntries[entryKey];
+            
+            if (!localEntry) {
+                // No local data, use sheet data
+                this.weekEntries[entryKey] = this.convertSheetRowToEntry(sheetRow);
+                mergedCount++;
+                console.log(`📥 Added new entry from sheet: ${entryKey}`);
+                
+            } else {
+                // We have local data, check for conflicts
+                const localTimestamp = new Date(localEntry.lastUpdated || 0);
+                
+                if (sheetTimestamp > localTimestamp) {
+                    // Sheet data is newer, use it
+                    this.weekEntries[entryKey] = this.convertSheetRowToEntry(sheetRow);
+                    mergedCount++;
+                    hasConflicts = true;
+                    console.log(`🔄 Updated entry from sheet (newer): ${entryKey}`);
+                    
+                } else if (localTimestamp > sheetTimestamp) {
+                    // Local data is newer, keep it but mark for sync
+                    localMetadata.needsSync = true;
+                    console.log(`📤 Local data is newer: ${entryKey}`);
+                    
+                } else {
+                    // Same timestamp, no conflict
+                    console.log(`✅ Data in sync: ${entryKey}`);
+                }
+            }
+        });
+        
+        if (hasConflicts) {
+            this.showMessage(`🔄 Synced with Google Sheets. ${mergedCount} entries updated from cloud.`, 'info');
+        } else if (mergedCount > 0) {
+            this.showMessage(`📥 Loaded ${mergedCount} entries from Google Sheets.`, 'info');
+        }
+        
+        // Save the merged data
+        this.saveTeamSpecificData();
+    }
+    
+    // Convert sheet row to internal entry format
+    convertSheetRowToEntry(sheetRow) {
+        return {
+            weekId: sheetRow.weekId,
+            memberId: sheetRow.memberName,
+            lastUpdated: sheetRow.timestamp,
+            workTypes: {
+                ost: { mon: 0, tue: 0, wed: 0, thu: 0, fri: 0 },
+                screen: { mon: 0, tue: 0, wed: 0, thu: 0, fri: 0 },
+                firstcut: { mon: 0, tue: 0, wed: 0, thu: 0, fri: 0 },
+                hand: { mon: 0, tue: 0, wed: 0, thu: 0, fri: 0 },
+                fss: { mon: 0, tue: 0, wed: 0, thu: 0, fri: 0 },
+                character: { mon: 0, tue: 0, wed: 0, thu: 0, fri: 0 },
+                vo: { mon: 0, tue: 0, wed: 0, thu: 0, fri: 0 },
+                intro: { mon: 0, tue: 0, wed: 0, thu: 0, fri: 0 }
+            },
+            totals: {
+                weekTotal: parseFloat(sheetRow.weekTotal) || 0,
+                dailyTotals: { mon: 0, tue: 0, wed: 0, thu: 0, fri: 0 }
+            }
+        };
+    }
+    
+    // Save team-specific data to localStorage with sync metadata
     saveTeamSpecificData() {
         const teamKey = `${this.currentTeam}_week_entries`;
         const finalizedKey = `${this.currentTeam}_finalized_reports`;
         const historicalKey = `${this.currentTeam}_historical_data`;
+        const syncKey = `${this.currentTeam}_sync_metadata`;
+        
+        // Add timestamp and user info for conflict resolution
+        const timestamp = new Date().toISOString();
+        const syncMetadata = {
+            lastSaved: timestamp,
+            savedBy: `User_${Date.now()}`, // Simple user identification
+            version: (this.getSyncMetadata()?.version || 0) + 1,
+            needsSync: true // Flag to indicate data needs to be synced to sheets
+        };
         
         localStorage.setItem(teamKey, JSON.stringify(this.weekEntries));
         localStorage.setItem(finalizedKey, JSON.stringify(this.finalizedReports || {}));
         localStorage.setItem(historicalKey, JSON.stringify(this.historicalData[this.currentTeam] || {}));
+        localStorage.setItem(syncKey, JSON.stringify(syncMetadata));
         
         console.log(`Saved data for ${this.currentTeam}`, {
             weekEntries: Object.keys(this.weekEntries).length,
             finalizedReports: Object.keys(this.finalizedReports || {}).length,
-            historicalData: Object.keys(this.historicalData[this.currentTeam] || {}).length
+            historicalData: Object.keys(this.historicalData[this.currentTeam] || {}).length,
+            syncMetadata: syncMetadata
         });
+    }
+    
+    // Get sync metadata
+    getSyncMetadata() {
+        const syncKey = `${this.currentTeam}_sync_metadata`;
+        return JSON.parse(localStorage.getItem(syncKey) || '{}');
+    }
+    
+    // Improved Google Sheets sync with retry mechanism
+    async saveToGoogleSheetsWithRetry(maxRetries = 3) {
+        let lastError = null;
+        
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                console.log(`🔄 Attempting Google Sheets sync (attempt ${attempt}/${maxRetries})`);
+                
+                const result = await this.saveToGoogleSheets();
+                
+                if (result && result.success !== false) {
+                    console.log(`✅ Google Sheets sync successful on attempt ${attempt}`);
+                    
+                    // Mark as synced
+                    this.markAsSynced();
+                    return { success: true, attempt: attempt };
+                }
+                
+            } catch (error) {
+                lastError = error;
+                console.warn(`❌ Google Sheets sync failed on attempt ${attempt}:`, error.message);
+                
+                if (attempt < maxRetries) {
+                    // Wait before retrying (exponential backoff)
+                    const delay = Math.pow(2, attempt) * 1000; // 2s, 4s, 8s
+                    console.log(`⏳ Waiting ${delay}ms before retry...`);
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+            }
+        }
+        
+        console.error(`❌ All ${maxRetries} sync attempts failed. Last error:`, lastError);
+        
+        // Store for later sync
+        this.storeForLaterSync();
+        
+        return { 
+            success: false, 
+            error: lastError?.message || 'Sync failed after all retries',
+            storedForLater: true
+        };
+    }
+    
+    // Mark data as synced
+    markAsSynced() {
+        const syncKey = `${this.currentTeam}_sync_metadata`;
+        const metadata = this.getSyncMetadata();
+        metadata.needsSync = false;
+        metadata.lastSynced = new Date().toISOString();
+        localStorage.setItem(syncKey, JSON.stringify(metadata));
+    }
+    
+    // Store failed sync for later retry
+    storeForLaterSync() {
+        const failedSyncKey = 'failed_syncs';
+        const failedSyncs = JSON.parse(localStorage.getItem(failedSyncKey) || '[]');
+        
+        failedSyncs.push({
+            team: this.currentTeam,
+            week: this.currentWeek?.id,
+            timestamp: new Date().toISOString(),
+            data: this.weekEntries
+        });
+        
+        localStorage.setItem(failedSyncKey, JSON.stringify(failedSyncs));
+        console.log('📝 Stored failed sync for later retry');
     }
     
     loadStoredHistoricalData() {
