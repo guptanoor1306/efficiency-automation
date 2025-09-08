@@ -3095,8 +3095,10 @@ class RealEfficiencyTracker {
         
         this.saveTeamSpecificData();
         
+        // FIXED: Use the correct method to force save to Google Sheets
         try {
-            await this.saveToGoogleSheets();
+            console.log('💾 Force saving finalized data to Google Sheets...');
+            await this.saveToGoogleSheetsWithRetry(5); // More aggressive retry for finalization
         } catch (error) {
             console.error('Silent save to Google Sheets failed:', error);
         }
@@ -3787,7 +3789,7 @@ class RealEfficiencyTracker {
         this.showMessage(`Data applied to all ${this.teamMembers.length} team members for ${this.currentWeek.label}`, 'success');
     }
 
-    finalizeWeeklyReport() {
+    async finalizeWeeklyReport() {
         if (!this.currentWeek) {
             this.showMessage('Please select a week first', 'error');
             return;
@@ -3861,11 +3863,14 @@ class RealEfficiencyTracker {
         this.finalizedReports = finalizedReports;
         this.saveTeamSpecificData();
         
-        // Save current week data permanently (without showing save message)
-        this.saveWeekDataSilently();
+        // CRITICAL: Save current week data permanently AND force sync to Google Sheets
+        console.log('💾 Finalizing week - forcing comprehensive save to Google Sheets...');
         
-        // AUTO-SAVE TO GOOGLE SHEETS
-        this.autoSaveToSheets(weekSummary);
+        // Save locally first
+        await this.saveWeekDataSilently();
+        
+        // Then force sync to Google Sheets with extra retries for finalization
+        await this.autoSaveToSheets(weekSummary);
         
         // Show finalization status
         this.showFinalizationStatus();
@@ -3886,43 +3891,19 @@ class RealEfficiencyTracker {
         try {
             console.log('📝 Auto-saving finalized week to Google Sheets...');
             
-            // Check if we have sheets API available
-            if (typeof RealSheetsAPI === 'undefined') {
-                console.log('⚠️ RealSheetsAPI not available, skipping auto-save');
-                return;
-            }
+            // Force a comprehensive save of all current week data to Google Sheets
+            // This ensures that when a week is finalized, all data is backed up
+            await this.saveToGoogleSheetsWithRetry(5); // Aggressive retry for finalization
             
-            const api = new RealSheetsAPI();
-            
-            // Prepare data for the week tracking sheet
-            const sheetName = `${this.currentTeam.toUpperCase()}_Weekly_Tracking`;
-            
-            // Format data similar to manual save structure
-            const rowData = [
-                weekSummary.weekName,
-                weekSummary.dateRange,
-                weekSummary.teamCount,
-                weekSummary.avgOutput.toFixed(1),
-                weekSummary.avgRating.toFixed(1),
-                weekSummary.avgEfficiency.toFixed(1),
-                weekSummary.finalizedAt,
-                'AUTO_FINALIZED'
-            ];
-            
-            // Try to write to sheets
-            const result = await api.appendRowToSheet(sheetName, rowData);
-            
-            if (result.success) {
-                console.log('✅ Week data auto-saved to Google Sheets');
-                this.showMessage('📊 Week finalized and backed up to Google Sheets', 'success');
-            } else {
-                console.log('❌ Failed to auto-save to Google Sheets:', result.error);
-                this.showMessage('⚠️ Week finalized locally. Google Sheets backup failed.', 'warning');
-            }
+            console.log('✅ Finalized week data saved to Google Sheets');
+            this.showMessage('📊 Week finalized and backed up to Google Sheets', 'success');
             
         } catch (error) {
-            console.error('Error auto-saving to sheets:', error);
-            this.showMessage('⚠️ Week finalized locally. Google Sheets backup failed.', 'warning');
+            console.error('Error auto-saving finalized week to sheets:', error);
+            this.showMessage('⚠️ Week finalized locally. Google Sheets backup failed - will retry automatically.', 'warning');
+            
+            // Store for later retry
+            this.storeForLaterSync();
         }
     }
     
