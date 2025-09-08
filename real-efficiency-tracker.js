@@ -5495,9 +5495,15 @@ class RealEfficiencyTracker {
         
         console.log(`✅ Merge complete. Total local entries: ${Object.keys(this.weekEntries).length}`);
         
-        // Refresh the UI with the merged data
-        if (mergedCount > 0 && this.currentWeek) {
-            this.populateUIWithSheetData();
+        // CRITICAL: Always refresh the UI after sync, regardless of merge count
+        // This ensures data loaded from sheets is displayed even if no conflicts occurred
+        if (this.currentWeek) {
+            console.log(`🔄 Refreshing UI after Google Sheets sync...`);
+            
+            // Use loadWeekData instead of populateUIWithSheetData to ensure proper UI refresh
+            setTimeout(() => {
+                this.loadWeekData();
+            }, 100); // Small delay to ensure DOM is ready
         }
     }
     
