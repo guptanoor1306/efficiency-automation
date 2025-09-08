@@ -5768,10 +5768,16 @@ class RealEfficiencyTracker {
                 // Collect data for each team member
                 teamMembers.forEach(member => {
                     const memberData = this.collectMemberData(member.name);
+                    console.log(`🔍 Collected data for ${member.name}:`, memberData);
                     if (memberData && memberData.hasData) {
                         weekData[member.name] = memberData;
+                        console.log(`✅ Added ${member.name} to weekData`);
+                    } else {
+                        console.log(`⚠️ No data for ${member.name} (hasData: ${memberData?.hasData})`);
                     }
                 });
+                
+                console.log('🔍 Final weekData to save:', weekData);
                 
                 if (Object.keys(weekData).length === 0) {
                     console.log('⚠️ No data to save to Supabase');
