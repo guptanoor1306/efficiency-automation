@@ -5748,15 +5748,31 @@ class RealEfficiencyTracker {
     async saveToSupabaseWithRetry(maxRetries = 3) {
         console.log(`💾 Saving to Supabase (max retries: ${maxRetries})`);
         
+        // Check if we have a current week selected
+        if (!this.currentWeek) {
+            console.log('⚠️ No current week selected');
+            return { success: false, error: 'No current week selected' };
+        }
+        
         let lastError = null;
         
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
             try {
                 console.log(`📝 Supabase save attempt ${attempt}/${maxRetries}`);
                 
-                // Get current week data
-                const weekData = this.collectAllMemberData();
-                if (!weekData || Object.keys(weekData).length === 0) {
+                // Get current week data for all team members
+                const weekData = {};
+                const teamMembers = this.getActiveTeamMembers(this.currentTeam);
+                
+                // Collect data for each team member
+                teamMembers.forEach(member => {
+                    const memberData = this.collectMemberData(member.name);
+                    if (memberData && memberData.hasData) {
+                        weekData[member.name] = memberData;
+                    }
+                });
+                
+                if (Object.keys(weekData).length === 0) {
                     console.log('⚠️ No data to save to Supabase');
                     return { success: true, message: 'No data to save' };
                 }
