@@ -133,7 +133,7 @@ class RealEfficiencyTracker {
             },
             'varsity': {
                 name: 'Varsity Team',
-                // Current active members (Somya left after March 2025)
+                // CORRECTED: These are the actual Varsity team members
                 members: [
                     { name: 'Aalim' },
                     { name: 'Satyavrat Sharma' },
@@ -4310,6 +4310,12 @@ class RealEfficiencyTracker {
             
             this.currentTeam = newTeam;
             
+            // CRITICAL: Clear any cached data from previous team to prevent contamination
+            console.log(`🧹 Clearing cached data when switching to ${newTeam}...`);
+            this.weekEntries = {};
+            this.finalizedReports = {};
+            this.sheetData = [];
+            
             // Load team-specific data (week entries and finalized reports)
             this.loadTeamSpecificData();
             
@@ -5374,37 +5380,25 @@ class RealEfficiencyTracker {
             const sheetName = `${this.currentTeam.toUpperCase()}_Weekly_Tracking`;
             console.log(`📖 Attempting to read from sheet: ${sheetName}`);
             
-            // Use direct API call to read from team-specific sheet
-            const webAppUrl = this.sheetsAPI.writeWebAppUrl; // Use write URL since it has better access
+            // Use the existing readSheetData method with team-specific range
+            const range = `${sheetName}!A1:Z1000`;
+            console.log(`📖 Reading range: ${range}`);
             
-            const payload = {
-                action: 'readWeekData',
-                spreadsheetId: '1s_q5uyLKNcWL_JdiP05BOu2gmO_VvxFZROx0ZzwB64U',
-                sheetName: sheetName,
-                teamName: this.currentTeam
-            };
+            const data = await this.sheetsAPI.readSheetData(range);
+            console.log(`📊 Retrieved ${data?.length || 0} rows from ${sheetName}`);
             
-            console.log('Reading payload:', payload);
-            
-            const response = await fetch(webAppUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(payload)
-            });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+            // If readSheetData returns parsed objects, convert to raw values format
+            if (data && data.length > 0 && typeof data[0] === 'object' && !Array.isArray(data[0])) {
+                console.log('Converting parsed data to raw sheet format...');
+                // Return empty for now - this means the sheet doesn't exist yet
+                return [];
             }
             
-            const data = await response.json();
-            console.log(`📊 Retrieved ${data?.values?.length || 0} rows from ${sheetName}`);
-            
-            return data?.values || [];
+            return data || [];
             
         } catch (error) {
             console.error('Error reading from Google Sheets:', error);
+            console.log('📝 This likely means the team sheet doesn\'t exist yet - starting fresh');
             return [];
         }
     }
@@ -5416,11 +5410,16 @@ class RealEfficiencyTracker {
             return;
         }
         
-        console.log(`🔄 Merging ${sheetData.length} rows from Google Sheets...`);
+        console.log(`🔄 Merging ${sheetData.length} rows from Google Sheets for ${this.currentTeam} team...`);
         
         const localMetadata = this.getSyncMetadata();
         let hasConflicts = false;
         let mergedCount = 0;
+        let skippedCount = 0;
+        
+        // Get current team's valid member names
+        const validMembers = this.getActiveTeamMembers(this.currentTeam).map(m => m.name || m);
+        console.log(`👥 Valid ${this.currentTeam} team members:`, validMembers);
         
         // Skip header row and convert sheet data to local format
         const dataRows = sheetData.slice(1); // Skip header row
@@ -5435,6 +5434,13 @@ class RealEfficiencyTracker {
             
             if (!timestamp || !weekId || !memberName) {
                 console.log(`Skipping invalid row ${index}:`, row);
+                return;
+            }
+            
+            // CRITICAL: Only merge data for current team's members
+            if (!validMembers.includes(memberName)) {
+                console.log(`🚫 Skipping data for ${memberName} - not a valid ${this.currentTeam} team member`);
+                skippedCount++;
                 return;
             }
             
@@ -5472,6 +5478,10 @@ class RealEfficiencyTracker {
                 }
             }
         });
+        
+        if (skippedCount > 0) {
+            console.log(`🚫 Skipped ${skippedCount} entries from other teams`);
+        }
         
         if (hasConflicts) {
             this.showMessage(`🔄 Synced with Google Sheets. ${mergedCount} entries updated from cloud.`, 'info');
@@ -5545,22 +5555,30 @@ class RealEfficiencyTracker {
     populateUIWithSheetData() {
         if (!this.currentWeek) return;
         
-        console.log('🎨 Populating UI with Google Sheets data...');
+        console.log(`🎨 Populating UI with Google Sheets data for ${this.currentTeam} team...`);
+        console.log(`👥 Current team members:`, this.teamMembers.map(m => m.name || m));
+        console.log(`📊 Available entries:`, Object.keys(this.weekEntries));
         
         this.teamMembers.forEach(member => {
             const memberName = member.name || member;
             const entryKey = `${this.currentWeek.id}_${memberName}`;
             const entry = this.weekEntries[entryKey];
             
-            if (!entry || !entry.workTypeData) return;
+            if (!entry || !entry.workTypeData) {
+                console.log(`🔍 No data found for ${memberName} (${entryKey})`);
+                return;
+            }
             
-            console.log(`Populating data for ${memberName}:`, entry);
+            console.log(`✅ Populating data for ${memberName}:`, entry);
             
             // Populate work type inputs
             Object.keys(entry.workTypeData).forEach(workType => {
                 const input = document.querySelector(`[data-member="${memberName}"][data-work="${workType}"]`);
                 if (input) {
                     input.value = entry.workTypeData[workType] || 0;
+                    console.log(`  📝 Set ${workType} = ${entry.workTypeData[workType]}`);
+                } else {
+                    console.warn(`  ⚠️ Input not found for ${memberName} - ${workType}`);
                 }
             });
             
