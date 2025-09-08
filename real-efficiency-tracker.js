@@ -3952,11 +3952,21 @@ class RealEfficiencyTracker {
         // CRITICAL: Save current week data permanently AND force sync to Supabase
         console.log('💾 Finalizing week - forcing comprehensive save to Supabase...');
         
-        // Save locally first
-        await this.saveWeekDataSilently();
-        
-        // Then force sync to Database with extra retries for finalization
-        await this.autoSaveToDatabase(weekSummary);
+        try {
+            // Save locally first
+            console.log('📝 Step 1: Saving locally...');
+            await this.saveWeekDataSilently();
+            console.log('✅ Step 1 complete: Local save done');
+            
+            // Then force sync to Database with extra retries for finalization
+            console.log('📝 Step 2: Starting Supabase save...');
+            await this.autoSaveToDatabase(weekSummary);
+            console.log('✅ Step 2 complete: Supabase save done');
+            
+        } catch (error) {
+            console.error('❌ Error during finalization save process:', error);
+            this.showMessage('⚠️ Week finalized locally but database save failed', 'warning');
+        }
         
         // Show finalization status
         this.showFinalizationStatus();
