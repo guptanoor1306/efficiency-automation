@@ -1476,6 +1476,7 @@ class RealEfficiencyTracker {
         }
     }
     
+
     // UTILITY: Clear current team's data for selected period
     async clearCurrentTeamData() {
         if (!this.currentWeek) {
@@ -2410,10 +2411,16 @@ class RealEfficiencyTracker {
                 <td>
                     <select class="leave-days-select" data-member="${memberName}">
                         <option value="0">0 days</option>
+                        <option value="0.5">0.5 days</option>
                         <option value="1">1 day</option>
+                        <option value="1.5">1.5 days</option>
                         <option value="2">2 days</option>
+                        <option value="2.5">2.5 days</option>
                         <option value="3">3 days</option>
+                        <option value="3.5">3.5 days</option>
                         <option value="4">4 days</option>
+                        <option value="4.5">4.5 days</option>
+                        <option value="5">5 days</option>
                     </select>
                 </td>
                 <td>
@@ -2540,7 +2547,7 @@ class RealEfficiencyTracker {
         const workingDaysSelect = document.querySelector(`[data-member="${memberName}"].working-days-select`);
         const leaveDaysSelect = document.querySelector(`[data-member="${memberName}"].leave-days-select`);
         const workingDays = parseInt(workingDaysSelect?.value) || 5;
-        const leaveDays = parseInt(leaveDaysSelect?.value) || 0;
+        const leaveDays = parseFloat(leaveDaysSelect?.value) || 0;
         const effectiveWorkingDays = workingDays - leaveDays;
         
         // Get work types based on current team
@@ -2747,7 +2754,7 @@ class RealEfficiencyTracker {
         const workingDaysSelect = document.getElementById('working-days');
         const leaveDaysSelect = document.getElementById('leave-days');
         const workingDays = parseInt(workingDaysSelect.value) || 5;
-        const leaveDays = parseInt(leaveDaysSelect.value) || 0;
+        const leaveDays = parseFloat(leaveDaysSelect.value) || 0;
         
         // Calculate effective working days (target = working days - leave days)
         const effectiveWorkingDays = workingDays - leaveDays;
@@ -3015,7 +3022,7 @@ class RealEfficiencyTracker {
             memberName: memberName,
             workTypes: workTypes,
             workingDays: parseInt(workingDaysSelect?.value) || 5,
-            leaveDays: parseInt(leaveDaysSelect?.value) || 0,
+            leaveDays: parseFloat(leaveDaysSelect?.value) || 0,
             weeklyRating: parseFloat(ratingSelect?.value) || 0,
             totalOutput: this.calculateMemberTotalOutput(memberName),
             timestamp: new Date().toISOString()
@@ -3073,7 +3080,7 @@ class RealEfficiencyTracker {
                 const ratingSelect = document.querySelector(`[data-member="${member.name}"].weekly-rating-input`);
                 
                 const workingDays = parseInt(workingDaysSelect?.value) || 5;
-                const leaveDays = parseInt(leaveDaysSelect?.value) || 0;
+                const leaveDays = parseFloat(leaveDaysSelect?.value) || 0;
                 const rating = parseFloat(ratingSelect?.value) || 0;
                 const target = workingDays - leaveDays;
                 const totalOutput = this.calculateMemberTotalOutput(member.name);
@@ -3622,7 +3629,7 @@ class RealEfficiencyTracker {
         });
 
         const workingDays = parseInt(document.getElementById('working-days').value) || 5;
-        const leaveDays = parseInt(document.getElementById('leave-days').value) || 0;
+        const leaveDays = parseFloat(document.getElementById('leave-days').value) || 0;
         const weeklyRating = parseInt(document.getElementById('weekly-rating-input').value) || 0;
 
         if (Object.values(currentData).every(val => val === 0)) {
@@ -3685,7 +3692,7 @@ class RealEfficiencyTracker {
             const ratingSelect = document.querySelector(`[data-member="${member.name}"].weekly-rating-input`);
             
             const workingDays = parseInt(workingDaysSelect?.value) || 5;
-            const leaveDays = parseInt(leaveDaysSelect?.value) || 0;
+            const leaveDays = parseFloat(leaveDaysSelect?.value) || 0;
             const rating = parseFloat(ratingSelect?.value) || 0;
             const effectiveWorkingDays = workingDays - leaveDays;
             const output = this.calculateMemberTotalOutput(member.name);
