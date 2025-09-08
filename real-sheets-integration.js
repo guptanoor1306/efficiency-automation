@@ -25,9 +25,9 @@ class RealSheetsAPI {
         // API Key for reading public data (if sheets are public)
         this.apiKey = 'AIzaSyBK1YXBwBm3q2SPhUGGLVCkOo8dX9fM-KY'; // Replace with your actual API key
         
-        // FIXED: Use same Web App URL for both reading and writing current data (September onwards)
-        this.readWebAppUrl = 'https://script.google.com/macros/s/AKfycbyb0geUpjTe-k9SPT7bkVaXC3od3ObpR5XNVZ29EIVibMirvWAOS0MaD5FoTN2G4nw/exec'; // Current data (Sep+)
-        this.writeWebAppUrl = 'https://script.google.com/macros/s/AKfycbyb0geUpjTe-k9SPT7bkVaXC3od3ObpR5XNVZ29EIVibMirvWAOS0MaD5FoTN2G4nw/exec'; // Current data (Sep+)
+        // UPDATED: Use new Google Apps Script URL with CORS support
+        this.readWebAppUrl = 'https://script.google.com/macros/s/AKfycbwqpUXPi-wF_KhUIzztZkeia5EC43rkBy1TJlW98aXsZlq11sjISubjZ5nU0YTOCuk/exec'; // New script with CORS
+        this.writeWebAppUrl = 'https://script.google.com/macros/s/AKfycbwqpUXPi-wF_KhUIzztZkeia5EC43rkBy1TJlW98aXsZlq11sjISubjZ5nU0YTOCuk/exec'; // New script with CORS
     }
     
     async authenticate() {
@@ -89,38 +89,48 @@ class RealSheetsAPI {
     
     async readSheetData(range = 'B2B!A1:AZ1000') {
         try {
-            // SIMPLIFIED: Try basic GET request with JSONP-style callback
-            // If this fails, fall back to demo data immediately
+            // NEW: Use proper fetch with CORS support from new Google Apps Script
             const webAppUrl = this.readWebAppUrl;
             
             console.log(`📖 Reading data from range: ${range}`);
-            console.log(`🔗 Using URL: ${webAppUrl}`);
+            console.log(`🔗 Using new script URL: ${webAppUrl}`);
             
-            // Try simple GET request first 
+            // Use GET request with proper CORS headers
             const url = `${webAppUrl}?action=readData&range=${encodeURIComponent(range)}`;
             
             const response = await fetch(url, {
                 method: 'GET',
-                mode: 'no-cors' // This will prevent CORS errors but also means we can't read the response
+                headers: {
+                    'Content-Type': 'application/json',
+                }
             });
             
-            // Since we can't read the response with no-cors, we'll fall back to demo data
-            // but log that the request was made
-            console.log('📡 Request sent to Google Apps Script (no-cors mode)');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
             
-            // For now, return fallback data - the Google Apps Script needs to be updated 
-            // to support CORS or we need to use a different approach
-            console.log('📝 Using fallback data until Google Apps Script CORS is configured');
+            const data = await response.json();
+            console.log('📊 Received response from Google Apps Script:', data);
             
-            if (range && range.toLowerCase().includes('varsity')) {
-                return this.getVarsityFallbackData();
+            if (data.error) {
+                throw new Error(data.error);
+            }
+            
+            // Handle the response data
+            if (data.jsonData && data.jsonData.length > 0) {
+                console.log('✅ Using jsonData from Google Apps Script');
+                return data.jsonData;
+            } else if (data.values && data.values.length > 0) {
+                console.log('✅ Using values from Google Apps Script');
+                return data.values;
             } else {
-                return this.getActualSheetData();
+                console.log('📝 No data found in Google Sheets, starting fresh');
+                return [];
             }
             
         } catch (error) {
             console.error('Error reading sheet data:', error);
-            console.log('Falling back to realistic demo data...');
+            console.log('📝 Falling back to demo data due to error');
             
             // Return appropriate fallback data based on the sheet being requested
             if (range && range.toLowerCase().includes('varsity')) {
