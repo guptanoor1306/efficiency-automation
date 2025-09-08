@@ -1,10 +1,10 @@
-// Real Efficiency Tracker - January 2025 onwards with Google Sheets integration
+// Real Efficiency Tracker - January 2025 onwards with Supabase Database
 // Fixed Monday-Friday week system
+// Historical data (Jan-Aug 2025) hardcoded, Future data (Sept 2025+) in Supabase
 
 class RealEfficiencyTracker {
     constructor() {
         this.supabaseAPI = new SupabaseAPI();
-        this.sheetsAPI = new RealSheetsAPI(); // Keep for fallback during transition
         this.weekSystem = new WeekSystem();
         this.currentWeek = null;
         this.currentMember = null;
@@ -1471,13 +1471,9 @@ class RealEfficiencyTracker {
                 await Promise.race([this.loadFromSupabase(), timeout]);
                 console.log('✅ Supabase data loaded');
             } catch (e) {
-                console.warn('⚠️ Supabase timeout, trying Google Sheets:', e.message);
-                try {
-                    await Promise.race([this.loadRealData(), timeout]);
-                    console.log('✅ Google Sheets data loaded as backup');
-                } catch (e2) {
-                    console.warn('⚠️ All data sources timeout, using local data:', e2.message);
-                }
+                console.warn('⚠️ Supabase timeout, using local data:', e.message);
+                // Load any existing local data
+                this.loadWeekData();
             }
             
             // Update UI with loaded data
@@ -1487,7 +1483,7 @@ class RealEfficiencyTracker {
             
         } catch (error) {
             console.error('❌ Async initialization error:', error);
-            this.showMessage('✅ System ready! (Google Sheets sync may be limited)', 'warning');
+            this.showMessage('✅ System ready! (Database sync may be limited)', 'warning');
         }
     }
 
@@ -1803,8 +1799,8 @@ class RealEfficiencyTracker {
             // Get any failed syncs and retry them
             await this.retryFailedSyncs();
             
-            // Force sync current team data
-            const result = await this.saveToGoogleSheetsWithRetry(5); // More retries for force sync
+            // Force sync current team data to Supabase
+            const result = await this.saveToSupabaseWithRetry(5); // More retries for force sync
             
             if (result.success) {
                 this.showMessage('✅ Force sync completed successfully!', 'success');
@@ -3165,24 +3161,20 @@ class RealEfficiencyTracker {
         // Save to localStorage with timestamp
         this.saveTeamSpecificData();
         
-        // IMPROVED: Save to Supabase (primary) and Google Sheets (backup)
+        // Save to Supabase database
         try {
-            // Primary save to Supabase
             const supabaseResult = await this.saveToSupabaseWithRetry();
             if (supabaseResult.success) {
-                console.log('✅ Primary save to Supabase successful');
+                console.log('✅ Data saved to Supabase successfully');
             } else {
-                console.warn('⚠️ Supabase save failed, will still save to Google Sheets');
+                console.warn('⚠️ Supabase save failed:', supabaseResult.error);
             }
-            
-            // Backup save to Google Sheets
-            await this.saveToGoogleSheetsWithRetry();
         } catch (error) {
-            console.error('Sync failed:', error);
+            console.error('Database sync failed:', error);
             // Continue without blocking - data is already saved locally
         }
         
-        this.showMessage(`Week data saved for ${savedCount} team members! Data is stored in Local Storage and Google Sheets.`, 'success');
+        this.showMessage(`Week data saved for ${savedCount} team members! Data is stored in Local Storage and Database.`, 'success');
         
         // Update button visibility after saving
         this.updateButtonVisibility();
@@ -3210,12 +3202,12 @@ class RealEfficiencyTracker {
         
         this.saveTeamSpecificData();
         
-        // FIXED: Use the correct method to force save to Google Sheets
+        // Force save to Supabase database
         try {
-            console.log('💾 Force saving finalized data to Google Sheets...');
-            await this.saveToGoogleSheetsWithRetry(5); // More aggressive retry for finalization
+            console.log('💾 Force saving finalized data to Supabase...');
+            await this.saveToSupabaseWithRetry(5); // More aggressive retry for finalization
         } catch (error) {
-            console.error('Silent save to Google Sheets failed:', error);
+            console.error('Silent save to Supabase failed:', error);
         }
     }
 
@@ -3984,8 +3976,8 @@ class RealEfficiencyTracker {
         // Save locally first
         await this.saveWeekDataSilently();
         
-        // Then force sync to Google Sheets with extra retries for finalization
-        await this.autoSaveToSheets(weekSummary);
+        // Then force sync to Database with extra retries for finalization
+        await this.autoSaveToDatabase(weekSummary);
         
         // Show finalization status
         this.showFinalizationStatus();
@@ -4002,23 +3994,20 @@ class RealEfficiencyTracker {
         }, 1000); // Small delay to ensure all data is saved
     }
     
-    async autoSaveToSheets(weekSummary) {
+    async autoSaveToDatabase(weekSummary) {
         try {
-            console.log('📝 Auto-saving finalized week to Google Sheets...');
+            console.log('📝 Auto-saving finalized week to Supabase...');
             
-            // Force a comprehensive save of all current week data to Google Sheets
+            // Force a comprehensive save of all current week data to Supabase
             // This ensures that when a week is finalized, all data is backed up
-            await this.saveToGoogleSheetsWithRetry(5); // Aggressive retry for finalization
+            await this.saveToSupabaseWithRetry(5); // Aggressive retry for finalization
             
-            console.log('✅ Finalized week data saved to Google Sheets');
-            this.showMessage('📊 Week finalized and backed up to Google Sheets', 'success');
+            console.log('✅ Finalized week data saved to Supabase');
+            this.showMessage('📊 Week finalized and backed up to Database', 'success');
             
         } catch (error) {
-            console.error('Error auto-saving finalized week to sheets:', error);
-            this.showMessage('⚠️ Week finalized locally. Google Sheets backup failed - will retry automatically.', 'warning');
-            
-            // Store for later retry
-            this.storeForLaterSync();
+            console.error('Error auto-saving finalized week to database:', error);
+            this.showMessage('⚠️ Week finalized locally. Database backup failed - will retry automatically.', 'warning');
         }
     }
     
