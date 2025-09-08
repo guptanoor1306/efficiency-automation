@@ -3976,13 +3976,21 @@ class RealEfficiencyTracker {
     async autoSaveToDatabase(weekSummary) {
         try {
             console.log('📝 Auto-saving finalized week to Supabase...');
+            console.log('🔍 Current team:', this.currentTeam);
+            console.log('🔍 Current week:', this.currentWeek?.id);
+            console.log('🔍 Has current week?', !!this.currentWeek);
             
             // Force a comprehensive save of all current week data to Supabase
             // This ensures that when a week is finalized, all data is backed up
-            await this.saveToSupabaseWithRetry(5); // Aggressive retry for finalization
+            const result = await this.saveToSupabaseWithRetry(5); // Aggressive retry for finalization
             
-            console.log('✅ Finalized week data saved to Supabase');
-            this.showMessage('📊 Week finalized and backed up to Database', 'success');
+            if (result.success) {
+                console.log('✅ Finalized week data saved to Supabase');
+                this.showMessage('📊 Week finalized and backed up to Database', 'success');
+            } else {
+                console.error('❌ Failed to save finalized week:', result.error);
+                this.showMessage('⚠️ Week finalized locally. Database backup failed.', 'warning');
+            }
             
         } catch (error) {
             console.error('Error auto-saving finalized week to database:', error);
