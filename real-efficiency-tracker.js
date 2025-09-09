@@ -1532,6 +1532,22 @@ class RealEfficiencyTracker {
                             const weekData = weekGroups[weekId];
                             console.log(`🔍 Checking ${weekId} for ${team}: ${weekData?.length || 0} entries`);
                             if (weekData && weekData.length > 0) {
+                                // Double-check: ensure there's actually meaningful data
+                                const hasRealData = weekData.some(entry => {
+                                    const workTypeData = entry.work_type_data || {};
+                                    return Object.values(workTypeData).some(workType => {
+                                        if (typeof workType === 'object') {
+                                            return Object.values(workType).some(val => (parseFloat(val) || 0) > 0);
+                                        } else {
+                                            return (parseFloat(workType) || 0) > 0;
+                                        }
+                                    }) || (parseFloat(entry.quality_rating) || 0) > 0;
+                                });
+                                
+                                if (!hasRealData) {
+                                    console.log(`⚠️ Skipping ${weekId} for ${team} - no meaningful data found`);
+                                    return;
+                                }
                                 // Generate summary data for finalized week
                                 const memberSummaries = [];
                                 let totalOutput = 0, totalRating = 0, totalEfficiency = 0, memberCount = 0;
