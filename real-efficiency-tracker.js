@@ -1530,6 +1530,7 @@ class RealEfficiencyTracker {
                         // Mark weeks as finalized if they have data
                         Object.keys(weekGroups).forEach(weekId => {
                             const weekData = weekGroups[weekId];
+                            console.log(`🔍 Checking ${weekId} for ${team}: ${weekData?.length || 0} entries`);
                             if (weekData && weekData.length > 0) {
                                 // Generate summary data for finalized week
                                 const memberSummaries = [];
@@ -1868,6 +1869,14 @@ class RealEfficiencyTracker {
         setTimeout(() => {
             this.updateButtonVisibility();
         }, 200);
+        
+        // CRITICAL: Reload finalized reports from Supabase to ensure cleared data doesn't persist
+        try {
+            console.log('🔄 Reloading finalized reports from Supabase after clear...');
+            await this.loadAllFinalizedWeeksFromSupabase();
+        } catch (error) {
+            console.warn('⚠️ Could not reload finalized reports after clear:', error);
+        }
         
         console.log(`✅ Cleared ${clearedCount} entries for ${teamName} - ${this.currentWeek.label}`);
         this.showMessage(`Cleared ${clearedCount} entries for ${teamName} - ${this.currentWeek.label}`, 'success');
