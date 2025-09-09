@@ -3824,8 +3824,21 @@ class RealEfficiencyTracker {
         const statusDiv = document.getElementById('finalize-status');
         if (statusDiv) statusDiv.style.display = 'block';
         
-        // Show the weekly summary view
-        this.showInlineSummaryView();
+        // Show the weekly summary view - use existing finalized data or generate from UI
+        let currentSummary = null;
+        
+        // Try to get finalized summary first
+        const weekKey = this.currentWeek?.id;
+        if (weekKey && this.finalizedReports && this.finalizedReports[weekKey]) {
+            currentSummary = this.finalizedReports[weekKey];
+        }
+        
+        // If no finalized summary or missing memberSummaries, generate from current UI
+        if (!currentSummary || !currentSummary.memberSummaries) {
+            currentSummary = this.generateWeekSummaryFromUI();
+        }
+        
+        this.showInlineSummaryView(currentSummary);
     }
     
     makeWeekEditable() {
@@ -4397,6 +4410,59 @@ class RealEfficiencyTracker {
     
 
     
+    generateWeekSummaryFromUI() {
+        if (!this.currentWeek || !this.teamMembers) {
+            return null;
+        }
+        
+        const memberSummaries = [];
+        let totalOutput = 0;
+        let totalRating = 0;
+        let totalEfficiency = 0;
+        let memberCount = 0;
+        
+        this.teamMembers.forEach(member => {
+            // Get current form data
+            const workingDaysSelect = document.querySelector(`[data-member="${member.name}"].working-days-select`);
+            const leaveDaysSelect = document.querySelector(`[data-member="${member.name}"].leave-days-select`);
+            const ratingSelect = document.querySelector(`[data-member="${member.name}"].weekly-rating-input`);
+            
+            const workingDays = parseInt(workingDaysSelect?.value) || 5;
+            const leaveDays = parseFloat(leaveDaysSelect?.value) || 0;
+            const rating = parseFloat(ratingSelect?.value) || 0;
+            const effectiveWorkingDays = workingDays - leaveDays;
+            const output = this.calculateMemberTotalOutput(member.name);
+            const efficiency = effectiveWorkingDays > 0 ? (output / effectiveWorkingDays) * 100 : 0;
+            
+            memberSummaries.push({
+                name: member.name,
+                output: output,
+                rating: rating,
+                efficiency: efficiency,
+                workingDays: effectiveWorkingDays
+            });
+            
+            totalOutput += output;
+            totalRating += rating;
+            totalEfficiency += efficiency;
+            memberCount++;
+        });
+        
+        const avgOutput = memberCount > 0 ? totalOutput / memberCount : 0;
+        const avgRating = memberCount > 0 ? totalRating / memberCount : 0;
+        const avgEfficiency = memberCount > 0 ? totalEfficiency / memberCount : 0;
+        
+        return {
+            weekName: this.currentWeek.label,
+            dateRange: this.currentWeek.dateRange,
+            memberSummaries: memberSummaries,
+            avgOutput: avgOutput,
+            avgRating: avgRating,
+            avgEfficiency: avgEfficiency,
+            finalizedAt: new Date().toISOString()
+        };
+    }
+
     showInlineSummaryView(weekSummary) {
         const summaryDiv = document.getElementById('weekly-summary-view');
         if (!summaryDiv) return;
@@ -4452,13 +4518,13 @@ class RealEfficiencyTracker {
                         </tr>
                     </thead>
                     <tbody>
-                        ${weekSummary.memberSummaries.map(member => `
+                        ${(weekSummary.memberSummaries || []).map(member => `
                             <tr>
-                                <td style="padding: 6px; border: 1px solid #dee2e6;">${member.name}</td>
-                                <td style="padding: 6px; border: 1px solid #dee2e6; text-align: center;">${member.output.toFixed(2)}</td>
-                                <td style="padding: 6px; border: 1px solid #dee2e6; text-align: center;">${member.rating}/10</td>
-                                <td style="padding: 6px; border: 1px solid #dee2e6; text-align: center; color: ${member.efficiency >= 90 ? '#28a745' : member.efficiency >= 70 ? '#ffc107' : '#dc3545'};">${member.efficiency.toFixed(1)}%</td>
-                                <td style="padding: 6px; border: 1px solid #dee2e6; text-align: center;">${member.workingDays}</td>
+                                <td style="padding: 6px; border: 1px solid #dee2e6;">${member?.name || 'Unknown'}</td>
+                                <td style="padding: 6px; border: 1px solid #dee2e6; text-align: center;">${(member?.output || 0).toFixed(2)}</td>
+                                <td style="padding: 6px; border: 1px solid #dee2e6; text-align: center;">${member?.rating || 0}/10</td>
+                                <td style="padding: 6px; border: 1px solid #dee2e6; text-align: center; color: ${(member?.efficiency || 0) >= 90 ? '#28a745' : (member?.efficiency || 0) >= 70 ? '#ffc107' : '#dc3545'};">${(member?.efficiency || 0).toFixed(1)}%</td>
+                                <td style="padding: 6px; border: 1px solid #dee2e6; text-align: center;">${member?.workingDays || 0}</td>
                             </tr>
                         `).join('')}
                     </tbody>
@@ -5563,7 +5629,7 @@ class RealEfficiencyTracker {
             console.log(`🔄 Syncing ${this.currentTeam} data with Supabase...`);
             
             // Try to read latest data from Supabase for current week
-            if (this.currentWeek) {
+            if (this.currentWeek && this.currentWeek.id) {
                 const supabaseData = await this.supabaseAPI.loadWeekData(this.currentTeam, this.currentWeek.id);
                 
                 if (supabaseData && supabaseData.length > 0) {
@@ -5573,6 +5639,8 @@ class RealEfficiencyTracker {
                 } else {
                     console.log(`ℹ️ No Supabase data found for ${this.currentTeam} ${this.currentWeek.id}`);
                 }
+            } else {
+                console.log(`⚠️ No current week set, skipping Supabase sync`);
             }
             
         } catch (error) {
