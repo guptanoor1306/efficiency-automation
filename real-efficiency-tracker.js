@@ -1810,12 +1810,20 @@ class RealEfficiencyTracker {
             console.warn('⚠️ Could not clear from Supabase:', error);
         }
         
-        // Refresh the display
-        this.loadWeekData();
-        this.updateButtonVisibility();
+        // Clear the weekly summary view immediately
+        const summaryDiv = document.getElementById('weekly-summary-view');
+        if (summaryDiv) summaryDiv.style.display = 'none';
         
         // Ensure week is now editable (not read-only)
         this.makeWeekEditable();
+        
+        // Refresh the display
+        this.loadWeekData();
+        
+        // Force update button visibility after a short delay to ensure state is correct
+        setTimeout(() => {
+            this.updateButtonVisibility();
+        }, 200);
         
         console.log(`✅ Cleared ${clearedCount} entries for ${teamName} - ${this.currentWeek.label}`);
         this.showMessage(`Cleared ${clearedCount} entries for ${teamName} - ${this.currentWeek.label}`, 'success');
@@ -1981,20 +1989,24 @@ class RealEfficiencyTracker {
         const clearBtn = document.getElementById('clear-data-btn');
         
         if (!finalizeBtn || !clearBtn || !this.currentWeek) {
+            console.log('⚠️ Button visibility update skipped - missing elements or week');
             return;
         }
         
         // Check if current week is finalized
         const isFinalized = this.isWeekFinalized();
+        console.log(`🔍 Week ${this.currentWeek.id} finalized status: ${isFinalized}`);
         
         if (isFinalized) {
-            // Week is finalized - show only clear button
+            // Week is finalized - show only clear button, hide finalize button
             finalizeBtn.style.display = 'none';
             clearBtn.style.display = 'flex';
+            console.log('📊 Finalized week: Showing Clear button only');
         } else {
-            // Week not finalized - show both buttons
+            // Week not finalized - show finalize button, hide clear button for now
             finalizeBtn.style.display = 'flex';
-            clearBtn.style.display = 'flex';
+            clearBtn.style.display = 'none';
+            console.log('📝 Non-finalized week: Showing Finalize button only');
         }
     }
     
