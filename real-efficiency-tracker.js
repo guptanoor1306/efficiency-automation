@@ -203,9 +203,9 @@ class RealEfficiencyTracker {
         this.workLevels = this.teamConfigs[this.currentTeam].workLevels;
         
         // Flag to prevent multiple simultaneous saves
-        this.isSyncingToSheets = false;
+        this.isSyncingToDatabase = false;
         
-        // Historical data from Google Sheets - January to May 2025 (completed months)
+        // Historical data - January to May 2025 (completed months)
         // Organized by team: this.historicalData[team][month]
         this.historicalData = {
             'b2b': {
@@ -1429,7 +1429,7 @@ class RealEfficiencyTracker {
             // Hide loading, show initial state
             document.getElementById('loading').style.display = 'none';
             
-            // Async initialization for Google Sheets data
+            // Async initialization for database data
             this.initializeAsync();
             
             console.log('✅ Basic initialization complete');
@@ -1440,7 +1440,7 @@ class RealEfficiencyTracker {
         }
     }
     
-    // Async initialization for Supabase and Google Sheets
+    // Async initialization for Supabase database
     async initializeAsync() {
         try {
             console.log('🔄 Initializing database connections...');
@@ -1599,18 +1599,29 @@ class RealEfficiencyTracker {
                 console.log(`🔍 Work type data:`, workTypeData);
                 
                 // Populate work type inputs
-                Object.entries(workTypeData).forEach(([workType, value]) => {
+                Object.entries(workTypeData).forEach(([workType, dailyData]) => {
                     console.log(`🔍 Looking for: [data-member="${memberName}"][data-work="${workType}"]`);
                     const input = document.querySelector(`[data-member="${memberName}"][data-work="${workType}"]`);
                     console.log(`🔍 Found input:`, input);
                     
-                    if (input && value > 0) {
-                        console.log(`✅ Setting ${workType} = ${value} for ${memberName}`);
-                        input.value = value;
-                    } else if (value > 0) {
-                        console.log(`❌ Could not find input for ${memberName} - ${workType} (value: ${value})`);
+                    // Convert daily data to total value
+                    let totalValue = 0;
+                    if (typeof dailyData === 'object' && dailyData !== null) {
+                        // Sum up all daily values
+                        totalValue = Object.values(dailyData).reduce((sum, dayValue) => sum + (parseFloat(dayValue) || 0), 0);
+                        console.log(`🔢 Converted daily data to total: ${workType} = ${totalValue} for ${memberName}`);
                     } else {
-                        console.log(`ℹ️ Skipping ${workType} for ${memberName} (value: ${value})`);
+                        // If it's already a number, use it directly
+                        totalValue = parseFloat(dailyData) || 0;
+                    }
+                    
+                    if (input && totalValue > 0) {
+                        console.log(`✅ Setting ${workType} = ${totalValue} for ${memberName}`);
+                        input.value = totalValue;
+                    } else if (totalValue > 0) {
+                        console.log(`❌ Could not find input for ${memberName} - ${workType} (value: ${totalValue})`);
+                    } else {
+                        console.log(`ℹ️ Skipping ${workType} for ${memberName} (total: ${totalValue})`);
                     }
                 });
                 
