@@ -1466,8 +1466,21 @@ class RealEfficiencyTracker {
                 setTimeout(() => reject(new Error('Timeout')), 8000)
             );
             
+            // CRITICAL FIX: Load finalized status from Supabase FIRST
             try {
-                console.log('🔄 Loading data from Supabase...');
+                console.log('🔄 Loading finalized weeks from Supabase to determine correct current week...');
+                await this.loadAllFinalizedWeeksFromSupabase();
+                console.log('✅ Finalized weeks loaded, re-setting current week...');
+                
+                // Re-set current week with Supabase finalized data
+                this.setCurrentWeek();
+                
+            } catch (e) {
+                console.warn('⚠️ Could not load finalized weeks from Supabase:', e.message);
+            }
+            
+            try {
+                console.log('🔄 Loading current week data from Supabase...');
                 await Promise.race([this.loadFromSupabase(), timeout]);
                 console.log('✅ Supabase data loaded');
             } catch (e) {
@@ -1484,6 +1497,60 @@ class RealEfficiencyTracker {
         } catch (error) {
             console.error('❌ Async initialization error:', error);
             this.showMessage('✅ System ready! (Database sync may be limited)', 'warning');
+        }
+    }
+
+    // Load ALL finalized weeks from Supabase for all teams to correctly determine current week
+    async loadAllFinalizedWeeksFromSupabase() {
+        try {
+            console.log('📊 Loading all finalized weeks from Supabase...');
+            
+            // Get all teams
+            const allTeams = ['b2b', 'varsity', 'zero1_bratish', 'zero1_harish'];
+            
+            // Load finalized reports for each team
+            for (const team of allTeams) {
+                try {
+                    // Get all week IDs that have entries in Supabase for this team
+                    const teamWeekData = await this.supabaseAPI.loadAllWeekData(team);
+                    
+                    if (teamWeekData && teamWeekData.length > 0) {
+                        // Update local finalized reports based on Supabase data
+                        if (!this.finalizedReports) this.finalizedReports = {};
+                        
+                        // Group by week_id to see which weeks have complete data
+                        const weekGroups = {};
+                        teamWeekData.forEach(entry => {
+                            if (!weekGroups[entry.week_id]) {
+                                weekGroups[entry.week_id] = [];
+                            }
+                            weekGroups[entry.week_id].push(entry);
+                        });
+                        
+                        // Mark weeks as finalized if they have data
+                        Object.keys(weekGroups).forEach(weekId => {
+                            this.finalizedReports[weekId] = {
+                                isFinalized: true,
+                                finalizedAt: new Date().toISOString(),
+                                source: 'supabase'
+                            };
+                            console.log(`✅ Marked ${weekId} as finalized for ${team}`);
+                        });
+                    }
+                } catch (error) {
+                    console.warn(`⚠️ Could not load finalized weeks for ${team}:`, error.message);
+                }
+            }
+            
+            // Save updated finalized reports locally
+            this.saveTeamSpecificData();
+            
+            console.log('✅ All finalized weeks loaded from Supabase');
+            return true;
+            
+        } catch (error) {
+            console.error('❌ Error loading finalized weeks from Supabase:', error);
+            throw error;
         }
     }
 

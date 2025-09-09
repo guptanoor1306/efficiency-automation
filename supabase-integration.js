@@ -135,6 +135,29 @@ class SupabaseAPI {
         }
     }
 
+    // Load ALL week data for a team (for finalized weeks detection)
+    async loadAllWeekData(teamId) {
+        try {
+            console.log(`📈 Loading ALL week data for team ${teamId}`);
+            
+            const { data, error } = await this.supabase
+                .from('weekly_entries')
+                .select('week_id, member_name, updated_at')
+                .eq('team_id', teamId);
+
+            if (error) {
+                console.error('❌ Error loading all week data:', error);
+                return [];
+            }
+
+            console.log(`✅ Loaded ${data.length} total entries for ${teamId}`);
+            return data;
+        } catch (error) {
+            console.error('❌ Exception loading all week data:', error);
+            return [];
+        }
+    }
+
     // Load all data for a team (for sync purposes)
     async loadAllTeamData(teamId) {
         try {
