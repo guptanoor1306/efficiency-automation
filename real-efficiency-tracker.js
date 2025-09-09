@@ -1596,15 +1596,21 @@ class RealEfficiencyTracker {
                 const workTypeData = entry.work_type_data;
                 
                 console.log(`📝 Populating data for member: ${memberName}`, entry);
+                console.log(`🔍 Work type data:`, workTypeData);
                 
                 // Populate work type inputs
                 Object.entries(workTypeData).forEach(([workType, value]) => {
+                    console.log(`🔍 Looking for: [data-member="${memberName}"][data-work="${workType}"]`);
                     const input = document.querySelector(`[data-member="${memberName}"][data-work="${workType}"]`);
+                    console.log(`🔍 Found input:`, input);
+                    
                     if (input && value > 0) {
                         console.log(`✅ Setting ${workType} = ${value} for ${memberName}`);
                         input.value = value;
                     } else if (value > 0) {
-                        console.log(`❌ Could not find input for ${memberName} - ${workType}`);
+                        console.log(`❌ Could not find input for ${memberName} - ${workType} (value: ${value})`);
+                    } else {
+                        console.log(`ℹ️ Skipping ${workType} for ${memberName} (value: ${value})`);
                     }
                 });
                 
