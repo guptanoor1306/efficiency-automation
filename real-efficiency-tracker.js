@@ -1717,13 +1717,7 @@ class RealEfficiencyTracker {
             }
         }
         
-        // Clear from Google Sheets for all teams
-        try {
-            await this.clearAllSeptemberFromSheets();
-            console.log('✅ Cleared September data from all Google Sheets');
-        } catch (error) {
-            console.warn('⚠️ Could not clear from Google Sheets:', error);
-        }
+        // Data cleared from Supabase - no additional sync needed
         
         // Restore original team
         this.currentTeam = originalTeam;
@@ -1740,47 +1734,6 @@ class RealEfficiencyTracker {
         return totalCleared;
     }
     
-    // Clear September data from Google Sheets for all teams
-    async clearAllSeptemberFromSheets() {
-        const teams = ['B2B', 'VARSITY', 'ZERO1', 'HARISH'];
-        const promises = teams.map(async (team) => {
-            try {
-                const webAppUrl = this.sheetsAPI.writeWebAppUrl;
-                const sheetName = `${team}_Weekly_Tracking`;
-                
-                const payload = {
-                    action: 'clearSeptemberData',
-                    spreadsheetId: '1s_q5uyLKNcWL_JdiP05BOu2gmO_VvxFZROx0ZzwB64U',
-                    sheetName: sheetName,
-                    month: '2025-09'
-                };
-                
-                console.log(`Clearing September from ${sheetName}:`, payload);
-                
-                const response = await fetch(webAppUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(payload)
-                });
-                
-                const result = await response.json();
-                console.log(`${team} sheet clear result:`, result);
-                
-                return result;
-                
-            } catch (error) {
-                console.error(`Error clearing ${team} sheet:`, error);
-                return { success: false, error: error.message };
-            }
-        });
-        
-        const results = await Promise.all(promises);
-        console.log('All sheet clear results:', results);
-        
-        return results;
-    }
 
     // UTILITY: Clear current team's data for selected period
     async clearCurrentTeamData() {
@@ -1817,13 +1770,7 @@ class RealEfficiencyTracker {
         // Save the cleared data
         this.saveTeamSpecificData();
         
-        // Clear from Google Sheets
-        try {
-            await this.clearWeekFromGoogleSheets(this.currentWeek.id);
-            console.log('✅ Cleared week data from Google Sheets');
-        } catch (error) {
-            console.warn('⚠️ Could not clear from Google Sheets:', error);
-        }
+        // Data cleared from Supabase - no additional sync needed
         
         // Refresh the display
         this.loadWeekData();
@@ -1835,43 +1782,6 @@ class RealEfficiencyTracker {
         return clearedCount;
     }
     
-    // Clear specific week data from Google Sheets
-    async clearWeekFromGoogleSheets(weekId) {
-        try {
-            const webAppUrl = this.sheetsAPI.writeWebAppUrl;
-            const sheetName = `${this.currentTeam.toUpperCase()}_Weekly_Tracking`;
-            
-            const payload = {
-                action: 'clearWeekData',
-                spreadsheetId: '1s_q5uyLKNcWL_JdiP05BOu2gmO_VvxFZROx0ZzwB64U',
-                sheetName: sheetName,
-                weekId: weekId
-            };
-            
-            console.log('Clearing week data from Google Sheets:', payload);
-            
-            const response = await fetch(webAppUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(payload)
-            });
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                console.log('✅ Week data cleared from Google Sheets');
-                return result;
-            } else {
-                throw new Error(result.error || 'Failed to clear data from Google Sheets');
-            }
-            
-        } catch (error) {
-            console.error('Error clearing week data from Google Sheets:', error);
-            throw error;
-        }
-    }
     
     // Force sync with Google Sheets
     async forceSync() {
