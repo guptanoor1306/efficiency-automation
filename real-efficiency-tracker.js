@@ -4478,8 +4478,18 @@ class RealEfficiencyTracker {
             let memberLeaveDays = 0;
             
             // Calculate total output from all work type inputs
-            const workTypes = this.getWorkTypesForTeam(this.currentTeam);
-            workTypes.forEach(workType => {
+            let teamWorkTypes;
+            if (this.currentTeam === 'zero1') {
+                teamWorkTypes = this.zero1WorkTypes;
+            } else if (this.currentTeam === 'harish') {
+                teamWorkTypes = this.harishWorkTypes;
+            } else if (this.currentTeam === 'varsity') {
+                teamWorkTypes = this.varsityWorkTypes;
+            } else {
+                teamWorkTypes = this.workTypes; // B2B uses original types
+            }
+            
+            Object.keys(teamWorkTypes).forEach(workType => {
                 const input = document.querySelector(`[data-member="${memberName}"][data-work="${workType}"]`);
                 if (input && input.value) {
                     memberOutput += parseFloat(input.value) || 0;
