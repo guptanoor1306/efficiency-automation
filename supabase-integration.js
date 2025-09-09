@@ -111,6 +111,32 @@ class SupabaseAPI {
         }
     }
 
+    // Delete week data for a specific member
+    async deleteWeekData(teamId, weekId, memberName) {
+        try {
+            console.log(`🗑️ Deleting week data for ${memberName} in ${teamId} week ${weekId}`);
+            
+            const { data, error } = await this.supabase
+                .from('weekly_entries')
+                .delete()
+                .eq('team_id', teamId)
+                .eq('week_id', weekId)
+                .eq('member_name', memberName)
+                .select();
+
+            if (error) {
+                console.error('❌ Error deleting week data:', error);
+                return { success: false, error: error.message };
+            }
+
+            console.log(`✅ Deleted week data for ${memberName}:`, data);
+            return { success: true, data: data };
+        } catch (error) {
+            console.error('❌ Exception deleting week data:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
     // Load week data for entire team
     async loadWeekData(teamId, weekId) {
         try {

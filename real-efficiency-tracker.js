@@ -1627,19 +1627,31 @@ class RealEfficiencyTracker {
                 
                 // Set working days and leave days
                 const workingDaysSelect = document.querySelector(`[data-member="${memberName}"][data-field="working-days"]`);
+                console.log(`🔍 Working days selector for ${memberName}:`, workingDaysSelect);
                 if (workingDaysSelect) {
                     workingDaysSelect.value = entry.working_days || 5;
+                    console.log(`✅ Set working days = ${entry.working_days || 5} for ${memberName}`);
+                } else {
+                    console.log(`❌ Working days selector not found for ${memberName}`);
                 }
                 
                 const leaveDaysSelect = document.querySelector(`[data-member="${memberName}"][data-field="leave-days"]`);
+                console.log(`🔍 Leave days selector for ${memberName}:`, leaveDaysSelect);
                 if (leaveDaysSelect) {
                     leaveDaysSelect.value = entry.leave_days || 0;
+                    console.log(`✅ Set leave days = ${entry.leave_days || 0} for ${memberName}`);
+                } else {
+                    console.log(`❌ Leave days selector not found for ${memberName}`);
                 }
                 
                 // Set weekly rating
                 const ratingInput = document.querySelector(`[data-member="${memberName}"][data-field="weekly-rating"]`);
+                console.log(`🔍 Rating selector for ${memberName}:`, ratingInput);
                 if (ratingInput) {
                     ratingInput.value = entry.weekly_rating || 0;
+                    console.log(`✅ Set rating = ${entry.weekly_rating || 0} for ${memberName}`);
+                } else {
+                    console.log(`❌ Rating selector not found for ${memberName}`);
                 }
                 
                 // Update week total display
@@ -1778,10 +1790,20 @@ class RealEfficiencyTracker {
             console.log(`🗑️ Cleared finalized report: ${weekKey}`);
         }
         
-        // Save the cleared data
+        // Save the cleared data locally
         this.saveTeamSpecificData();
         
-        // Data cleared from Supabase - no additional sync needed
+        // Clear from Supabase database too
+        try {
+            console.log(`🗑️ Clearing data from Supabase for ${this.currentTeam} ${this.currentWeek.id}...`);
+            const deletePromises = this.teamMembers.map(member => 
+                this.supabaseAPI.deleteWeekData(this.currentTeam, this.currentWeek.id, member.name)
+            );
+            await Promise.all(deletePromises);
+            console.log('✅ Data cleared from Supabase database');
+        } catch (error) {
+            console.warn('⚠️ Could not clear from Supabase:', error);
+        }
         
         // Refresh the display
         this.loadWeekData();
