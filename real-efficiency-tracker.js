@@ -4428,15 +4428,15 @@ class RealEfficiencyTracker {
                 
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 20px;">
                     <div style="background: #e8f5e8; padding: 12px; border-radius: 6px; text-align: center;">
-                        <div style="font-size: 20px; font-weight: bold; color: #28a745;">${weekSummary.avgOutput.toFixed(1)}</div>
+                        <div style="font-size: 20px; font-weight: bold; color: #28a745;">${(weekSummary.avgOutput || 0).toFixed(1)}</div>
                         <div style="color: #6c757d; font-size: 12px;">Avg Output (Days)</div>
                     </div>
                     <div style="background: #e3f2fd; padding: 12px; border-radius: 6px; text-align: center;">
-                        <div style="font-size: 20px; font-weight: bold; color: #2196f3;">${weekSummary.avgRating.toFixed(1)}/10</div>
+                        <div style="font-size: 20px; font-weight: bold; color: #2196f3;">${(weekSummary.avgRating || 0).toFixed(1)}/10</div>
                         <div style="color: #6c757d; font-size: 12px;">Avg Quality Rating</div>
                     </div>
                     <div style="background: #fff3e0; padding: 12px; border-radius: 6px; text-align: center;">
-                        <div style="font-size: 20px; font-weight: bold; color: #ff9800;">${weekSummary.avgEfficiency.toFixed(1)}%</div>
+                        <div style="font-size: 20px; font-weight: bold; color: #ff9800;">${(weekSummary.avgEfficiency || 0).toFixed(1)}%</div>
                         <div style="color: #6c757d; font-size: 12px;">Avg Efficiency</div>
                     </div>
                 </div>
