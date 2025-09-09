@@ -1531,11 +1531,54 @@ class RealEfficiencyTracker {
                         Object.keys(weekGroups).forEach(weekId => {
                             const weekData = weekGroups[weekId];
                             if (weekData && weekData.length > 0) {
+                                // Generate summary data for finalized week
+                                const memberSummaries = [];
+                                let totalOutput = 0, totalRating = 0, totalEfficiency = 0, memberCount = 0;
+                                
+                                weekData.forEach(entry => {
+                                    const workTypeData = entry.work_type_data || {};
+                                    let memberOutput = 0;
+                                    
+                                    // Calculate total output from work types
+                                    Object.values(workTypeData).forEach(workType => {
+                                        if (typeof workType === 'object') {
+                                            memberOutput += Object.values(workType).reduce((sum, val) => sum + (parseFloat(val) || 0), 0);
+                                        } else {
+                                            memberOutput += parseFloat(workType) || 0;
+                                        }
+                                    });
+                                    
+                                    const workingDays = parseFloat(entry.working_days) || 5;
+                                    const leaveDays = parseFloat(entry.leave_days) || 0;
+                                    const rating = parseFloat(entry.quality_rating) || 0;
+                                    const effectiveWorkingDays = workingDays - leaveDays;
+                                    const efficiency = effectiveWorkingDays > 0 ? (memberOutput / effectiveWorkingDays * 100) : 0;
+                                    
+                                    memberSummaries.push({
+                                        name: entry.member_name,
+                                        output: memberOutput,
+                                        rating: rating,
+                                        efficiency: efficiency,
+                                        workingDays: effectiveWorkingDays
+                                    });
+                                    
+                                    totalOutput += memberOutput;
+                                    totalRating += rating;
+                                    totalEfficiency += efficiency;
+                                    memberCount++;
+                                });
+                                
                                 this.finalizedReports[weekId] = {
                                     isFinalized: true,
                                     status: 'finalized',
                                     finalizedAt: new Date().toISOString(),
-                                    source: 'supabase'
+                                    source: 'supabase',
+                                    memberSummaries: memberSummaries,
+                                    avgOutput: memberCount > 0 ? (totalOutput / memberCount) : 0,
+                                    avgRating: memberCount > 0 ? (totalRating / memberCount) : 0,
+                                    avgEfficiency: memberCount > 0 ? (totalEfficiency / memberCount) : 0,
+                                    weekName: weekId,
+                                    dateRange: `Week of ${weekId}`
                                 };
                                 console.log(`✅ Marked ${weekId} as finalized for ${team} (${weekData.length} entries)`);
                             } else {
@@ -4558,22 +4601,37 @@ class RealEfficiencyTracker {
     
     showInlineSummaryView(weekSummary) {
         const summaryDiv = document.getElementById('weekly-summary-view');
-        if (!summaryDiv) return;
+        if (!summaryDiv) {
+            console.log('❌ Summary div not found');
+            return;
+        }
+        
+        console.log('📊 showInlineSummaryView called with:', weekSummary);
         
         // If no weekSummary provided, check if this week is finalized and get stored data
         if (!weekSummary) {
             const weekKey = this.currentWeek?.id;
+            console.log(`🔍 Looking for stored summary for week: ${weekKey}`);
             if (!weekKey) return;
             
             const finalizedReports = this.finalizedReports || {};
             weekSummary = finalizedReports[weekKey];
+            console.log(`📊 Found stored summary:`, weekSummary);
             
             if (!weekSummary) {
                 // Week is not finalized, hide the summary
+                console.log('❌ No stored summary found, hiding summary view');
                 summaryDiv.style.display = 'none';
                 return;
             }
         }
+        
+        console.log('📊 Final weekSummary for display:', {
+            avgOutput: weekSummary.avgOutput,
+            avgRating: weekSummary.avgRating,
+            avgEfficiency: weekSummary.avgEfficiency,
+            memberSummaries: weekSummary.memberSummaries?.length
+        });
         
         const summaryHTML = `
             <div style="background: #f8f9fa; border: 2px solid #28a745; border-radius: 10px; padding: 20px; margin-top: 15px;">
