@@ -1595,11 +1595,16 @@ class RealEfficiencyTracker {
                 const memberName = entry.member_name;
                 const workTypeData = entry.work_type_data;
                 
+                console.log(`📝 Populating data for member: ${memberName}`, entry);
+                
                 // Populate work type inputs
                 Object.entries(workTypeData).forEach(([workType, value]) => {
                     const input = document.querySelector(`[data-member="${memberName}"][data-work="${workType}"]`);
                     if (input && value > 0) {
+                        console.log(`✅ Setting ${workType} = ${value} for ${memberName}`);
                         input.value = value;
+                    } else if (value > 0) {
+                        console.log(`❌ Could not find input for ${memberName} - ${workType}`);
                     }
                 });
                 
@@ -3833,9 +3838,10 @@ class RealEfficiencyTracker {
             currentSummary = this.finalizedReports[weekKey];
         }
         
-        // If no finalized summary or missing memberSummaries, generate from current UI
+        // If no finalized summary or missing memberSummaries, generate from available data
         if (!currentSummary || !currentSummary.memberSummaries) {
-            currentSummary = this.generateWeekSummaryFromUI();
+            // For finalized weeks, try to generate from Supabase data first, then UI
+            currentSummary = this.generateWeekSummaryFromSupabaseData() || this.generateWeekSummaryFromUI();
         }
         
         this.showInlineSummaryView(currentSummary);
@@ -4410,6 +4416,77 @@ class RealEfficiencyTracker {
     
 
     
+    generateWeekSummaryFromSupabaseData() {
+        if (!this.currentWeek) {
+            return null;
+        }
+        
+        const memberSummaries = [];
+        let totalOutput = 0;
+        let totalRating = 0;
+        let totalEfficiency = 0;
+        let memberCount = 0;
+        
+        // Get data from the displayed table
+        const tableRows = document.querySelectorAll('#efficiency-table tbody tr');
+        
+        tableRows.forEach(row => {
+            const cells = row.querySelectorAll('td, th');
+            if (cells.length < 4) return; // Skip invalid rows
+            
+            const memberName = cells[0]?.textContent?.trim();
+            if (!memberName || memberName === 'Work Types') return; // Skip header rows
+            
+            // Get week total from the table
+            const weekTotalCell = row.querySelector('.week-total-display');
+            const output = parseFloat(weekTotalCell?.textContent) || 0;
+            
+            // Get working days and leave days
+            const workingDaysSelect = row.querySelector('.working-days-select');
+            const leaveDaysSelect = row.querySelector('.leave-days-select');
+            const ratingSelect = row.querySelector('.weekly-rating-input');
+            
+            const workingDays = parseInt(workingDaysSelect?.value) || 5;
+            const leaveDays = parseFloat(leaveDaysSelect?.value) || 0;
+            const rating = parseFloat(ratingSelect?.value) || 0;
+            const effectiveWorkingDays = workingDays - leaveDays;
+            const efficiency = effectiveWorkingDays > 0 ? (output / effectiveWorkingDays) * 100 : 0;
+            
+            if (output > 0 || rating > 0) { // Only include members with data
+                memberSummaries.push({
+                    name: memberName,
+                    output: output,
+                    rating: rating,
+                    efficiency: efficiency,
+                    workingDays: effectiveWorkingDays
+                });
+                
+                totalOutput += output;
+                totalRating += rating;
+                totalEfficiency += efficiency;
+                memberCount++;
+            }
+        });
+        
+        if (memberCount === 0) {
+            return null; // No valid data found
+        }
+        
+        const avgOutput = totalOutput / memberCount;
+        const avgRating = totalRating / memberCount;
+        const avgEfficiency = totalEfficiency / memberCount;
+        
+        return {
+            weekName: this.currentWeek.label,
+            dateRange: this.currentWeek.dateRange,
+            memberSummaries: memberSummaries,
+            avgOutput: avgOutput,
+            avgRating: avgRating,
+            avgEfficiency: avgEfficiency,
+            finalizedAt: new Date().toISOString()
+        };
+    }
+
     generateWeekSummaryFromUI() {
         if (!this.currentWeek || !this.teamMembers) {
             return null;
