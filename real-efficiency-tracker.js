@@ -1533,6 +1533,7 @@ class RealEfficiencyTracker {
                             if (weekData && weekData.length > 0) {
                                 this.finalizedReports[weekId] = {
                                     isFinalized: true,
+                                    status: 'finalized',
                                     finalizedAt: new Date().toISOString(),
                                     source: 'supabase'
                                 };
@@ -4142,8 +4143,12 @@ class RealEfficiencyTracker {
             
             // Check if all weeks are finalized
             const finalizedWeeksInMonth = monthWeeks.filter(week => {
-                const isFinalized = finalizedReports[week.id] && finalizedReports[week.id].status === 'finalized';
+                const weekReport = finalizedReports[week.id];
+                const isFinalized = weekReport && (weekReport.status === 'finalized' || weekReport.isFinalized === true);
                 console.log(`Week ${week.id}: ${isFinalized ? 'FINALIZED' : 'not finalized'}`);
+                if (weekReport) {
+                    console.log(`  - Report structure:`, weekReport);
+                }
                 return isFinalized;
             });
             
@@ -4373,9 +4378,10 @@ class RealEfficiencyTracker {
             
             // Check if all weeks are finalized
             const finalizedReports = this.finalizedReports || {};
-            const finalizedWeeksInMonth = monthWeeks.filter(week => 
-                finalizedReports[week.id] && finalizedReports[week.id].status === 'finalized'
-            );
+            const finalizedWeeksInMonth = monthWeeks.filter(week => {
+                const weekReport = finalizedReports[week.id];
+                return weekReport && (weekReport.status === 'finalized' || weekReport.isFinalized === true);
+            });
             
             // If all weeks are finalized, show completion button
             if (finalizedWeeksInMonth.length === monthWeeks.length) {
@@ -4409,6 +4415,7 @@ class RealEfficiencyTracker {
     
     generateWeekSummaryFromSupabaseData() {
         if (!this.currentWeek) {
+            console.log('❌ No current week for summary generation');
             return null;
         }
         
@@ -4418,48 +4425,66 @@ class RealEfficiencyTracker {
         let totalEfficiency = 0;
         let memberCount = 0;
         
-        // Get data from the displayed table
-        const tableRows = document.querySelectorAll('#efficiency-table tbody tr');
+        console.log('📊 Generating summary from Supabase data...');
         
-        tableRows.forEach(row => {
-            const cells = row.querySelectorAll('td, th');
-            if (cells.length < 4) return; // Skip invalid rows
+        // Get team members and calculate from input values
+        this.teamMembers.forEach(memberName => {
+            let memberOutput = 0;
+            let memberRating = 0;
+            let memberWorkingDays = 5; // default
+            let memberLeaveDays = 0;
             
-            const memberName = cells[0]?.textContent?.trim();
-            if (!memberName || memberName === 'Work Types') return; // Skip header rows
+            // Calculate total output from all work type inputs
+            const workTypes = this.getWorkTypesForTeam(this.currentTeam);
+            workTypes.forEach(workType => {
+                const input = document.querySelector(`[data-member="${memberName}"][data-work="${workType}"]`);
+                if (input && input.value) {
+                    memberOutput += parseFloat(input.value) || 0;
+                }
+            });
             
-            // Get week total from the table
-            const weekTotalCell = row.querySelector('.week-total-display');
-            const output = parseFloat(weekTotalCell?.textContent) || 0;
+            // Get quality rating
+            const ratingInput = document.querySelector(`.weekly-rating-input[data-member="${memberName}"]`);
+            if (ratingInput) {
+                memberRating = parseFloat(ratingInput.value) || 0;
+            }
             
             // Get working days and leave days
-            const workingDaysSelect = row.querySelector('.working-days-select');
-            const leaveDaysSelect = row.querySelector('.leave-days-select');
-            const ratingSelect = row.querySelector('.weekly-rating-input');
+            const workingDaysInput = document.querySelector(`.working-days-select[data-member="${memberName}"]`);
+            if (workingDaysInput) {
+                memberWorkingDays = parseFloat(workingDaysInput.value) || 5;
+            }
             
-            const workingDays = parseInt(workingDaysSelect?.value) || 5;
-            const leaveDays = parseFloat(leaveDaysSelect?.value) || 0;
-            const rating = parseFloat(ratingSelect?.value) || 0;
-            const effectiveWorkingDays = workingDays - leaveDays;
-            const efficiency = effectiveWorkingDays > 0 ? (output / effectiveWorkingDays) * 100 : 0;
+            const leaveDaysInput = document.querySelector(`.leave-days-select[data-member="${memberName}"]`);
+            if (leaveDaysInput) {
+                memberLeaveDays = parseFloat(leaveDaysInput.value) || 0;
+            }
             
-            if (output > 0 || rating > 0) { // Only include members with data
+            // Calculate efficiency
+            const effectiveWorkingDays = memberWorkingDays - memberLeaveDays;
+            const memberEfficiency = effectiveWorkingDays > 0 ? (memberOutput / effectiveWorkingDays * 100) : 0;
+            
+            console.log(`📊 ${memberName}: Output=${memberOutput}, Rating=${memberRating}, Days=${effectiveWorkingDays}, Efficiency=${memberEfficiency.toFixed(1)}%`);
+            
+            // Only include members with actual data
+            if (memberOutput > 0 || memberRating > 0 || memberWorkingDays !== 5 || memberLeaveDays > 0) {
                 memberSummaries.push({
                     name: memberName,
-                    output: output,
-                    rating: rating,
-                    efficiency: efficiency,
+                    output: memberOutput,
+                    rating: memberRating,
+                    efficiency: memberEfficiency,
                     workingDays: effectiveWorkingDays
                 });
                 
-                totalOutput += output;
-                totalRating += rating;
-                totalEfficiency += efficiency;
+                totalOutput += memberOutput;
+                totalRating += memberRating;
+                totalEfficiency += memberEfficiency;
                 memberCount++;
             }
         });
         
         if (memberCount === 0) {
+            console.log('❌ No valid data found for summary generation');
             return null; // No valid data found
         }
         
