@@ -4656,6 +4656,19 @@ class RealEfficiencyTracker {
             // Load team-specific data (week entries and finalized reports)
             this.loadTeamSpecificData();
             
+            // CRITICAL: Load finalized weeks from Supabase for new team
+            try {
+                console.log('🔄 Loading finalized weeks from Supabase for team switch...');
+                await this.loadAllFinalizedWeeksFromSupabase();
+                console.log('✅ Finalized weeks loaded for new team, re-setting current week...');
+                
+                // Re-set current week with Supabase finalized data
+                this.setCurrentWeek();
+                
+            } catch (e) {
+                console.warn('⚠️ Could not load finalized weeks for team switch:', e.message);
+            }
+            
             // Load stored historical data for this team
             this.loadStoredHistoricalData();
             
