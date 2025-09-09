@@ -3829,22 +3829,42 @@ class RealEfficiencyTracker {
         const statusDiv = document.getElementById('finalize-status');
         if (statusDiv) statusDiv.style.display = 'block';
         
-        // Show the weekly summary view - use existing finalized data or generate from UI
-        let currentSummary = null;
-        
-        // Try to get finalized summary first
-        const weekKey = this.currentWeek?.id;
-        if (weekKey && this.finalizedReports && this.finalizedReports[weekKey]) {
-            currentSummary = this.finalizedReports[weekKey];
+        // CRITICAL: For finalized weeks, force load data from Supabase first
+        this.loadAndShowFinalizedWeekSummary();
+    }
+    
+    async loadAndShowFinalizedWeekSummary() {
+        try {
+            console.log('📊 Loading finalized week data from Supabase for summary...');
+            
+            // Force load current week data from Supabase
+            if (this.currentWeek && this.currentWeek.id) {
+                const supabaseData = await this.supabaseAPI.loadWeekData(this.currentTeam, this.currentWeek.id);
+                
+                if (supabaseData && supabaseData.length > 0) {
+                    console.log(`✅ Loaded ${supabaseData.length} entries for finalized week ${this.currentWeek.id}`);
+                    
+                    // Populate UI with the data
+                    this.populateUIFromSupabaseData(supabaseData);
+                    
+                    // Wait a moment for UI to update, then generate summary
+                    setTimeout(() => {
+                        console.log('🔄 Generating summary from populated data...');
+                        let currentSummary = this.generateWeekSummaryFromSupabaseData() || this.generateWeekSummaryFromUI();
+                        this.showInlineSummaryView(currentSummary);
+                    }, 100);
+                } else {
+                    console.log(`⚠️ No finalized data found for ${this.currentWeek.id}`);
+                    // Show empty summary
+                    this.showInlineSummaryView(null);
+                }
+            }
+        } catch (error) {
+            console.error('❌ Error loading finalized week summary:', error);
+            // Fallback to generating from current UI
+            let currentSummary = this.generateWeekSummaryFromSupabaseData() || this.generateWeekSummaryFromUI();
+            this.showInlineSummaryView(currentSummary);
         }
-        
-        // If no finalized summary or missing memberSummaries, generate from available data
-        if (!currentSummary || !currentSummary.memberSummaries) {
-            // For finalized weeks, try to generate from Supabase data first, then UI
-            currentSummary = this.generateWeekSummaryFromSupabaseData() || this.generateWeekSummaryFromUI();
-        }
-        
-        this.showInlineSummaryView(currentSummary);
     }
     
     makeWeekEditable() {
@@ -4539,7 +4559,7 @@ class RealEfficiencyTracker {
             finalizedAt: new Date().toISOString()
         };
     }
-
+    
     showInlineSummaryView(weekSummary) {
         const summaryDiv = document.getElementById('weekly-summary-view');
         if (!summaryDiv) return;
