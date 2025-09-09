@@ -1529,12 +1529,17 @@ class RealEfficiencyTracker {
                         
                         // Mark weeks as finalized if they have data
                         Object.keys(weekGroups).forEach(weekId => {
-                            this.finalizedReports[weekId] = {
-                                isFinalized: true,
-                                finalizedAt: new Date().toISOString(),
-                                source: 'supabase'
-                            };
-                            console.log(`✅ Marked ${weekId} as finalized for ${team}`);
+                            const weekData = weekGroups[weekId];
+                            if (weekData && weekData.length > 0) {
+                                this.finalizedReports[weekId] = {
+                                    isFinalized: true,
+                                    finalizedAt: new Date().toISOString(),
+                                    source: 'supabase'
+                                };
+                                console.log(`✅ Marked ${weekId} as finalized for ${team} (${weekData.length} entries)`);
+                            } else {
+                                console.log(`ℹ️ Skipping ${weekId} for ${team} - no data found`);
+                            }
                         });
                     }
                 } catch (error) {
@@ -1626,7 +1631,7 @@ class RealEfficiencyTracker {
                 });
                 
                 // Set working days and leave days
-                const workingDaysSelect = document.querySelector(`[data-member="${memberName}"][data-field="working-days"]`);
+                const workingDaysSelect = document.querySelector(`.working-days-select[data-member="${memberName}"]`);
                 console.log(`🔍 Working days selector for ${memberName}:`, workingDaysSelect);
                 if (workingDaysSelect) {
                     workingDaysSelect.value = entry.working_days || 5;
@@ -1635,7 +1640,7 @@ class RealEfficiencyTracker {
                     console.log(`❌ Working days selector not found for ${memberName}`);
                 }
                 
-                const leaveDaysSelect = document.querySelector(`[data-member="${memberName}"][data-field="leave-days"]`);
+                const leaveDaysSelect = document.querySelector(`.leave-days-select[data-member="${memberName}"]`);
                 console.log(`🔍 Leave days selector for ${memberName}:`, leaveDaysSelect);
                 if (leaveDaysSelect) {
                     leaveDaysSelect.value = entry.leave_days || 0;
@@ -1645,7 +1650,7 @@ class RealEfficiencyTracker {
                 }
                 
                 // Set weekly rating
-                const ratingInput = document.querySelector(`[data-member="${memberName}"][data-field="weekly-rating"]`);
+                const ratingInput = document.querySelector(`.weekly-rating-input[data-member="${memberName}"]`);
                 console.log(`🔍 Rating selector for ${memberName}:`, ratingInput);
                 if (ratingInput) {
                     ratingInput.value = entry.weekly_rating || 0;
@@ -1808,6 +1813,9 @@ class RealEfficiencyTracker {
         // Refresh the display
         this.loadWeekData();
         this.updateButtonVisibility();
+        
+        // Ensure week is now editable (not read-only)
+        this.makeWeekEditable();
         
         console.log(`✅ Cleared ${clearedCount} entries for ${teamName} - ${this.currentWeek.label}`);
         this.showMessage(`Cleared ${clearedCount} entries for ${teamName} - ${this.currentWeek.label}`, 'success');
@@ -3793,8 +3801,10 @@ class RealEfficiencyTracker {
                 if (supabaseData && supabaseData.length > 0) {
                     console.log(`✅ Loaded ${supabaseData.length} entries for finalized week ${this.currentWeek.id}`);
                     
-                    // Populate UI with the data
-                    this.populateUIFromSupabaseData(supabaseData);
+                    // Populate UI with the data (with small delay to ensure UI is ready)
+                    setTimeout(() => {
+                        this.populateUIFromSupabaseData(supabaseData);
+                    }, 100);
                     
                     // Wait a moment for UI to update, then generate summary
                     setTimeout(() => {
