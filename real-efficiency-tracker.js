@@ -8258,8 +8258,7 @@ class RealEfficiencyTracker {
                 
                 if (!hasCurrentTeamMembers) {
                     console.log(`⚠️ Week ${weekId} has no members from team ${this.currentTeam}, skipping`);
-                    continue;
-                }
+                } else {
                 
                 const memberWeekData = weekData.memberSummaries.find(m => m.name === memberName);
                 console.log(`Found member week data for ${memberName}:`, memberWeekData);
@@ -8273,6 +8272,7 @@ class RealEfficiencyTracker {
                         output: memberWeekData.output || 0,
                         rating: memberWeekData.rating || 0
                     });
+                }
                 }
             }
         });
