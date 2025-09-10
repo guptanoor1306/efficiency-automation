@@ -2511,7 +2511,7 @@ class RealEfficiencyTracker {
                                         } else {
                                             return (parseFloat(workType) || 0) > 0;
                                         }
-                                    }) || (parseFloat(entry.quality_rating) || 0) > 0;
+                                    }) || (parseFloat(entry.weekly_rating) || 0) > 0;
                                 });
                                 
                                 if (!hasRealData) {
@@ -3413,7 +3413,7 @@ class RealEfficiencyTracker {
             }
             
             // Check if this week is finalized
-            const finalizedReports = this.getFinalizedReports();
+            const finalizedReports = this.finalizedReports || {};
             const isFinalized = finalizedReports[week.id];
             
             if (!isFinalized) {
