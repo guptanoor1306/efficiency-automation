@@ -8221,7 +8221,10 @@ class RealEfficiencyTracker {
         const weeklyData = [];
         
         // Use current working month from this.currentWeek instead of real calendar date
-        const currentWorkingMonth = this.currentWeek ? `${this.currentWeek.monthName} ${this.currentWeek.year}` : null;
+        // If currentWeek is not set, default to September 2025 for finalized week detection
+        const currentWorkingMonth = this.currentWeek ? 
+            `${this.currentWeek.monthName} ${this.currentWeek.year}` : 
+            'September 2025';
         
         console.log('Getting weekly data for:', memberName);
         console.log('Current working month:', currentWorkingMonth);
@@ -8244,8 +8247,7 @@ class RealEfficiencyTracker {
             console.log(`Week ${weekId}: month=${weekMonth}, belongsToCurrent=${belongsToCurrentMonth}, inHistorical=${isInHistoricalData}`);
             
             if (belongsToCurrentMonth && !isInHistoricalData && weekData && weekData.memberSummaries) {
-                console.log(`📋 Member summaries for ${weekId}:`, weekData.memberSummaries.map(m => m.name || m.member || 'unnamed'));
-                const memberWeekData = weekData.memberSummaries.find(m => m.name === memberName || m.member === memberName);
+                const memberWeekData = weekData.memberSummaries.find(m => m.name === memberName);
                 console.log(`Found member week data for ${memberName}:`, memberWeekData);
                 
                 if (memberWeekData) {
