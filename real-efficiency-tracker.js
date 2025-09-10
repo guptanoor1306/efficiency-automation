@@ -3239,7 +3239,9 @@ class RealEfficiencyTracker {
         // Remember current selection
         const currentSelection = weekSelect.value;
         
+        console.log('🔍 Current team when populating weeks:', this.currentTeam);
         const weeks = this.weekSystem.getWeeksForSelector(this.currentTeam);
+        console.log('🔍 Number of weeks returned:', weeks.length);
         
         // Determine current view mode
         const activeViewBtn = document.querySelector('.view-btn.active');
