@@ -509,32 +509,6 @@
                     </select>
                 </div>
                 
-                <!-- Company View Controls -->
-                <div class="company-controls" id="company-controls" style="margin-top: 20px; display: none;">
-                    <h3 style="color: #2c3e50; margin-bottom: 10px; font-size: 14px;">Filters</h3>
-                    
-                    <div class="filter-group" style="margin-bottom: 15px;">
-                        <label for="company-period-type" style="display: block; margin-bottom: 5px; font-size: 12px; font-weight: 600;">Period Type:</label>
-                        <select id="company-period-type" style="width: 100%; padding: 8px; border: 2px solid #ecf0f1; border-radius: 4px; font-size: 12px;" onchange="tracker.updateCompanyPeriodOptions()">
-                            <option value="month">Monthly</option>
-                            <option value="week">Weekly</option>
-                        </select>
-                    </div>
-                    
-                    <div class="filter-group" style="margin-bottom: 15px;">
-                        <label for="company-period-select" style="display: block; margin-bottom: 5px; font-size: 12px; font-weight: 600;">Period:</label>
-                        <select id="company-period-select" style="width: 100%; padding: 8px; border: 2px solid #ecf0f1; border-radius: 4px; font-size: 12px;" onchange="tracker.updateCompanyData()">
-                            <option value="">Loading...</option>
-                        </select>
-                    </div>
-                    
-                    <div class="filter-group" style="margin-bottom: 15px;">
-                        <label style="display: block; margin-bottom: 5px; font-size: 12px; font-weight: 600;">Teams:</label>
-                        <div id="team-filters" style="max-height: 120px; overflow-y: auto;">
-                            <!-- Team checkboxes will be populated here -->
-                        </div>
-                    </div>
-                </div>
             </div>
 
             <div class="main-content">
