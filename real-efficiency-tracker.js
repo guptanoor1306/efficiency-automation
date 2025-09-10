@@ -7132,7 +7132,7 @@ class RealEfficiencyTracker {
                     const storedEntry = this.weekEntries[entryKey];
                     console.log(`🔍 Looking for stored entry ${entryKey}:`, storedEntry);
                     
-                    if (storedEntry && storedEntry.workTypes && Object.keys(storedEntry.workTypes).length > 0) {
+                    if (storedEntry && storedEntry.workTypes && (Object.keys(storedEntry.workTypes).length > 0 || storedEntry.leaveDays > 0 || storedEntry.weeklyRating > 0)) {
                         // Convert stored entry to Supabase format
                         const memberData = {
                             weekId: storedEntry.weekId,
