@@ -8244,7 +8244,8 @@ class RealEfficiencyTracker {
             console.log(`Week ${weekId}: month=${weekMonth}, belongsToCurrent=${belongsToCurrentMonth}, inHistorical=${isInHistoricalData}`);
             
             if (belongsToCurrentMonth && !isInHistoricalData && weekData && weekData.memberSummaries) {
-                const memberWeekData = weekData.memberSummaries.find(m => m.name === memberName);
+                console.log(`📋 Member summaries for ${weekId}:`, weekData.memberSummaries.map(m => m.name || m.member || 'unnamed'));
+                const memberWeekData = weekData.memberSummaries.find(m => m.name === memberName || m.member === memberName);
                 console.log(`Found member week data for ${memberName}:`, memberWeekData);
                 
                 if (memberWeekData) {
