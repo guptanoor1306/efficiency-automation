@@ -8827,6 +8827,8 @@ class RealEfficiencyTracker {
         const selectedTeams = this.getSelectedTeams();
         const allMembers = [];
         
+        console.log('🔍 Selected teams for Company View:', selectedTeams);
+        
         for (const teamId of selectedTeams) {
             let teamData = null;
             
@@ -8836,7 +8838,10 @@ class RealEfficiencyTracker {
                 teamData = await this.getTeamWeeklyData(teamId, selectedPeriod);
             }
             
+            console.log(`📊 Team ${teamId} data for ${selectedPeriod}:`, teamData);
+            
             if (teamData && teamData.members) {
+                console.log(`✅ Adding ${teamData.members.length} members from ${teamId}`);
                 teamData.members.forEach(member => {
                     allMembers.push({
                         ...member,
@@ -8844,6 +8849,8 @@ class RealEfficiencyTracker {
                         teamDisplayName: this.getTeamDisplayName(teamId)
                     });
                 });
+            } else {
+                console.log(`❌ No data found for team ${teamId}`);
             }
         }
         
