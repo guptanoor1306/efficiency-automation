@@ -8590,17 +8590,55 @@ class RealEfficiencyTracker {
         }
     }
 
+    showMainDashboard() {
+        console.log('🏠 Showing Main Dashboard');
+        
+        // Hide all views
+        document.getElementById('main-dashboard-landing').style.display = 'block';
+        document.getElementById('team-view-page').style.display = 'none';
+        document.getElementById('company-view-page').style.display = 'none';
+    }
+
+    showTeamView() {
+        console.log('👥 Showing Team View');
+        
+        // Hide all views
+        document.getElementById('main-dashboard-landing').style.display = 'none';
+        document.getElementById('team-view-page').style.display = 'block';
+        document.getElementById('company-view-page').style.display = 'none';
+        
+        // Initialize team view
+        this.showWeeklyView();
+    }
+
+    showCompanyView() {
+        console.log('🏢 Showing Company View');
+        
+        // Hide all views
+        document.getElementById('main-dashboard-landing').style.display = 'none';
+        document.getElementById('team-view-page').style.display = 'none';
+        document.getElementById('company-view-page').style.display = 'block';
+        
+        // Initialize company dashboard
+        this.initializeCompanyDashboard();
+    }
+
     showCompanyDashboard() {
         console.log('🏢 Switching to Company Dashboard');
         
         // Update navigation active states
         document.querySelectorAll('.dashboard-btn').forEach(btn => btn.classList.remove('active'));
-        document.querySelector('[data-dashboard="company"]').classList.add('active');
+        const companyBtn = document.querySelector('[data-dashboard="company"]');
+        if (companyBtn) companyBtn.classList.add('active');
         
         // Hide team view sections
-        document.getElementById('team-view-navigation').style.display = 'none';
-        document.getElementById('team-period-selector').style.display = 'none';
-        document.getElementById('loading').style.display = 'none';
+        const teamNav = document.getElementById('team-view-navigation');
+        const teamSelector = document.getElementById('team-period-selector');
+        const loading = document.getElementById('loading');
+        
+        if (teamNav) teamNav.style.display = 'none';
+        if (teamSelector) teamSelector.style.display = 'none';
+        if (loading) loading.style.display = 'none';
         document.getElementById('week-info').style.display = 'none';
         document.getElementById('efficiency-data').style.display = 'none';
         
@@ -8700,19 +8738,26 @@ class RealEfficiencyTracker {
             if (this.finalizedReports) {
                 const allWeeks = new Set();
                 Object.keys(this.finalizedReports).forEach(teamId => {
-                    if (this.finalizedReports[teamId]) {
+                    if (this.finalizedReports[teamId] && typeof this.finalizedReports[teamId] === 'object') {
                         Object.keys(this.finalizedReports[teamId]).forEach(weekId => {
-                            allWeeks.add(weekId);
+                            // Only add valid week IDs (YYYY-MM-DD format), not metadata properties
+                            if (weekId.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                                allWeeks.add(weekId);
+                            }
                         });
                     }
                 });
                 
                 Array.from(allWeeks).sort().forEach(weekId => {
-                    const weekNumber = this.getWeekNumberInMonth(weekId);
-                    const option = document.createElement('option');
-                    option.value = weekId;
-                    option.textContent = `Week ${weekNumber} (${weekId})`;
-                    periodSelect.appendChild(option);
+                    try {
+                        const weekNumber = this.getWeekNumberInMonth(weekId);
+                        const option = document.createElement('option');
+                        option.value = weekId;
+                        option.textContent = `Week ${weekNumber} (${weekId})`;
+                        periodSelect.appendChild(option);
+                    } catch (error) {
+                        console.warn(`Error processing week ${weekId}:`, error);
+                    }
                 });
             }
         }
@@ -8815,6 +8860,7 @@ class RealEfficiencyTracker {
         const historicalData = this.historicalData[historicalKey];
         console.log(`🔍 Looking for ${monthYear} data for team ${teamId} (key: ${historicalKey})`);
         console.log(`🔍 Available months for ${historicalKey}:`, Object.keys(historicalData || {}));
+        console.log(`🔍 Full historical data structure for ${historicalKey}:`, historicalData);
         
         if (!historicalData || !historicalData[monthYear]) {
             console.log(`❌ No data found for team ${teamId} (key: ${historicalKey}) for ${monthYear}`);
@@ -9100,6 +9146,8 @@ function exportWeekData() {
 let tracker;
 document.addEventListener('DOMContentLoaded', () => {
     tracker = new RealEfficiencyTracker();
+    // Start with main dashboard landing page
+    tracker.showMainDashboard();
 });
 
 // Admin function for console access
