@@ -8919,6 +8919,15 @@ class RealEfficiencyTracker {
         const members = [];
         Object.keys(monthData.monthlyData).forEach(memberName => {
             const memberData = monthData.monthlyData[memberName];
+            
+            // Debug logging to see what's in the data
+            console.log(`🔍 ${memberName} data:`, {
+                efficiency: memberData.efficiency,
+                totalOutput: memberData.totalOutput,
+                target: memberData.target,
+                calculatedEfficiency: ((memberData.totalOutput / memberData.target) * 100)
+            });
+            
             // Use the existing efficiency from historical data (already in percentage)
             const efficiency = memberData.efficiency || ((memberData.totalOutput / memberData.target) * 100);
             
