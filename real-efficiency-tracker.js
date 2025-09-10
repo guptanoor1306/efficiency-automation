@@ -2555,7 +2555,12 @@ class RealEfficiencyTracker {
                                     memberCount++;
                                 });
                                 
-                                this.finalizedReports[weekId] = {
+                                // Store team-specific finalized reports to avoid conflicts
+                                if (!this.finalizedReports[team]) {
+                                    this.finalizedReports[team] = {};
+                                }
+                                
+                                this.finalizedReports[team][weekId] = {
                                     isFinalized: true,
                                     status: 'finalized',
                                     finalizedAt: new Date().toISOString(),
@@ -3412,9 +3417,9 @@ class RealEfficiencyTracker {
                 continue;
             }
             
-            // Check if this week is finalized
-            const finalizedReports = this.finalizedReports || {};
-            const isFinalized = finalizedReports[week.id];
+            // Check if this week is finalized for current team
+            const teamFinalizedReports = this.finalizedReports?.[this.currentTeam] || {};
+            const isFinalized = teamFinalizedReports[week.id];
             
             if (!isFinalized) {
                 console.log(`🎯 Found first incomplete week for ${this.currentTeam}: ${week.label}`);
@@ -3550,16 +3555,17 @@ class RealEfficiencyTracker {
         
         // Use team-specific finalized reports
         const weekKey = this.currentWeek.id;
-        const isFinalized = this.finalizedReports && this.finalizedReports.hasOwnProperty(weekKey) && this.finalizedReports[weekKey] !== null && this.finalizedReports[weekKey] !== undefined;
+        const teamFinalizedReports = this.finalizedReports?.[this.currentTeam] || {};
+        const isFinalized = teamFinalizedReports.hasOwnProperty(weekKey) && teamFinalizedReports[weekKey] !== null && teamFinalizedReports[weekKey] !== undefined;
         
         const statusDiv = document.getElementById('finalize-status');
         const saveButton = document.querySelector('button[onclick="tracker.saveWeekData()"]');
         const finalizeButton = document.querySelector('button[onclick="tracker.finalizeWeeklyReport()"]');
         
         console.log(`Checking Week ${weekKey}:`);
-        console.log('All finalized reports:', Object.keys(this.finalizedReports || {}));
+        console.log(`All finalized reports for ${this.currentTeam}:`, Object.keys(teamFinalizedReports));
         console.log(`Week ${weekKey} finalization status:`, isFinalized);
-        console.log('Finalized data:', this.finalizedReports ? this.finalizedReports[weekKey] : 'No finalized reports');
+        console.log('Finalized data:', teamFinalizedReports[weekKey] || 'No finalized data');
         
         if (isFinalized) {
             // Use the standard finalization display (hide buttons, show summary)
@@ -8230,12 +8236,12 @@ class RealEfficiencyTracker {
         console.log('Current team:', this.currentTeam);
         console.log('Current working month:', currentWorkingMonth);
         
-        // Only show weeks from current working month that are NOT moved to historical data
-        const finalizedReports = this.finalizedReports || {};
-        console.log('Finalized reports available:', Object.keys(finalizedReports));
+        // Get team-specific finalized reports
+        const teamFinalizedReports = this.finalizedReports?.[this.currentTeam] || {};
+        console.log('Team finalized reports available:', Object.keys(teamFinalizedReports));
         
-        Object.keys(finalizedReports).forEach(weekId => {
-            const weekData = finalizedReports[weekId];
+        Object.keys(teamFinalizedReports).forEach(weekId => {
+            const weekData = teamFinalizedReports[weekId];
             console.log(`Checking week ${weekId}:`, weekData);
             
             // Check if this week belongs to current working month
