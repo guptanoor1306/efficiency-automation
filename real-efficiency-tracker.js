@@ -8799,9 +8799,25 @@ class RealEfficiencyTracker {
     }
 
     async getTeamMonthlyData(teamId, monthYear) {
+        // Map team IDs to historical data keys
+        const teamMapping = {
+            'zero1_bratish': 'zero1',
+            'zero1_harish': 'harish',
+            'varsity': 'varsity',
+            'b2b': 'b2b',
+            'audio': 'audio',
+            'shorts': 'shorts'
+        };
+        
+        const historicalKey = teamMapping[teamId] || teamId;
+        
         // Get historical data for the team and month
-        const historicalData = this.historicalData[teamId];
+        const historicalData = this.historicalData[historicalKey];
+        console.log(`🔍 Looking for ${monthYear} data for team ${teamId} (key: ${historicalKey})`);
+        console.log(`🔍 Available months for ${historicalKey}:`, Object.keys(historicalData || {}));
+        
         if (!historicalData || !historicalData[monthYear]) {
+            console.log(`❌ No data found for team ${teamId} (key: ${historicalKey}) for ${monthYear}`);
             return null;
         }
         
@@ -8827,6 +8843,47 @@ class RealEfficiencyTracker {
         return {
             team: teamId,
             period: monthYear,
+            members: members
+        };
+    }
+
+    async getTeamWeeklyData(teamId, weekId) {
+        // Map team IDs to finalized reports keys
+        const teamMapping = {
+            'zero1_bratish': 'zero1_bratish',
+            'zero1_harish': 'zero1_harish',
+            'varsity': 'varsity',
+            'b2b': 'b2b',
+            'audio': 'audio',
+            'shorts': 'shorts'
+        };
+        
+        const reportKey = teamMapping[teamId] || teamId;
+        
+        // Get finalized week data for the team
+        const teamFinalizedReports = this.finalizedReports?.[reportKey];
+        if (!teamFinalizedReports || !teamFinalizedReports[weekId]) {
+            console.log(`❌ No finalized week data found for team ${teamId} (key: ${reportKey}) for ${weekId}`);
+            return null;
+        }
+        
+        const weekData = teamFinalizedReports[weekId];
+        const members = [];
+        
+        if (weekData.memberSummaries) {
+            weekData.memberSummaries.forEach(member => {
+                members.push({
+                    name: member.name,
+                    efficiency: member.efficiency || 0,
+                    output: member.output || 0,
+                    rating: member.rating || 0
+                });
+            });
+        }
+        
+        return {
+            team: teamId,
+            period: weekId,
             members: members
         };
     }
