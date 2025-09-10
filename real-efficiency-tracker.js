@@ -8249,6 +8249,18 @@ class RealEfficiencyTracker {
             
             if (belongsToCurrentMonth && !isInHistoricalData && weekData && weekData.memberSummaries) {
                 console.log(`📋 Available members in ${weekId}:`, weekData.memberSummaries.map(m => m.name || m.member || 'unknown'));
+                
+                // Check if this week actually contains members from the current team
+                const currentTeamMembers = this.getActiveTeamMembers(this.currentTeam);
+                const hasCurrentTeamMembers = weekData.memberSummaries.some(m => 
+                    currentTeamMembers.includes(m.name || m.member)
+                );
+                
+                if (!hasCurrentTeamMembers) {
+                    console.log(`⚠️ Week ${weekId} has no members from team ${this.currentTeam}, skipping`);
+                    continue;
+                }
+                
                 const memberWeekData = weekData.memberSummaries.find(m => m.name === memberName);
                 console.log(`Found member week data for ${memberName}:`, memberWeekData);
                 
