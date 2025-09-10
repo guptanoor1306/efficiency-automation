@@ -8249,6 +8249,7 @@ class RealEfficiencyTracker {
             
             if (belongsToCurrentMonth && !isInHistoricalData && weekData && weekData.memberSummaries) {
                 console.log(`📋 Available members in ${weekId}:`, weekData.memberSummaries.map(m => m.name || m.member || 'unknown'));
+        console.log(`📋 Full week data for ${weekId}:`, weekData);
                 
                 // Check if this week actually contains members from the current team
                 const currentTeamMembers = this.getActiveTeamMembers(this.currentTeam);
