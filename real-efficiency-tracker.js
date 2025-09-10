@@ -8259,9 +8259,14 @@ class RealEfficiencyTracker {
                 
                 // Check if this week actually contains members from the current team
                 const currentTeamMembers = this.getActiveTeamMembers(this.currentTeam);
+                console.log(`🔍 Current team members for ${this.currentTeam}:`, currentTeamMembers);
+                console.log(`🔍 Week data member names:`, weekData.memberSummaries.map(m => m.name || m.member || 'unknown'));
+                
                 const hasCurrentTeamMembers = weekData.memberSummaries.some(m => 
                     currentTeamMembers.includes(m.name || m.member)
                 );
+                
+                console.log(`🔍 Has current team members check result:`, hasCurrentTeamMembers);
                 
                 if (!hasCurrentTeamMembers) {
                     console.log(`⚠️ Week ${weekId} has no members from team ${this.currentTeam}, skipping`);
