@@ -8655,10 +8655,32 @@ class RealEfficiencyTracker {
         
         try {
             // Initialize team filters
+            console.log('📋 Setting up team filters...');
             this.setupTeamFilters();
             
             // Setup period options
+            console.log('📅 Setting up period options...');
             this.updateCompanyPeriodOptions();
+            
+            // Set default values and load data
+            const periodTypeSelect = document.getElementById('company-period-type');
+            const periodSelect = document.getElementById('company-period-select');
+            
+            if (periodTypeSelect && periodSelect) {
+                console.log('🔧 Setting default period to monthly...');
+                periodTypeSelect.value = 'month';
+                setTimeout(() => {
+                    this.updateCompanyPeriodOptions();
+                    // Try to select August 2025 by default
+                    setTimeout(() => {
+                        if (periodSelect.options.length > 1) {
+                            periodSelect.value = 'August 2025';
+                            console.log('📊 Loading August 2025 data...');
+                            this.updateCompanyData();
+                        }
+                    }, 100);
+                }, 100);
+            }
             
             console.log('✅ Company Dashboard initialized');
         } catch (error) {
