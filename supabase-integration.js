@@ -168,7 +168,7 @@ class SupabaseAPI {
             
             const { data, error } = await this.supabase
                 .from('weekly_entries')
-                .select('week_id, member_name, updated_at')
+                .select('week_id, member_name, updated_at, work_type_data, quality_rating, leave_days')
                 .eq('team_id', teamId);
 
             if (error) {
