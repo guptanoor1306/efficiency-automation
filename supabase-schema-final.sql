@@ -96,6 +96,20 @@ INSERT INTO teams (id, name, members, work_types) VALUES
    "vo_animation": {"level": "L3", "name": "VO Animation", "perDay": 1},
    "intro": {"level": "L3", "name": "Intro", "perDay": 0.15},
    "shot_division": {"level": "L3", "name": "Shot Division", "perDay": 0.67}
+ }'),
+
+-- Audio Team (uses this.audioWorkTypes)
+('audio', 'Audio Team',
+ '["Amardeep", "Amandeep", "Bhavya Menon", "Rahul", "Ashutosh", "Naveen"]',
+ '{
+   "reel": {"level": "L1", "name": "Reel", "perDay": 3},
+   "short_videos_ads": {"level": "L1", "name": "Short Videos/Ads", "perDay": 2},
+   "live_shoot_1hr": {"level": "L1", "name": "Live Shoot - 1 Hour", "perDay": 8},
+   "dubbing_1hr": {"level": "L1", "name": "Dubbing - 1 Hour", "perDay": 6},
+   "master_upload": {"level": "L1", "name": "Master Upload", "perDay": 3},
+   "podcast_1hr_no_animation": {"level": "L2", "name": "Podcast (1 Hr) w/o Animation", "perDay": 1},
+   "yt_long_form": {"level": "L3", "name": "YT Long Form", "perDay": 0.67},
+   "video_8_10_mins_lf": {"level": "L3", "name": "Video (8-10 mins) LF", "perDay": 0.67}
  }');
 
 -- Create indexes for better performance
