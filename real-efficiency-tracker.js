@@ -2543,7 +2543,9 @@ class RealEfficiencyTracker {
                                     const leaveDays = parseFloat(entry.leave_days) || 0;
                                     const rating = parseFloat(entry.quality_rating) || 0;
                                     const effectiveWorkingDays = workingDays - leaveDays;
-                                    const efficiency = effectiveWorkingDays > 0 ? (memberOutput / effectiveWorkingDays * 100) : 0;
+                                    const dailyTarget = this.getDailyTargetForMember(teamId, entry.member_name);
+                                    const weeklyTarget = dailyTarget * effectiveWorkingDays;
+                                    const efficiency = weeklyTarget > 0 ? (memberOutput / weeklyTarget * 100) : 0;
                                     
                                     memberSummaries.push({
                                         name: entry.member_name,
@@ -5540,7 +5542,9 @@ class RealEfficiencyTracker {
             
             // Calculate efficiency
             const effectiveWorkingDays = memberWorkingDays - memberLeaveDays;
-            const memberEfficiency = effectiveWorkingDays > 0 ? (memberOutput / effectiveWorkingDays * 100) : 0;
+            const dailyTarget = this.getDailyTargetForMember(this.currentTeam, memberName);
+            const weeklyTarget = dailyTarget * effectiveWorkingDays;
+            const memberEfficiency = weeklyTarget > 0 ? (memberOutput / weeklyTarget * 100) : 0;
             
             console.log(`📊 ${memberName}: Output=${memberOutput}, Rating=${memberRating}, Days=${effectiveWorkingDays}, Efficiency=${memberEfficiency.toFixed(1)}%`);
             
@@ -8885,6 +8889,37 @@ class RealEfficiencyTracker {
             'shorts': 'Shorts'
         };
         return displayNames[teamId] || teamId;
+    }
+
+    getDailyTargetForMember(teamId, memberName) {
+        const teamConfig = this.teamConfigs[teamId];
+        if (!teamConfig || !teamConfig.members) {
+            console.warn(`⚠️ No team config or members found for teamId: ${teamId}`);
+            return 0;
+        }
+
+        const member = teamConfig.members.find(m => m.name === memberName);
+        if (!member || !member.level) {
+            console.warn(`⚠️ Member ${memberName} not found or has no level in team ${teamId}`);
+            return 0;
+        }
+
+        const memberLevel = member.level;
+        let totalDailyTarget = 0;
+
+        // Iterate through all work types to find those matching the member's level
+        for (const workTypeKey in teamConfig.workTypes) {
+            const workType = teamConfig.workTypes[workTypeKey];
+            if (workType.level === memberLevel) {
+                totalDailyTarget += workType.perDay;
+            }
+        }
+        
+        if (totalDailyTarget === 0) {
+            console.warn(`⚠️ No daily target found for member ${memberName} (Level: ${memberLevel}) in team ${teamId}. Check workType configurations.`);
+        }
+
+        return totalDailyTarget;
     }
 
     async getTeamMonthlyData(teamId, monthYear) {
