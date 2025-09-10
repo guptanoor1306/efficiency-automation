@@ -8226,7 +8226,7 @@ class RealEfficiencyTracker {
         console.log('Getting weekly data for:', memberName);
         console.log('Current working month:', currentWorkingMonth);
         
-        // Only show weeks from current working month that are NOT moved to historical data
+        // Show finalized weeks from current working month and recent months (not moved to historical data)
         const finalizedReports = this.finalizedReports || {};
         console.log('Finalized reports available:', Object.keys(finalizedReports));
         
@@ -8238,12 +8238,14 @@ class RealEfficiencyTracker {
             const weekMonth = this.getWeekMonth(weekId);
             const belongsToCurrentMonth = weekMonth === currentWorkingMonth;
             
-            // Only show if it belongs to current working month AND not in historical data
+            // Show if it belongs to current working month OR if no current month is set (show all recent finalized weeks)
+            // AND not in historical data
             const isInHistoricalData = this.historicalData[this.currentTeam]?.[weekMonth]?.isComplete;
+            const shouldShow = (belongsToCurrentMonth || !currentWorkingMonth) && !isInHistoricalData;
             
-            console.log(`Week ${weekId}: month=${weekMonth}, belongsToCurrent=${belongsToCurrentMonth}, inHistorical=${isInHistoricalData}`);
+            console.log(`Week ${weekId}: month=${weekMonth}, belongsToCurrent=${belongsToCurrentMonth}, inHistorical=${isInHistoricalData}, shouldShow=${shouldShow}`);
             
-            if (belongsToCurrentMonth && !isInHistoricalData && weekData && weekData.memberSummaries) {
+            if (shouldShow && weekData && weekData.memberSummaries) {
                 const memberWeekData = weekData.memberSummaries.find(m => m.name === memberName);
                 console.log(`Found member week data for ${memberName}:`, memberWeekData);
                 
