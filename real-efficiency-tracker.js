@@ -8557,6 +8557,453 @@ class RealEfficiencyTracker {
             }, 5000);
         }
     }
+
+    // =============================================
+    // COMPANY DASHBOARD METHODS
+    // =============================================
+
+    showTeamDashboard() {
+        console.log('🏢 Switching to Team Dashboard');
+        
+        // Update navigation active states
+        document.querySelectorAll('.dashboard-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelector('[data-dashboard="team"]').classList.add('active');
+        
+        // Show/hide appropriate sections
+        document.getElementById('team-view-navigation').style.display = 'block';
+        document.getElementById('team-period-selector').style.display = 'block';
+        document.getElementById('company-controls').style.display = 'none';
+        document.getElementById('company-dashboard').style.display = 'none';
+        
+        // Show the appropriate team view content
+        const currentView = document.querySelector('.view-btn.active')?.getAttribute('data-view') || 'weekly';
+        if (currentView === 'weekly') {
+            this.showWeeklyView();
+        } else if (currentView === 'monthly') {
+            this.showMonthlyView();
+        } else if (currentView === 'person') {
+            this.showPersonView();
+        }
+    }
+
+    showCompanyDashboard() {
+        console.log('🏢 Switching to Company Dashboard');
+        
+        // Update navigation active states
+        document.querySelectorAll('.dashboard-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelector('[data-dashboard="company"]').classList.add('active');
+        
+        // Hide team view sections
+        document.getElementById('team-view-navigation').style.display = 'none';
+        document.getElementById('team-period-selector').style.display = 'none';
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('week-info').style.display = 'none';
+        document.getElementById('efficiency-data').style.display = 'none';
+        
+        // Show company view sections
+        document.getElementById('company-controls').style.display = 'block';
+        document.getElementById('company-dashboard').style.display = 'block';
+        
+        // Initialize company dashboard
+        this.initializeCompanyDashboard();
+    }
+
+    async initializeCompanyDashboard() {
+        console.log('🚀 Initializing Company Dashboard...');
+        
+        try {
+            // Initialize team filters
+            this.setupTeamFilters();
+            
+            // Setup period options
+            this.updateCompanyPeriodOptions();
+            
+            console.log('✅ Company Dashboard initialized');
+        } catch (error) {
+            console.error('❌ Error initializing company dashboard:', error);
+        }
+    }
+
+    setupTeamFilters() {
+        const teamFiltersContainer = document.getElementById('team-filters');
+        const allTeams = ['b2b', 'varsity', 'zero1_bratish', 'zero1_harish', 'audio', 'shorts'];
+        
+        const teamDisplayNames = {
+            'b2b': 'B2B Team',
+            'varsity': 'Varsity Team', 
+            'zero1_bratish': 'Zero1 - Bratish',
+            'zero1_harish': 'Zero1 - Harish',
+            'audio': 'Audio Team',
+            'shorts': 'Shorts Team'
+        };
+        
+        teamFiltersContainer.innerHTML = '';
+        
+        allTeams.forEach(teamId => {
+            const checkboxContainer = document.createElement('div');
+            checkboxContainer.style.cssText = 'margin-bottom: 8px; display: flex; align-items: center;';
+            
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.id = `team-filter-${teamId}`;
+            checkbox.checked = true;
+            checkbox.style.cssText = 'margin-right: 8px;';
+            checkbox.onchange = () => this.updateCompanyData();
+            
+            const label = document.createElement('label');
+            label.htmlFor = `team-filter-${teamId}`;
+            label.textContent = teamDisplayNames[teamId];
+            label.style.cssText = 'font-size: 11px; cursor: pointer; user-select: none;';
+            
+            checkboxContainer.appendChild(checkbox);
+            checkboxContainer.appendChild(label);
+            teamFiltersContainer.appendChild(checkboxContainer);
+        });
+    }
+
+    updateCompanyPeriodOptions() {
+        const periodType = document.getElementById('company-period-type').value;
+        const periodSelect = document.getElementById('company-period-select');
+        
+        periodSelect.innerHTML = '<option value="">Loading...</option>';
+        
+        if (periodType === 'month') {
+            // Add historical months
+            const historicalMonths = [
+                'January 2025', 'February 2025', 'March 2025', 'April 2025',
+                'May 2025', 'June 2025', 'July 2025', 'August 2025'
+            ];
+            
+            periodSelect.innerHTML = '<option value="">Select a month...</option>';
+            historicalMonths.forEach(month => {
+                const option = document.createElement('option');
+                option.value = month;
+                option.textContent = month;
+                periodSelect.appendChild(option);
+            });
+            
+            // Add current month if it has finalized data
+            if (Object.keys(this.finalizedReports || {}).length > 0) {
+                const option = document.createElement('option');
+                option.value = 'September 2025';
+                option.textContent = 'September 2025 (Current)';
+                periodSelect.appendChild(option);
+            }
+        } else if (periodType === 'week') {
+            // Add finalized weeks from current month
+            periodSelect.innerHTML = '<option value="">Select a week...</option>';
+            
+            if (this.finalizedReports) {
+                const allWeeks = new Set();
+                Object.keys(this.finalizedReports).forEach(teamId => {
+                    if (this.finalizedReports[teamId]) {
+                        Object.keys(this.finalizedReports[teamId]).forEach(weekId => {
+                            allWeeks.add(weekId);
+                        });
+                    }
+                });
+                
+                Array.from(allWeeks).sort().forEach(weekId => {
+                    const weekNumber = this.getWeekNumberInMonth(weekId);
+                    const option = document.createElement('option');
+                    option.value = weekId;
+                    option.textContent = `Week ${weekNumber} (${weekId})`;
+                    periodSelect.appendChild(option);
+                });
+            }
+        }
+    }
+
+    async updateCompanyData() {
+        const periodType = document.getElementById('company-period-type').value;
+        const selectedPeriod = document.getElementById('company-period-select').value;
+        
+        if (!selectedPeriod) {
+            this.hideCompanyDataSections();
+            return;
+        }
+        
+        console.log(`📊 Loading company data for ${periodType}: ${selectedPeriod}`);
+        
+        try {
+            const companyData = await this.getCompanyData(periodType, selectedPeriod);
+            this.displayCompanyData(companyData, periodType, selectedPeriod);
+        } catch (error) {
+            console.error('❌ Error updating company data:', error);
+        }
+    }
+
+    async getCompanyData(periodType, selectedPeriod) {
+        const selectedTeams = this.getSelectedTeams();
+        const allMembers = [];
+        
+        for (const teamId of selectedTeams) {
+            let teamData = null;
+            
+            if (periodType === 'month') {
+                teamData = await this.getTeamMonthlyData(teamId, selectedPeriod);
+            } else if (periodType === 'week') {
+                teamData = await this.getTeamWeeklyData(teamId, selectedPeriod);
+            }
+            
+            if (teamData && teamData.members) {
+                teamData.members.forEach(member => {
+                    allMembers.push({
+                        ...member,
+                        team: teamId,
+                        teamDisplayName: this.getTeamDisplayName(teamId)
+                    });
+                });
+            }
+        }
+        
+        // Sort by efficiency (highest first)
+        allMembers.sort((a, b) => (b.efficiency || 0) - (a.efficiency || 0));
+        
+        return {
+            members: allMembers,
+            teams: selectedTeams,
+            periodType: periodType,
+            period: selectedPeriod
+        };
+    }
+
+    getSelectedTeams() {
+        const selectedTeams = [];
+        const allTeams = ['b2b', 'varsity', 'zero1_bratish', 'zero1_harish', 'audio', 'shorts'];
+        
+        allTeams.forEach(teamId => {
+            const checkbox = document.getElementById(`team-filter-${teamId}`);
+            if (checkbox && checkbox.checked) {
+                selectedTeams.push(teamId);
+            }
+        });
+        
+        return selectedTeams;
+    }
+
+    getTeamDisplayName(teamId) {
+        const displayNames = {
+            'b2b': 'B2B',
+            'varsity': 'Varsity', 
+            'zero1_bratish': 'Zero1-Bratish',
+            'zero1_harish': 'Zero1-Harish',
+            'audio': 'Audio',
+            'shorts': 'Shorts'
+        };
+        return displayNames[teamId] || teamId;
+    }
+
+    async getTeamMonthlyData(teamId, monthYear) {
+        // Get historical data for the team and month
+        const historicalData = this.historicalData[teamId];
+        if (!historicalData || !historicalData[monthYear]) {
+            return null;
+        }
+        
+        const monthData = historicalData[monthYear];
+        if (!monthData.monthlyData) {
+            return null;
+        }
+        
+        const members = [];
+        Object.keys(monthData.monthlyData).forEach(memberName => {
+            const memberData = monthData.monthlyData[memberName];
+            const efficiency = ((memberData.totalOutput / memberData.target) * 100);
+            
+            members.push({
+                name: memberName,
+                efficiency: efficiency,
+                output: memberData.totalOutput,
+                target: memberData.target,
+                rating: memberData.monthlyRating || 0
+            });
+        });
+        
+        return {
+            team: teamId,
+            period: monthYear,
+            members: members
+        };
+    }
+
+    async getTeamWeeklyData(teamId, weekId) {
+        // Get finalized week data for the team
+        const teamFinalizedReports = this.finalizedReports?.[teamId];
+        if (!teamFinalizedReports || !teamFinalizedReports[weekId]) {
+            return null;
+        }
+        
+        const weekData = teamFinalizedReports[weekId];
+        const members = [];
+        
+        if (weekData.memberSummaries) {
+            weekData.memberSummaries.forEach(memberSummary => {
+                members.push({
+                    name: memberSummary.name,
+                    efficiency: memberSummary.efficiency || 0,
+                    output: memberSummary.output || 0,
+                    rating: memberSummary.rating || 0,
+                    workingDays: memberSummary.workingDays || 5
+                });
+            });
+        }
+        
+        return {
+            team: teamId,
+            period: weekId,
+            members: members
+        };
+    }
+
+    displayCompanyData(companyData, periodType, selectedPeriod) {
+        console.log('📊 Displaying company data:', companyData);
+        
+        // Update period info
+        document.getElementById('company-period-info').textContent = 
+            `Showing ${periodType === 'month' ? 'monthly' : 'weekly'} data for ${selectedPeriod}`;
+        
+        // Show all sections
+        document.getElementById('company-stats').style.display = 'block';
+        document.getElementById('team-summary').style.display = 'block';
+        document.getElementById('member-chart-section').style.display = 'block';
+        
+        // Update company statistics
+        this.updateCompanyStats(companyData);
+        
+        // Update team summary
+        this.updateTeamSummary(companyData);
+        
+        // Update member performance chart
+        this.updateMemberChart(companyData);
+    }
+
+    updateCompanyStats(companyData) {
+        const members = companyData.members || [];
+        
+        if (members.length === 0) {
+            document.getElementById('company-avg-efficiency').textContent = 'No data';
+            document.getElementById('company-total-members').textContent = '0';
+            document.getElementById('company-active-teams').textContent = '0';
+            document.getElementById('company-top-performer').textContent = 'No data';
+            return;
+        }
+        
+        // Calculate company average efficiency
+        const avgEfficiency = members.reduce((sum, member) => sum + (member.efficiency || 0), 0) / members.length;
+        document.getElementById('company-avg-efficiency').textContent = `${avgEfficiency.toFixed(1)}%`;
+        
+        // Total members
+        document.getElementById('company-total-members').textContent = members.length;
+        
+        // Active teams
+        const activeTeams = new Set(members.map(member => member.team)).size;
+        document.getElementById('company-active-teams').textContent = activeTeams;
+        
+        // Top performer
+        const topPerformer = members[0]; // Already sorted by efficiency
+        if (topPerformer) {
+            document.getElementById('company-top-performer').textContent = 
+                `${topPerformer.name} (${topPerformer.efficiency.toFixed(1)}%)`;
+        }
+    }
+
+    updateTeamSummary(companyData) {
+        const teamSummaryGrid = document.getElementById('team-summary-grid');
+        teamSummaryGrid.innerHTML = '';
+        
+        // Group members by team
+        const teamGroups = {};
+        companyData.members.forEach(member => {
+            if (!teamGroups[member.team]) {
+                teamGroups[member.team] = [];
+            }
+            teamGroups[member.team].push(member);
+        });
+        
+        // Create team cards
+        Object.keys(teamGroups).forEach(teamId => {
+            const teamMembers = teamGroups[teamId];
+            const avgEfficiency = teamMembers.reduce((sum, member) => sum + (member.efficiency || 0), 0) / teamMembers.length;
+            
+            const teamCard = document.createElement('div');
+            teamCard.style.cssText = 'background: white; padding: 15px; border-radius: 8px; border: 1px solid #e9ecef; box-shadow: 0 2px 4px rgba(0,0,0,0.1);';
+            
+            teamCard.innerHTML = `
+                <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 10px;">
+                    <h4 style="color: #2c3e50; margin: 0; font-size: 14px;">${this.getTeamDisplayName(teamId)}</h4>
+                    <span style="font-size: 16px; font-weight: 600; color: ${this.getEfficiencyColor(avgEfficiency)};">${avgEfficiency.toFixed(1)}%</span>
+                </div>
+                <div style="font-size: 12px; color: #6c757d; margin-bottom: 5px;">${teamMembers.length} members</div>
+                <div style="font-size: 11px; color: #6c757d;">
+                    Best: ${teamMembers[0]?.name || 'N/A'} (${(teamMembers[0]?.efficiency || 0).toFixed(1)}%)
+                </div>
+            `;
+            
+            teamSummaryGrid.appendChild(teamCard);
+        });
+    }
+
+    updateMemberChart(companyData) {
+        const chartContainer = document.getElementById('member-performance-chart');
+        chartContainer.innerHTML = '';
+        
+        if (!companyData.members || companyData.members.length === 0) {
+            chartContainer.innerHTML = '<div style="text-align: center; color: #6c757d; padding: 20px;">No data available</div>';
+            return;
+        }
+        
+        // Create chart bars
+        companyData.members.forEach((member, index) => {
+            const efficiency = member.efficiency || 0;
+            const barWidth = Math.max(efficiency, 1); // Minimum 1% width for visibility
+            
+            const barContainer = document.createElement('div');
+            barContainer.style.cssText = 'margin-bottom: 8px; display: flex; align-items: center;';
+            
+            barContainer.innerHTML = `
+                <div style="width: 120px; padding-right: 10px; font-size: 11px; font-weight: 500; color: #2c3e50; text-align: right;">
+                    ${member.name}
+                </div>
+                <div style="width: 50px; padding-right: 8px; font-size: 10px; color: #6c757d; text-align: right;">
+                    ${member.teamDisplayName}
+                </div>
+                <div style="flex: 1; max-width: 300px; background: #f8f9fa; border-radius: 4px; position: relative; height: 20px;">
+                    <div style="
+                        background: ${this.getEfficiencyColor(efficiency)}; 
+                        width: ${Math.min(barWidth, 200)}%; 
+                        height: 100%; 
+                        border-radius: 4px; 
+                        transition: width 0.3s ease;
+                        display: flex;
+                        align-items: center;
+                        justify-content: flex-end;
+                        padding-right: 5px;
+                    ">
+                        <span style="font-size: 10px; color: white; font-weight: 600;">
+                            ${efficiency.toFixed(1)}%
+                        </span>
+                    </div>
+                </div>
+            `;
+            
+            chartContainer.appendChild(barContainer);
+        });
+    }
+
+    getEfficiencyColor(efficiency) {
+        if (efficiency >= 150) return '#1e7e34'; // Dark Green
+        if (efficiency >= 100) return '#28a745'; // Green
+        if (efficiency >= 80) return '#20c997';  // Light Green
+        return '#dc3545'; // Red
+    }
+
+    hideCompanyDataSections() {
+        document.getElementById('company-stats').style.display = 'none';
+        document.getElementById('team-summary').style.display = 'none';
+        document.getElementById('member-chart-section').style.display = 'none';
+        document.getElementById('company-period-info').textContent = 'Select a period to view company-wide performance data';
+    }
 }
 
 // Global functions for HTML onclick events
