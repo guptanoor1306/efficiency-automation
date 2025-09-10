@@ -8912,7 +8912,8 @@ class RealEfficiencyTracker {
         const members = [];
         Object.keys(monthData.monthlyData).forEach(memberName => {
             const memberData = monthData.monthlyData[memberName];
-            const efficiency = ((memberData.totalOutput / memberData.target) * 100);
+            // Use the existing efficiency from historical data (already in percentage)
+            const efficiency = memberData.efficiency || ((memberData.totalOutput / memberData.target) * 100);
             
             members.push({
                 name: memberName,
@@ -9074,9 +9075,9 @@ class RealEfficiencyTracker {
             teamCard.style.cssText = 'background: white; padding: 15px; border-radius: 8px; border: 1px solid #e9ecef; box-shadow: 0 2px 4px rgba(0,0,0,0.1);';
             
             teamCard.innerHTML = `
-                <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 10px;">
-                    <h4 style="color: #2c3e50; margin: 0; font-size: 14px;">${this.getTeamDisplayName(teamId)}</h4>
-                    <span style="font-size: 16px; font-weight: 600; color: ${this.getEfficiencyColor(avgEfficiency)};">${avgEfficiency.toFixed(1)}%</span>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h4 style="color: #2c3e50; margin: 0; font-size: 14px; max-width: 60%;">${this.getTeamDisplayName(teamId)}</h4>
+                    <span style="font-size: 16px; font-weight: 600; color: ${this.getEfficiencyColor(avgEfficiency)}; min-width: 35%; text-align: right;">${avgEfficiency.toFixed(1)}%</span>
                 </div>
                 <div style="font-size: 12px; color: #6c757d; margin-bottom: 5px;">${teamMembers.length} members</div>
                 <div style="font-size: 11px; color: #6c757d;">
