@@ -16,12 +16,6 @@ class RealEfficiencyTracker {
             return this.weekSystem.getWeeksForSelector(this.currentTeam);
         };
         
-        // Initialize team from HTML selector after DOM is ready
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => this.initializeTeamFromSelector());
-        } else {
-            this.initializeTeamFromSelector();
-        }
         
         // B2B team work types (based on user's B2B levels screenshot)
         this.workTypes = {
@@ -2387,16 +2381,6 @@ class RealEfficiencyTracker {
     
     // Synchronous initialization that always works
     initializeSync() {
-        // Initialize current team from HTML selector
-        setTimeout(() => {
-            const teamSelector = document.getElementById('team-select-header');
-            if (teamSelector && teamSelector.value) {
-                this.currentTeam = teamSelector.value;
-                console.log(`Team initialized to: ${this.currentTeam}`);
-                // Repopulate week selector with team-specific filtering
-                this.populateWeekSelector();
-            }
-        }, 100);
         
         try {
             console.log('🚀 Starting tracker initialization...');
@@ -3239,9 +3223,7 @@ class RealEfficiencyTracker {
         // Remember current selection
         const currentSelection = weekSelect.value;
         
-        console.log('🔍 Current team when populating weeks:', this.currentTeam);
-        const weeks = this.weekSystem.getWeeksForSelector(this.currentTeam);
-        console.log('🔍 Number of weeks returned:', weeks.length);
+        const weeks = this.weekSystem.getWeeksForSelector();
         
         // Determine current view mode
         const activeViewBtn = document.querySelector('.view-btn.active');
@@ -4178,18 +4160,6 @@ class RealEfficiencyTracker {
     
     
     setupEventListeners() {
-        // Team selector change - repopulate weeks when team changes
-        document.getElementById('team-select-header').addEventListener('change', (e) => {
-            const selectedTeam = e.target.value;
-            if (selectedTeam && selectedTeam !== this.currentTeam) {
-                this.currentTeam = selectedTeam;
-                console.log(`Team changed to: ${selectedTeam}`);
-                // Repopulate week selector with team-specific filtering
-                this.populateWeekSelector();
-                // Reset other selectors
-                this.resetFiltersOnTeamSwitch();
-            }
-        });
         
         // Week/Month selector change
         document.getElementById('week-select').addEventListener('change', (e) => {
