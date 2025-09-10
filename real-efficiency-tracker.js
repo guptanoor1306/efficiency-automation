@@ -8726,10 +8726,22 @@ class RealEfficiencyTracker {
     }
 
     updateCompanyPeriodOptions() {
-        const periodType = document.getElementById('company-period-type').value;
-        const periodSelect = document.getElementById('company-period-select');
+        console.log('🔄 updateCompanyPeriodOptions called');
+        const periodTypeElement = document.getElementById('company-period-type');
+        const periodSelectElement = document.getElementById('company-period-select');
         
-        periodSelect.innerHTML = '<option value="">Loading...</option>';
+        console.log('📋 Period type element:', periodTypeElement);
+        console.log('📋 Period select element:', periodSelectElement);
+        
+        if (!periodTypeElement || !periodSelectElement) {
+            console.error('❌ Cannot find period elements');
+            return;
+        }
+        
+        const periodType = periodTypeElement.value;
+        console.log('📅 Period type value:', periodType);
+        
+        periodSelectElement.innerHTML = '<option value="">Loading...</option>';
         
         if (periodType === 'month') {
             // Add historical months
@@ -8738,24 +8750,27 @@ class RealEfficiencyTracker {
                 'May 2025', 'June 2025', 'July 2025', 'August 2025'
             ];
             
-            periodSelect.innerHTML = '<option value="">Select a month...</option>';
+            periodSelectElement.innerHTML = '<option value="">Select a month...</option>';
+            console.log('📅 Adding historical months:', historicalMonths);
             historicalMonths.forEach(month => {
                 const option = document.createElement('option');
                 option.value = month;
                 option.textContent = month;
-                periodSelect.appendChild(option);
+                periodSelectElement.appendChild(option);
             });
+            console.log('✅ Added', historicalMonths.length, 'historical months');
             
             // Add current month if it has finalized data
             if (Object.keys(this.finalizedReports || {}).length > 0) {
                 const option = document.createElement('option');
                 option.value = 'September 2025';
                 option.textContent = 'September 2025 (Current)';
-                periodSelect.appendChild(option);
+                periodSelectElement.appendChild(option);
             }
         } else if (periodType === 'week') {
             // Add finalized weeks from current month
-            periodSelect.innerHTML = '<option value="">Select a week...</option>';
+            periodSelectElement.innerHTML = '<option value="">Select a week...</option>';
+            console.log('📅 Loading weekly options...');
             
             if (this.finalizedReports) {
                 const allWeeks = new Set();
@@ -8776,7 +8791,7 @@ class RealEfficiencyTracker {
                         const option = document.createElement('option');
                         option.value = weekId;
                         option.textContent = `Week ${weekNumber} (${weekId})`;
-                        periodSelect.appendChild(option);
+                        periodSelectElement.appendChild(option);
                     } catch (error) {
                         console.warn(`Error processing week ${weekId}:`, error);
                     }
