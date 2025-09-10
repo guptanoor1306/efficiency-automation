@@ -262,6 +262,10 @@ class RealEfficiencyTracker {
                 sheetRange: 'Shorts - 2025!A1:BT1000'
             }
         };
+
+        // Add team ID aliases for consistent reference across the app
+        this.teamConfigs['zero1_bratish'] = this.teamConfigs['zero1'];
+        this.teamConfigs['zero1_harish'] = this.teamConfigs['harish'];
         
         // Current team shortcuts (updated when team changes)
         this.teamMembers = this.getActiveTeamMembers(this.currentTeam);
