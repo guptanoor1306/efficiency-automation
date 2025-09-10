@@ -2543,9 +2543,7 @@ class RealEfficiencyTracker {
                                     const leaveDays = parseFloat(entry.leave_days) || 0;
                                     const rating = parseFloat(entry.quality_rating) || 0;
                                     const effectiveWorkingDays = workingDays - leaveDays;
-                                    const dailyTarget = this.getDailyTargetForMember(teamId, entry.member_name);
-                                    const weeklyTarget = dailyTarget * effectiveWorkingDays;
-                                    const efficiency = weeklyTarget > 0 ? (memberOutput / weeklyTarget * 100) : 0;
+                                    const efficiency = effectiveWorkingDays > 0 ? (memberOutput / effectiveWorkingDays * 100) : 0;
                                     
                                     memberSummaries.push({
                                         name: entry.member_name,
@@ -5542,9 +5540,7 @@ class RealEfficiencyTracker {
             
             // Calculate efficiency
             const effectiveWorkingDays = memberWorkingDays - memberLeaveDays;
-            const dailyTarget = this.getDailyTargetForMember(this.currentTeam, memberName);
-            const weeklyTarget = dailyTarget * effectiveWorkingDays;
-            const memberEfficiency = weeklyTarget > 0 ? (memberOutput / weeklyTarget * 100) : 0;
+            const memberEfficiency = effectiveWorkingDays > 0 ? (memberOutput / effectiveWorkingDays * 100) : 0;
             
             console.log(`📊 ${memberName}: Output=${memberOutput}, Rating=${memberRating}, Days=${effectiveWorkingDays}, Efficiency=${memberEfficiency.toFixed(1)}%`);
             
