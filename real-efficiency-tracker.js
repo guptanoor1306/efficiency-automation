@@ -8227,6 +8227,7 @@ class RealEfficiencyTracker {
             'September 2025';
         
         console.log('Getting weekly data for:', memberName);
+        console.log('Current team:', this.currentTeam);
         console.log('Current working month:', currentWorkingMonth);
         
         // Only show weeks from current working month that are NOT moved to historical data
@@ -8247,6 +8248,7 @@ class RealEfficiencyTracker {
             console.log(`Week ${weekId}: month=${weekMonth}, belongsToCurrent=${belongsToCurrentMonth}, inHistorical=${isInHistoricalData}`);
             
             if (belongsToCurrentMonth && !isInHistoricalData && weekData && weekData.memberSummaries) {
+                console.log(`📋 Available members in ${weekId}:`, weekData.memberSummaries.map(m => m.name || m.member || 'unknown'));
                 const memberWeekData = weekData.memberSummaries.find(m => m.name === memberName);
                 console.log(`Found member week data for ${memberName}:`, memberWeekData);
                 
