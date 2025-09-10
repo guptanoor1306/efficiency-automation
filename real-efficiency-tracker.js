@@ -2476,7 +2476,7 @@ class RealEfficiencyTracker {
             console.log('📊 Loading all finalized weeks from Supabase...');
             
             // Get all teams
-            const allTeams = ['b2b', 'varsity', 'zero1_bratish', 'zero1_harish'];
+            const allTeams = ['b2b', 'varsity', 'zero1_bratish', 'zero1_harish', 'audio', 'shorts'];
             
             // Load finalized reports for each team
             for (const team of allTeams) {
