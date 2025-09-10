@@ -10,6 +10,11 @@ class RealEfficiencyTracker {
         this.currentMember = null;
         this.sheetData = [];
         
+        // Override week system method to handle team-specific filtering
+        this.getFilteredWeeks = () => {
+            return this.weekSystem.getWeeksForSelector(this.currentTeam);
+        };
+        
         // B2B team work types (based on user's B2B levels screenshot)
         this.workTypes = {
             'ost': { level: 'L1', name: 'OST', perDay: 20 },
@@ -234,6 +239,25 @@ class RealEfficiencyTracker {
                 ],
                 workLevels: this.audioLevelMapping,
                 sheetRange: 'Audio - 2025!A1:BT1000'
+            },
+            shorts: {
+                name: 'Shorts Team',
+                members: [
+                    { name: 'Divyanshu Mishra' },
+                    { name: 'Abhishek Sharma' },
+                    { name: 'Dheeraj Rajvania' },
+                    { name: 'Aayush Srivastava' },
+                    { name: 'Manoj Kumar' }
+                ],
+                historicalMembers: [
+                    { name: 'Divyanshu Mishra' },
+                    { name: 'Abhishek Sharma' },
+                    { name: 'Dheeraj Rajvania' },
+                    { name: 'Aayush Srivastava' },
+                    { name: 'Manoj Kumar' }
+                ],
+                workLevels: this.shortsLevelMapping,
+                sheetRange: 'Shorts - 2025!A1:BT1000'
             }
         };
         
@@ -1007,9 +1031,13 @@ class RealEfficiencyTracker {
             }
         };
 
-        // Shorts team historical data (Jan-July 2025) - read from "Shorts" sheet
-    
-        this.historicalData.shorts = {
+        // Note: Shorts team historical data is now defined later in the file
+        // after Audio team data (starts from February 2025)
+
+        // OLD DATA REMOVED - Shorts team started in February 2025, not January
+
+        // Zero1 - Harish team historical data (Jan-Aug 2025) - hardcoded from sheet
+        this.historicalData.harish = {
             'January 2025': {
                 isComplete: true,
                 monthlyData: {
@@ -1499,8 +1527,7 @@ class RealEfficiencyTracker {
                     totalOutput: 119.68, // Sum: 21.63+16.08+4.50+23.63+23.46+30.88
                     totalWorkingDays: 110, // Sum: 19+18+5+22+22+22
                     avgEfficiency: 107.92 // Average: (113.82+89.35+90.00+107.39+106.63+140.34)/6
-                }
-            },
+                }            },
             'February 2025': {
                 isComplete: true,
                 monthlyData: {
@@ -1961,6 +1988,375 @@ class RealEfficiencyTracker {
                     totalOutput: 134.07, // Sum: 23.41+22.63+18.50+25.12+23.32+21.09
                     totalWorkingDays: 116, // Sum: 20+20+17+19+20+20
                     avgEfficiency: 115.55 // Average: (117.05+113.15+108.82+132.21+116.60+105.45)/6
+                }
+            }
+        };
+
+        // Shorts team historical data (Feb-Aug 2025)
+        this.historicalData.shorts = {
+            'February 2025': {
+                isComplete: true,
+                monthlyData: {
+                    'Divyanshu Mishra': { 
+                        weeks: [5.83, 3.81, 6.68, 6.63], 
+                        weeklyQualityRatings: [8, 8, 8, 8], 
+                        monthlyRating: 8, 
+                        target: 20, 
+                        totalOutput: 22.94, 
+                        workingDays: 20,
+                        efficiency: 114.71
+                    },
+                    'Abhishek Sharma': { 
+                        weeks: [5.89, 4.39, 2.15, 5.97], 
+                        weeklyQualityRatings: [8, 8, 8, 8], 
+                        monthlyRating: 8, 
+                        target: 18, 
+                        totalOutput: 18.40, 
+                        workingDays: 18,
+                        efficiency: 102.22
+                    },
+                    'Dheeraj Rajvania': { 
+                        weeks: [5.98, 3.85, 5.72, 6.44], 
+                        weeklyQualityRatings: [8, 8, 8, 8], 
+                        monthlyRating: 8, 
+                        target: 20, 
+                        totalOutput: 21.98, 
+                        workingDays: 20,
+                        efficiency: 109.92
+                    }
+                    // Note: Aayush Srivastava and Manoj Kumar joined the team starting April 2025
+                },
+                teamSummary: {
+                    totalMembers: 3, // Only 3 members during Feb 2025
+                    avgRating: 8.00, // Average: (8+8+8)/3
+                    totalOutput: 63.32, // Sum: 22.94+18.40+21.98
+                    totalWorkingDays: 58, // Sum: 20+18+20
+                    avgEfficiency: 108.95 // Average: (114.71+102.22+109.92)/3
+                }
+            },
+            'March 2025': {
+                isComplete: true,
+                monthlyData: {
+                    'Divyanshu Mishra': { 
+                        weeks: [3.38, 3.40, 4.08, 4.43], 
+                        weeklyQualityRatings: [8, 8, 8, 8], 
+                        monthlyRating: 8, 
+                        target: 18, 
+                        totalOutput: 15.29, 
+                        workingDays: 18,
+                        efficiency: 84.95
+                    },
+                    'Abhishek Sharma': { 
+                        weeks: [4.99, 3.21, 4.45, 3.75], 
+                        weeklyQualityRatings: [8, 8, 8, 8], 
+                        monthlyRating: 8, 
+                        target: 19, 
+                        totalOutput: 16.40, 
+                        workingDays: 19,
+                        efficiency: 86.32
+                    },
+                    'Dheeraj Rajvania': { 
+                        weeks: [3.78, 2.90, 3.30, 3.03], 
+                        weeklyQualityRatings: [7, 7, 7, 7], 
+                        monthlyRating: 7, 
+                        target: 19, 
+                        totalOutput: 13.00, 
+                        workingDays: 19,
+                        efficiency: 68.42
+                    }
+                    // Note: Aayush Srivastava and Manoj Kumar joined the team starting April 2025
+                },
+                teamSummary: {
+                    totalMembers: 3, // Only 3 members during March 2025
+                    avgRating: 7.67, // Average: (8+8+7)/3
+                    totalOutput: 44.69, // Sum: 15.29+16.40+13.00
+                    totalWorkingDays: 56, // Sum: 18+19+19
+                    avgEfficiency: 79.90 // Average: (84.95+86.32+68.42)/3
+                }
+            },
+            'April 2025': {
+                isComplete: true,
+                monthlyData: {
+                    'Divyanshu Mishra': { 
+                        weeks: [4.23, 5.20, 4.23, 3.66], 
+                        weeklyQualityRatings: [7, 7, 7, 7], 
+                        monthlyRating: 7, 
+                        target: 20, 
+                        totalOutput: 17.32, 
+                        workingDays: 20,
+                        efficiency: 86.58
+                    },
+                    'Abhishek Sharma': { 
+                        weeks: [4.29, 5.87, 1.33, 4.75], 
+                        weeklyQualityRatings: [7, 7, 7, 7], 
+                        monthlyRating: 7, 
+                        target: 17, 
+                        totalOutput: 16.24, 
+                        workingDays: 17,
+                        efficiency: 95.54
+                    },
+                    'Dheeraj Rajvania': { 
+                        weeks: [4.44, 8.11, 4.81, 4.39], 
+                        weeklyQualityRatings: [7, 7, 7, 7], 
+                        monthlyRating: 7, 
+                        target: 22, 
+                        totalOutput: 21.75, 
+                        workingDays: 22,
+                        efficiency: 98.86
+                    },
+                    'Aayush Srivastava': { 
+                        weeks: [4.37, 6.80, 0.00, 0.00], 
+                        weeklyQualityRatings: [7, 7, 7, 7], 
+                        monthlyRating: 7, 
+                        target: 10, 
+                        totalOutput: 11.17, 
+                        workingDays: 10,
+                        efficiency: 111.67
+                    },
+                    'Manoj Kumar': { 
+                        weeks: [3.84, 8.95, 4.40, 6.56], 
+                        weeklyQualityRatings: [7, 7, 7, 7], 
+                        monthlyRating: 7, 
+                        target: 22, 
+                        totalOutput: 23.75, 
+                        workingDays: 22,
+                        efficiency: 107.95
+                    }
+                },
+                teamSummary: {
+                    totalMembers: 5,
+                    avgRating: 7.00, // Average: (7+7+7+7+7)/5
+                    totalOutput: 90.23, // Sum: 17.32+16.24+21.75+11.17+23.75
+                    totalWorkingDays: 91, // Sum: 20+17+22+10+22
+                    avgEfficiency: 100.12 // Average: (86.58+95.54+98.86+111.67+107.95)/5
+                }
+            },
+            'May 2025': {
+                isComplete: true,
+                monthlyData: {
+                    'Divyanshu Mishra': { 
+                        weeks: [4.93, 4.50, 3.13, 4.34], 
+                        weeklyQualityRatings: [7, 7, 7, 7], 
+                        monthlyRating: 7, 
+                        target: 20, 
+                        totalOutput: 16.90, 
+                        workingDays: 20,
+                        efficiency: 84.50
+                    },
+                    'Abhishek Sharma': { 
+                        weeks: [4.83, 5.00, 4.51, 2.81], 
+                        weeklyQualityRatings: [7, 7, 7, 7], 
+                        monthlyRating: 7, 
+                        target: 22, 
+                        totalOutput: 17.15, 
+                        workingDays: 22,
+                        efficiency: 77.95
+                    },
+                    'Dheeraj Rajvania': { 
+                        weeks: [4.63, 5.12, 4.86, 4.83], 
+                        weeklyQualityRatings: [7, 7, 7, 7], 
+                        monthlyRating: 7, 
+                        target: 22, 
+                        totalOutput: 19.43, 
+                        workingDays: 22,
+                        efficiency: 88.30
+                    },
+                    'Aayush Srivastava': { 
+                        weeks: [1.76, 5.27, 3.88, 5.93], 
+                        weeklyQualityRatings: [7, 7, 7, 7], 
+                        monthlyRating: 7, 
+                        target: 22, 
+                        totalOutput: 16.84, 
+                        workingDays: 22,
+                        efficiency: 76.55
+                    },
+                    'Manoj Kumar': { 
+                        weeks: [4.88, 4.17, 4.08, 3.18], 
+                        weeklyQualityRatings: [7, 7, 7, 7], 
+                        monthlyRating: 7, 
+                        target: 20, 
+                        totalOutput: 16.29, 
+                        workingDays: 20,
+                        efficiency: 81.46
+                    }
+                },
+                teamSummary: {
+                    totalMembers: 5,
+                    avgRating: 7.00, // Average: (7+7+7+7+7)/5
+                    totalOutput: 86.61, // Sum: 16.90+17.15+19.43+16.84+16.29
+                    totalWorkingDays: 106, // Sum: 20+22+22+22+20
+                    avgEfficiency: 81.75 // Average: (84.50+77.95+88.30+76.55+81.46)/5
+                }
+            },
+            'June 2025': {
+                isComplete: true,
+                monthlyData: {
+                    'Divyanshu Mishra': { 
+                        weeks: [3.00, 3.53, 4.08, 2.50], 
+                        weeklyQualityRatings: [8, 8, 8, 8], 
+                        monthlyRating: 8, 
+                        target: 21, 
+                        totalOutput: 13.12, 
+                        workingDays: 21,
+                        efficiency: 62.46
+                    },
+                    'Abhishek Sharma': { 
+                        weeks: [3.17, 3.70, 4.72, 4.68], 
+                        weeklyQualityRatings: [8, 8, 8, 8], 
+                        monthlyRating: 8, 
+                        target: 21, 
+                        totalOutput: 16.27, 
+                        workingDays: 21,
+                        efficiency: 77.46
+                    },
+                    'Dheeraj Rajvania': { 
+                        weeks: [3.11, 3.54, 4.19, 6.48], 
+                        weeklyQualityRatings: [8, 8, 8, 8], 
+                        monthlyRating: 8, 
+                        target: 21, 
+                        totalOutput: 17.32, 
+                        workingDays: 21,
+                        efficiency: 82.46
+                    },
+                    'Aayush Srivastava': { 
+                        weeks: [2.73, 4.25, 4.46, 5.44], 
+                        weeklyQualityRatings: [8, 8, 8, 8], 
+                        monthlyRating: 8, 
+                        target: 21, 
+                        totalOutput: 16.88, 
+                        workingDays: 21,
+                        efficiency: 80.40
+                    },
+                    'Manoj Kumar': { 
+                        weeks: [2.88, 3.23, 5.88, 2.61], 
+                        weeklyQualityRatings: [8, 8, 8, 8], 
+                        monthlyRating: 8, 
+                        target: 21, 
+                        totalOutput: 14.60, 
+                        workingDays: 21,
+                        efficiency: 69.52
+                    }
+                },
+                teamSummary: {
+                    totalMembers: 5,
+                    avgRating: 8.00, // Average: (8+8+8+8+8)/5
+                    totalOutput: 78.19, // Sum: 13.12+16.27+17.32+16.88+14.60
+                    totalWorkingDays: 105, // Sum: 21+21+21+21+21
+                    avgEfficiency: 74.46 // Average: (62.46+77.46+82.46+80.40+69.52)/5
+                }
+            },
+            'July 2025': {
+                isComplete: true,
+                monthlyData: {
+                    'Divyanshu Mishra': { 
+                        weeks: [5.18, 4.62, 5.07, 10.96], 
+                        weeklyQualityRatings: [7, 7, 7, 7], 
+                        monthlyRating: 7, 
+                        target: 22, 
+                        totalOutput: 25.82, 
+                        workingDays: 22,
+                        efficiency: 117.35
+                    },
+                    'Abhishek Sharma': { 
+                        weeks: [4.32, 4.25, 5.40, 10.40], 
+                        weeklyQualityRatings: [7, 7, 7, 7], 
+                        monthlyRating: 7, 
+                        target: 21, 
+                        totalOutput: 24.37, 
+                        workingDays: 21,
+                        efficiency: 116.05
+                    },
+                    'Dheeraj Rajvania': { 
+                        weeks: [4.97, 4.66, 5.45, 4.83], 
+                        weeklyQualityRatings: [8, 8, 8, 8], 
+                        monthlyRating: 8, 
+                        target: 23, 
+                        totalOutput: 19.90, 
+                        workingDays: 23,
+                        efficiency: 86.52
+                    },
+                    'Aayush Srivastava': { 
+                        weeks: [5.36, 4.81, 5.22, 10.80], 
+                        weeklyQualityRatings: [8, 8, 8, 8], 
+                        monthlyRating: 8, 
+                        target: 23, 
+                        totalOutput: 26.18, 
+                        workingDays: 23,
+                        efficiency: 113.82
+                    },
+                    'Manoj Kumar': { 
+                        weeks: [5.48, 5.18, 5.26, 4.48], 
+                        weeklyQualityRatings: [7, 7, 7, 7], 
+                        monthlyRating: 7, 
+                        target: 23, 
+                        totalOutput: 20.38, 
+                        workingDays: 23,
+                        efficiency: 88.62
+                    }
+                },
+                teamSummary: {
+                    totalMembers: 5,
+                    avgRating: 7.40, // Average: (7+7+8+8+7)/5
+                    totalOutput: 116.65, // Sum: 25.82+24.37+19.90+26.18+20.38
+                    totalWorkingDays: 112, // Sum: 22+21+23+23+23
+                    avgEfficiency: 104.47 // Average: (117.35+116.05+86.52+113.82+88.62)/5
+                }
+            },
+            'August 2025': {
+                isComplete: true,
+                monthlyData: {
+                    'Divyanshu Mishra': { 
+                        weeks: [4.30, 4.30, 5.73, 6.50], 
+                        weeklyQualityRatings: [7, 7, 7, 7], 
+                        monthlyRating: 7, 
+                        target: 20, 
+                        totalOutput: 20.83, 
+                        workingDays: 20,
+                        efficiency: 104.15
+                    },
+                    'Abhishek Sharma': { 
+                        weeks: [3.98, 3.98, 6.13, 6.00], 
+                        weeklyQualityRatings: [7, 7, 7, 7], 
+                        monthlyRating: 7, 
+                        target: 19, 
+                        totalOutput: 20.09, 
+                        workingDays: 19,
+                        efficiency: 105.73
+                    },
+                    'Dheeraj Rajvania': { 
+                        weeks: [5.00, 5.00, 6.00, 6.00], 
+                        weeklyQualityRatings: [7, 7, 7, 7], 
+                        monthlyRating: 7, 
+                        target: 19, 
+                        totalOutput: 22.00, 
+                        workingDays: 19,
+                        efficiency: 115.79
+                    },
+                    'Aayush Srivastava': { 
+                        weeks: [6.55, 6.55, 5.72, 4.83], 
+                        weeklyQualityRatings: [7, 7, 7, 7], 
+                        monthlyRating: 7, 
+                        target: 19, 
+                        totalOutput: 23.66, 
+                        workingDays: 19,
+                        efficiency: 124.52
+                    },
+                    'Manoj Kumar': { 
+                        weeks: [5.00, 5.00, 6.00, 6.00], 
+                        weeklyQualityRatings: [7, 7, 7, 7], 
+                        monthlyRating: 7, 
+                        target: 19, 
+                        totalOutput: 22.00, 
+                        workingDays: 19,
+                        efficiency: 115.79
+                    }
+                },
+                teamSummary: {
+                    totalMembers: 5,
+                    avgRating: 7.00, // Average: (7+7+7+7+7)/5
+                    totalOutput: 108.58, // Sum: 20.83+20.09+22.00+23.66+22.00
+                    totalWorkingDays: 96, // Sum: 20+19+19+19+19
+                    avgEfficiency: 113.20 // Average: (104.15+105.73+115.79+124.52+115.79)/5
                 }
             }
         };

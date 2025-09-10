@@ -153,8 +153,18 @@ class WeekSystem {
         return Array.from(months).sort();
     }
     
-    getWeeksForSelector() {
-        return this.weeks.map(week => ({
+    getWeeksForSelector(teamId = null) {
+        let filteredWeeks = this.weeks;
+        
+        // Filter out January 2025 weeks for Shorts team since they started in February
+        if (teamId === 'shorts') {
+            filteredWeeks = this.weeks.filter(week => {
+                // Exclude January 2025 weeks for Shorts team
+                return !(week.year === 2025 && week.month === 1);
+            });
+        }
+        
+        return filteredWeeks.map(week => ({
             id: week.id,
             label: week.label || `Week ${week.weekNumber} (${week.dateRange})`,
             monthYear: `${week.monthName} ${week.year}`,
