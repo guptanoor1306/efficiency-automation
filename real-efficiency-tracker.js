@@ -8258,12 +8258,13 @@ class RealEfficiencyTracker {
         console.log(`📋 Full week data for ${weekId}:`, weekData);
                 
                 // Check if this week actually contains members from the current team
-                const currentTeamMembers = this.getActiveTeamMembers(this.currentTeam);
-                console.log(`🔍 Current team members for ${this.currentTeam}:`, currentTeamMembers);
+                const currentTeamMemberObjects = this.getActiveTeamMembers(this.currentTeam);
+                const currentTeamMemberNames = currentTeamMemberObjects.map(member => member.name || member);
+                console.log(`🔍 Current team member names for ${this.currentTeam}:`, currentTeamMemberNames);
                 console.log(`🔍 Week data member names:`, weekData.memberSummaries.map(m => m.name || m.member || 'unknown'));
                 
                 const hasCurrentTeamMembers = weekData.memberSummaries.some(m => 
-                    currentTeamMembers.includes(m.name || m.member)
+                    currentTeamMemberNames.includes(m.name || m.member)
                 );
                 
                 console.log(`🔍 Has current team members check result:`, hasCurrentTeamMembers);
