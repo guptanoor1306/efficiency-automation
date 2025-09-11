@@ -2490,6 +2490,10 @@ class RealEfficiencyTracker {
                 'shorts': 'shorts'
             };
             
+            // Clear existing finalized reports to rebuild from Supabase data only
+            console.log('🧹 Clearing existing finalized reports to rebuild from Supabase...');
+            this.finalizedReports = {};
+            
             // Load finalized reports for each team
             for (const team of allTeams) {
                 try {
@@ -2501,8 +2505,10 @@ class RealEfficiencyTracker {
                     console.log(`📊 Found ${teamWeekData?.length || 0} entries for ${team} (${storageTeamId})`);
                     
                     if (teamWeekData && teamWeekData.length > 0) {
-                        // Update local finalized reports based on Supabase data
-                        if (!this.finalizedReports) this.finalizedReports = {};
+                        // Initialize team in finalized reports if not exists
+                        if (!this.finalizedReports[team]) {
+                            this.finalizedReports[team] = {};
+                        }
                         
                         // Group by week_id to see which weeks have complete data
                         const weekGroups = {};
@@ -2611,6 +2617,13 @@ class RealEfficiencyTracker {
             this.saveTeamSpecificData();
             
             console.log('✅ All finalized weeks loaded from Supabase');
+            console.log('📊 Final finalized reports structure:', this.finalizedReports);
+            
+            // Debug: Show which teams and weeks are now finalized
+            Object.keys(this.finalizedReports).forEach(team => {
+                const weeks = Object.keys(this.finalizedReports[team] || {});
+                console.log(`📅 Team ${team} has finalized weeks: ${weeks.join(', ')}`);
+            });
             return true;
             
         } catch (error) {
@@ -6747,6 +6760,78 @@ class RealEfficiencyTracker {
         console.log('Available Varsity months:', Object.keys(this.historicalData.varsity));
         this.showMessage(`✅ Loaded Varsity team data for Jan-August 2025`, 'success');
     }
+
+    async ensureAllHistoricalDataLoaded() {
+        console.log('🔄 Ensuring all team historical data is loaded for Company View...');
+        
+        // Load historical data for all teams
+        const loadPromises = [];
+        
+        // Always load Varsity data to ensure we have real data (not placeholder)
+        console.log('🏐 Loading Varsity historical data...');
+        loadPromises.push(this.loadVarsityHistoricalData());
+        
+        // Check and load Zero1 data if not already loaded
+        if (!this.historicalData.zero1 || Object.keys(this.historicalData.zero1).length === 0) {
+            console.log('🚀 Loading Zero1 historical data...');
+            loadPromises.push(this.loadZero1HistoricalData());
+        } else {
+            console.log('✅ Zero1 data already loaded');
+        }
+        
+        // Check and load Harish data if not already loaded
+        if (!this.historicalData.harish || Object.keys(this.historicalData.harish).length === 0) {
+            console.log('🏆 Loading Harish historical data...');
+            loadPromises.push(this.loadHarishHistoricalData());
+        } else {
+            console.log('✅ Harish data already loaded');
+        }
+        
+        // Check and load Shorts data if not already loaded
+        if (!this.historicalData.shorts || Object.keys(this.historicalData.shorts).length === 0) {
+            console.log('🎬 Loading Shorts historical data...');
+            loadPromises.push(this.loadShortsHistoricalData());
+        } else {
+            console.log('✅ Shorts data already loaded');
+        }
+        
+        // Audio and B2B data is loaded in constructor, but double-check
+        if (!this.historicalData.audio) {
+            console.log('🎵 Initializing Audio historical data...');
+            this.historicalData.audio = {}; // Will be populated when needed
+        }
+        
+        if (!this.historicalData.b2b) {
+            console.log('💼 Initializing B2B historical data...');
+            this.historicalData.b2b = {}; // Will be populated when needed
+        }
+        
+        // Wait for all data to load
+        if (loadPromises.length > 0) {
+            await Promise.all(loadPromises);
+            console.log('✅ All historical data loaded for Company View');
+        } else {
+            console.log('✅ All historical data was already available');
+        }
+        
+        // Debug log the available data
+        console.log('📊 Available historical data:', {
+            varsity: Object.keys(this.historicalData.varsity || {}),
+            zero1: Object.keys(this.historicalData.zero1 || {}),
+            harish: Object.keys(this.historicalData.harish || {}),
+            shorts: Object.keys(this.historicalData.shorts || {}),
+            audio: Object.keys(this.historicalData.audio || {}),
+            b2b: Object.keys(this.historicalData.b2b || {})
+        });
+        
+        // Specific Varsity debug
+        if (this.historicalData.varsity) {
+            console.log('🏐 VARSITY DATA LOADED:', this.historicalData.varsity);
+            console.log('🏐 VARSITY FEBRUARY DATA:', this.historicalData.varsity['February 2025']);
+        } else {
+            console.log('❌ VARSITY DATA NOT LOADED');
+        }
+    }
     
     async loadZero1HistoricalData() {
         console.log('🚀 Loading Zero1 hardcoded data (like B2B and Varsity)...');
@@ -8674,6 +8759,10 @@ class RealEfficiencyTracker {
         console.log('🚀 Initializing Company Dashboard...');
         
         try {
+            // Ensure all team historical data is loaded for Company View
+            console.log('📊 Loading all team historical data...');
+            await this.ensureAllHistoricalDataLoaded();
+            
             // Initialize team filters
             console.log('📋 Setting up team filters...');
             this.setupTeamFilters();
@@ -9033,6 +9122,11 @@ class RealEfficiencyTracker {
         
         if (!historicalData || !historicalData[monthYear]) {
             console.log(`❌ No data found for team ${teamId} (key: ${historicalKey}) for ${monthYear}`);
+            console.log(`❌ historicalData exists: ${!!historicalData}`);
+            console.log(`❌ monthYear exists: ${!!(historicalData && historicalData[monthYear])}`);
+            if (historicalData) {
+                console.log(`❌ Available months: ${Object.keys(historicalData)}`);
+            }
             return null;
         }
         
