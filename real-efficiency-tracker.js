@@ -9024,34 +9024,6 @@ class RealEfficiencyTracker {
         };
     }
 
-    async getTeamWeeklyData(teamId, weekId) {
-        // Get finalized week data for the team
-        const teamFinalizedReports = this.finalizedReports?.[teamId];
-        if (!teamFinalizedReports || !teamFinalizedReports[weekId]) {
-            return null;
-        }
-        
-        const weekData = teamFinalizedReports[weekId];
-        const members = [];
-        
-        if (weekData.memberSummaries) {
-            weekData.memberSummaries.forEach(memberSummary => {
-                members.push({
-                    name: memberSummary.name,
-                    efficiency: memberSummary.efficiency || 0,
-                    output: memberSummary.output || 0,
-                    rating: memberSummary.rating || 0,
-                    workingDays: memberSummary.workingDays || 5
-                });
-            });
-        }
-        
-        return {
-            team: teamId,
-            period: weekId,
-            members: members
-        };
-    }
 
     displayCompanyData(companyData, periodType, selectedPeriod) {
         console.log('📊 Displaying company data:', companyData);
