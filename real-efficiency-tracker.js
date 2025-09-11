@@ -2576,7 +2576,7 @@ class RealEfficiencyTracker {
                                     
                                     totalOutput += memberOutput;
                                     totalRating += rating;
-                                    totalEfficiency += efficiency;
+                                    totalEfficiency += tempEfficiency;
                                     memberCount++;
                                 });
                                 
