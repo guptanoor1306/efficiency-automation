@@ -9099,16 +9099,62 @@ class RealEfficiencyTracker {
         const weekData = teamFinalizedReports[weekId];
         const members = [];
         
-        if (weekData.memberSummaries) {
-            weekData.memberSummaries.forEach(member => {
-                console.log(`🔍 Stored memberSummary for ${member.name}: efficiency=${member.efficiency}%, output=${member.output}, rating=${member.rating}`);
-                members.push({
-                    name: member.name,
-                    efficiency: member.efficiency || 0,
-                    output: member.output || 0,
-                    rating: member.rating || 0
+        // IMPORTANT: Don't use stored memberSummaries as they have wrong efficiency values
+        // Instead, fetch fresh data from Supabase and calculate efficiency correctly
+        
+        try {
+            console.log(`🔄 Fetching fresh Supabase data for ${teamId} week ${weekId} to calculate correct efficiency`);
+            
+            // Get fresh data from Supabase for this team and week
+            const supabaseData = await this.supabaseAPI.loadWeekData(reportKey, weekId);
+            
+            if (supabaseData && supabaseData.length > 0) {
+                supabaseData.forEach(entry => {
+                    const memberOutput = parseFloat(entry.week_total) || 0;
+                    const workingDays = parseFloat(entry.working_days) || 5;
+                    const leaveDays = parseFloat(entry.leave_days) || 0;
+                    const rating = parseFloat(entry.weekly_rating) || 0;
+                    const effectiveWorkingDays = workingDays - leaveDays;
+                    
+                    // Calculate correct efficiency: (week_total / effective_working_days) * 100
+                    const efficiency = effectiveWorkingDays > 0 ? (memberOutput / effectiveWorkingDays * 100) : 0;
+                    
+                    console.log(`✅ Fresh calculation for ${entry.member_name}: week_total=${memberOutput}, working_days=${workingDays}, leave_days=${leaveDays}, effective_days=${effectiveWorkingDays}, efficiency=${efficiency.toFixed(1)}%`);
+                    
+                    members.push({
+                        name: entry.member_name,
+                        efficiency: efficiency,
+                        output: memberOutput,
+                        rating: rating
+                    });
                 });
-            });
+            } else {
+                console.log(`⚠️ No fresh Supabase data found for ${teamId} ${weekId}, falling back to stored data`);
+                // Fallback to stored data if fresh data not available
+                if (weekData.memberSummaries) {
+                    weekData.memberSummaries.forEach(member => {
+                        members.push({
+                            name: member.name,
+                            efficiency: member.efficiency || 0,
+                            output: member.output || 0,
+                            rating: member.rating || 0
+                        });
+                    });
+                }
+            }
+        } catch (error) {
+            console.error(`❌ Error fetching fresh data for ${teamId} ${weekId}:`, error);
+            // Fallback to stored data on error
+            if (weekData.memberSummaries) {
+                weekData.memberSummaries.forEach(member => {
+                    members.push({
+                        name: member.name,
+                        efficiency: member.efficiency || 0,
+                        output: member.output || 0,
+                        rating: member.rating || 0
+                    });
+                });
+            }
         }
         
         return {
