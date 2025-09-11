@@ -8777,17 +8777,22 @@ class RealEfficiencyTracker {
             console.log('📅 Loading weekly options...');
             
             if (this.finalizedReports) {
+                console.log('🔍 finalizedReports structure:', this.finalizedReports);
                 const allWeeks = new Set();
                 Object.keys(this.finalizedReports).forEach(teamId => {
+                    console.log(`🔍 Processing team ${teamId}:`, this.finalizedReports[teamId]);
                     if (this.finalizedReports[teamId] && typeof this.finalizedReports[teamId] === 'object') {
                         Object.keys(this.finalizedReports[teamId]).forEach(weekId => {
+                            console.log(`🔍 Found weekId: ${weekId}`);
                             // Only add valid week IDs (YYYY-MM-DD format), not metadata properties
                             if (weekId.match(/^\d{4}-\d{2}-\d{2}$/)) {
                                 allWeeks.add(weekId);
+                                console.log(`✅ Added week ${weekId} to allWeeks`);
                             }
                         });
                     }
                 });
+                console.log(`🔍 Total weeks found: ${allWeeks.size}`, Array.from(allWeeks));
                 
                 Array.from(allWeeks).sort().forEach(weekId => {
                     try {
