@@ -2558,10 +2558,15 @@ class RealEfficiencyTracker {
                                     // Use stored efficiency if available (already calculated correctly)
                                     // Fallback to calculation only if no stored efficiency
                                     const storedEfficiency = parseFloat(entry.efficiency) || 0;
-                                    const efficiency = storedEfficiency > 0 ? storedEfficiency : 
-                                        (effectiveWorkingDays > 0 ? (memberOutput / effectiveWorkingDays * 100) : 0);
                                     
-                                    console.log(`🔍 Efficiency for ${entry.member_name}: stored=${storedEfficiency}, calculated=${effectiveWorkingDays > 0 ? (memberOutput / effectiveWorkingDays * 100) : 0}, using=${efficiency}`);
+                                    // Calculate correct efficiency using weekly target
+                                    const dailyTarget = this.getDailyTargetForMember(teamStorageId, entry.member_name);
+                                    const weeklyTarget = dailyTarget * effectiveWorkingDays;
+                                    const correctCalculatedEfficiency = weeklyTarget > 0 ? (memberOutput / weeklyTarget * 100) : 0;
+                                    
+                                    const efficiency = storedEfficiency > 0 ? storedEfficiency : correctCalculatedEfficiency;
+                                    
+                                    console.log(`🔍 Efficiency for ${entry.member_name}: stored=${storedEfficiency}, weeklyTarget=${weeklyTarget}, calculated=${correctCalculatedEfficiency}, using=${efficiency}`);
                                     
                                     memberSummaries.push({
                                         name: entry.member_name,
@@ -5556,9 +5561,11 @@ class RealEfficiencyTracker {
                 memberLeaveDays = parseFloat(leaveDaysInput.value) || 0;
             }
             
-            // Calculate efficiency
+            // Calculate efficiency using proper weekly target
             const effectiveWorkingDays = memberWorkingDays - memberLeaveDays;
-            const memberEfficiency = effectiveWorkingDays > 0 ? (memberOutput / effectiveWorkingDays * 100) : 0;
+            const dailyTarget = this.getDailyTargetForMember(this.currentTeam, memberName);
+            const weeklyTarget = dailyTarget * effectiveWorkingDays;
+            const memberEfficiency = weeklyTarget > 0 ? (memberOutput / weeklyTarget * 100) : 0;
             
             console.log(`📊 ${memberName}: Output=${memberOutput}, Rating=${memberRating}, Days=${effectiveWorkingDays}, Efficiency=${memberEfficiency.toFixed(1)}%`);
             
