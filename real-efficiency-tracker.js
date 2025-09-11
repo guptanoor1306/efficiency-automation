@@ -2559,24 +2559,23 @@ class RealEfficiencyTracker {
                                     // Fallback to calculation only if no stored efficiency
                                     const storedEfficiency = parseFloat(entry.efficiency) || 0;
                                     
-                                    // TEMPORARY: Use stored efficiency if available, otherwise use a basic calculation
-                                    // TODO: Implement proper target-based calculation once getDailyTargetForMember is created
-                                    const tempEfficiency = storedEfficiency > 0 ? storedEfficiency : 
-                                        (effectiveWorkingDays > 0 ? (memberOutput / effectiveWorkingDays * 100) : 0);
+                                    // Calculate efficiency using: week_total / (working_days - leave_days) * 100
+                                    const calculatedEfficiency = effectiveWorkingDays > 0 ? (memberOutput / effectiveWorkingDays * 100) : 0;
+                                    const efficiency = storedEfficiency > 0 ? storedEfficiency : calculatedEfficiency;
                                     
-                                    console.log(`🔍 TEMP Efficiency for ${entry.member_name}: stored=${storedEfficiency}, calculated=${effectiveWorkingDays > 0 ? (memberOutput / effectiveWorkingDays * 100) : 0}, using=${tempEfficiency}`);
+                                    console.log(`✅ Efficiency for ${entry.member_name}: week_total=${memberOutput}, working_days=${workingDays}, leave_days=${leaveDays}, effective_days=${effectiveWorkingDays}, efficiency=${efficiency.toFixed(1)}%`);
                                     
                                     memberSummaries.push({
                                         name: entry.member_name,
                                         output: memberOutput,
                                         rating: rating,
-                                        efficiency: tempEfficiency,
+                                        efficiency: efficiency,
                                         workingDays: effectiveWorkingDays
                                     });
                                     
                                     totalOutput += memberOutput;
                                     totalRating += rating;
-                                    totalEfficiency += tempEfficiency;
+                                    totalEfficiency += efficiency;
                                     memberCount++;
                                 });
                                 
