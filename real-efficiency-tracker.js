@@ -9090,35 +9090,24 @@ class RealEfficiencyTracker {
         console.log(`🔍 Available teams in finalizedReports:`, Object.keys(this.finalizedReports || {}));
         console.log(`🔍 Team data for ${reportKey}:`, this.finalizedReports?.[reportKey]);
         
-        // Get finalized week data using the same structure as Team View
-        const weekKey = weekId; // Use the same week key format as Team View
-        const weekData = this.finalizedReports?.[weekKey];
-        
-        if (!weekData) {
-            console.log(`❌ No finalized week data found for ${weekId} (using Team View format)`);
+        // Get finalized week data for the team (back to original structure)
+        const teamFinalizedReports = this.finalizedReports?.[reportKey];
+        if (!teamFinalizedReports || !teamFinalizedReports[weekId]) {
+            console.log(`❌ No finalized week data found for team ${teamId} (key: ${reportKey}) for ${weekId}`);
             return null;
         }
         
-        console.log(`✅ Found finalized week data for ${weekId}:`, weekData);
+        const weekData = teamFinalizedReports[weekId];
         const members = [];
         
-        // Filter members by team since Team View data contains all teams mixed together
         if (weekData.memberSummaries) {
-            // Get team member names to filter by
-            const teamMembers = this.getTeamMemberNames(teamId);
-            console.log(`🔍 Filtering for team ${teamId} members:`, teamMembers);
-            
             weekData.memberSummaries.forEach(member => {
-                // Only include members that belong to this team
-                if (teamMembers.includes(member.name)) {
-                    members.push({
-                        name: member.name,
-                        efficiency: member.efficiency || 0,
-                        output: member.output || 0,
-                        rating: member.rating || 0
-                    });
-                    console.log(`✅ Added team member ${member.name}: efficiency=${member.efficiency}%`);
-                }
+                members.push({
+                    name: member.name,
+                    efficiency: member.efficiency || 0,
+                    output: member.output || 0,
+                    rating: member.rating || 0
+                });
             });
         }
         
