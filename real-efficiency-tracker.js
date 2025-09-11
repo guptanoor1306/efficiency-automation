@@ -9075,8 +9075,8 @@ class RealEfficiencyTracker {
     async getTeamWeeklyData(teamId, weekId) {
         // Map team IDs to finalized reports keys
         const teamMapping = {
-            'zero1_bratish': 'zero1_bratish',
-            'zero1_harish': 'zero1_harish',
+            'zero1_bratish': 'zero1',
+            'zero1_harish': 'harish',
             'varsity': 'varsity',
             'b2b': 'b2b',
             'audio': 'audio',
