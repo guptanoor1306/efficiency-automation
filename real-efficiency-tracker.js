@@ -8887,6 +8887,75 @@ class RealEfficiencyTracker {
         };
     }
 
+    // Get daily target for a team member based on historical data
+    getDailyTargetForMember(teamId, memberName) {
+        try {
+            // Map display team IDs to historical data keys
+            const teamMapping = {
+                'zero1_bratish': 'zero1',
+                'zero1_harish': 'harish',
+                'varsity': 'varsity',
+                'b2b': 'b2b',
+                'audio': 'audio',
+                'shorts': 'shorts'
+            };
+            
+            const historicalKey = teamMapping[teamId] || teamId;
+            const teamHistoricalData = this.historicalData[historicalKey];
+            
+            if (!teamHistoricalData) {
+                console.log(`⚠️ No historical data found for team ${teamId} (${historicalKey})`);
+                return 4; // Default fallback
+            }
+            
+            // Get the most recent month's data to find the member's target
+            const monthKeys = Object.keys(teamHistoricalData);
+            const mostRecentMonth = monthKeys[monthKeys.length - 1]; // Last month
+            
+            if (teamHistoricalData[mostRecentMonth] && 
+                teamHistoricalData[mostRecentMonth].monthlyData && 
+                teamHistoricalData[mostRecentMonth].monthlyData[memberName]) {
+                
+                const memberData = teamHistoricalData[mostRecentMonth].monthlyData[memberName];
+                const monthlyTarget = memberData.target || 20; // Default if no target
+                const workingDaysInMonth = 22; // Approximate working days in a month
+                const dailyTarget = monthlyTarget / workingDaysInMonth;
+                
+                console.log(`📊 ${memberName} (${teamId}): monthly target=${monthlyTarget}, daily target=${dailyTarget.toFixed(2)}`);
+                return dailyTarget;
+            }
+            
+            console.log(`⚠️ No target found for ${memberName} in team ${teamId}, using default`);
+            return 4; // Default daily target
+            
+        } catch (error) {
+            console.error(`Error getting target for ${memberName} in ${teamId}:`, error);
+            return 4; // Default fallback
+        }
+    }
+
+    // Get member names for a specific team
+    getTeamMemberNames(teamId) {
+        const teamMapping = {
+            'zero1_bratish': 'zero1',
+            'zero1_harish': 'harish',
+            'varsity': 'varsity',
+            'b2b': 'b2b',
+            'audio': 'audio',
+            'shorts': 'shorts'
+        };
+        
+        const configKey = teamMapping[teamId] || teamId;
+        const teamConfig = this.teamConfigs[configKey];
+        
+        if (!teamConfig || !teamConfig.members) {
+            console.log(`⚠️ No team config found for ${teamId} (${configKey})`);
+            return [];
+        }
+        
+        return teamConfig.members.map(member => member.name);
+    }
+
     getSelectedTeams() {
         const selectedTeams = [];
         const allTeams = ['b2b', 'varsity', 'zero1_bratish', 'zero1_harish', 'audio', 'shorts'];
@@ -9021,24 +9090,35 @@ class RealEfficiencyTracker {
         console.log(`🔍 Available teams in finalizedReports:`, Object.keys(this.finalizedReports || {}));
         console.log(`🔍 Team data for ${reportKey}:`, this.finalizedReports?.[reportKey]);
         
-        // Get finalized week data for the team
-        const teamFinalizedReports = this.finalizedReports?.[reportKey];
-        if (!teamFinalizedReports || !teamFinalizedReports[weekId]) {
-            console.log(`❌ No finalized week data found for team ${teamId} (key: ${reportKey}) for ${weekId}`);
+        // Get finalized week data using the same structure as Team View
+        const weekKey = weekId; // Use the same week key format as Team View
+        const weekData = this.finalizedReports?.[weekKey];
+        
+        if (!weekData) {
+            console.log(`❌ No finalized week data found for ${weekId} (using Team View format)`);
             return null;
         }
         
-        const weekData = teamFinalizedReports[weekId];
+        console.log(`✅ Found finalized week data for ${weekId}:`, weekData);
         const members = [];
         
+        // Filter members by team since Team View data contains all teams mixed together
         if (weekData.memberSummaries) {
+            // Get team member names to filter by
+            const teamMembers = this.getTeamMemberNames(teamId);
+            console.log(`🔍 Filtering for team ${teamId} members:`, teamMembers);
+            
             weekData.memberSummaries.forEach(member => {
-                members.push({
-                    name: member.name,
-                    efficiency: member.efficiency || 0,
-                    output: member.output || 0,
-                    rating: member.rating || 0
-                });
+                // Only include members that belong to this team
+                if (teamMembers.includes(member.name)) {
+                    members.push({
+                        name: member.name,
+                        efficiency: member.efficiency || 0,
+                        output: member.output || 0,
+                        rating: member.rating || 0
+                    });
+                    console.log(`✅ Added team member ${member.name}: efficiency=${member.efficiency}%`);
+                }
             });
         }
         
