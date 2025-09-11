@@ -9101,6 +9101,7 @@ class RealEfficiencyTracker {
         
         if (weekData.memberSummaries) {
             weekData.memberSummaries.forEach(member => {
+                console.log(`🔍 Stored memberSummary for ${member.name}: efficiency=${member.efficiency}%, output=${member.output}, rating=${member.rating}`);
                 members.push({
                     name: member.name,
                     efficiency: member.efficiency || 0,
