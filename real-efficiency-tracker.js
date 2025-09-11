@@ -8996,6 +8996,10 @@ class RealEfficiencyTracker {
         
         const reportKey = teamMapping[teamId] || teamId;
         
+        console.log(`🔍 getTeamWeeklyData: teamId=${teamId}, reportKey=${reportKey}`);
+        console.log(`🔍 Available teams in finalizedReports:`, Object.keys(this.finalizedReports || {}));
+        console.log(`🔍 Team data for ${reportKey}:`, this.finalizedReports?.[reportKey]);
+        
         // Get finalized week data for the team
         const teamFinalizedReports = this.finalizedReports?.[reportKey];
         if (!teamFinalizedReports || !teamFinalizedReports[weekId]) {
