@@ -2559,20 +2559,18 @@ class RealEfficiencyTracker {
                                     // Fallback to calculation only if no stored efficiency
                                     const storedEfficiency = parseFloat(entry.efficiency) || 0;
                                     
-                                    // Calculate correct efficiency using weekly target
-                                    const dailyTarget = this.getDailyTargetForMember(teamStorageId, entry.member_name);
-                                    const weeklyTarget = dailyTarget * effectiveWorkingDays;
-                                    const correctCalculatedEfficiency = weeklyTarget > 0 ? (memberOutput / weeklyTarget * 100) : 0;
+                                    // TEMPORARY: Use stored efficiency if available, otherwise use a basic calculation
+                                    // TODO: Implement proper target-based calculation once getDailyTargetForMember is created
+                                    const tempEfficiency = storedEfficiency > 0 ? storedEfficiency : 
+                                        (effectiveWorkingDays > 0 ? (memberOutput / effectiveWorkingDays * 100) : 0);
                                     
-                                    const efficiency = storedEfficiency > 0 ? storedEfficiency : correctCalculatedEfficiency;
-                                    
-                                    console.log(`🔍 Efficiency for ${entry.member_name}: stored=${storedEfficiency}, weeklyTarget=${weeklyTarget}, calculated=${correctCalculatedEfficiency}, using=${efficiency}`);
+                                    console.log(`🔍 TEMP Efficiency for ${entry.member_name}: stored=${storedEfficiency}, calculated=${effectiveWorkingDays > 0 ? (memberOutput / effectiveWorkingDays * 100) : 0}, using=${tempEfficiency}`);
                                     
                                     memberSummaries.push({
                                         name: entry.member_name,
                                         output: memberOutput,
                                         rating: rating,
-                                        efficiency: efficiency,
+                                        efficiency: tempEfficiency,
                                         workingDays: effectiveWorkingDays
                                     });
                                     
@@ -5561,11 +5559,9 @@ class RealEfficiencyTracker {
                 memberLeaveDays = parseFloat(leaveDaysInput.value) || 0;
             }
             
-            // Calculate efficiency using proper weekly target
+            // Calculate efficiency (TEMPORARY - using basic calculation)
             const effectiveWorkingDays = memberWorkingDays - memberLeaveDays;
-            const dailyTarget = this.getDailyTargetForMember(this.currentTeam, memberName);
-            const weeklyTarget = dailyTarget * effectiveWorkingDays;
-            const memberEfficiency = weeklyTarget > 0 ? (memberOutput / weeklyTarget * 100) : 0;
+            const memberEfficiency = effectiveWorkingDays > 0 ? (memberOutput / effectiveWorkingDays * 100) : 0;
             
             console.log(`📊 ${memberName}: Output=${memberOutput}, Rating=${memberRating}, Days=${effectiveWorkingDays}, Efficiency=${memberEfficiency.toFixed(1)}%`);
             
