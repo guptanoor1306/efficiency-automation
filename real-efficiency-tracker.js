@@ -2479,14 +2479,26 @@ class RealEfficiencyTracker {
         try {
             console.log('📊 Loading all finalized weeks from Supabase...');
             
-            // Get all teams
+            // Get all teams - map display IDs to storage IDs for Supabase
             const allTeams = ['b2b', 'varsity', 'zero1_bratish', 'zero1_harish', 'audio', 'shorts'];
+            const teamStorageMapping = {
+                'zero1_bratish': 'zero1',
+                'zero1_harish': 'harish',
+                'varsity': 'varsity',
+                'b2b': 'b2b',
+                'audio': 'audio',
+                'shorts': 'shorts'
+            };
             
             // Load finalized reports for each team
             for (const team of allTeams) {
                 try {
+                    // Map display team ID to storage team ID for Supabase query
+                    const storageTeamId = teamStorageMapping[team] || team;
                     // Get all week IDs that have entries in Supabase for this team
-                    const teamWeekData = await this.supabaseAPI.loadAllWeekData(team);
+                    console.log(`🔍 Loading week data for display team: ${team}, storage team: ${storageTeamId}`);
+                    const teamWeekData = await this.supabaseAPI.loadAllWeekData(storageTeamId);
+                    console.log(`📊 Found ${teamWeekData?.length || 0} entries for ${team} (${storageTeamId})`);
                     
                     if (teamWeekData && teamWeekData.length > 0) {
                         // Update local finalized reports based on Supabase data
