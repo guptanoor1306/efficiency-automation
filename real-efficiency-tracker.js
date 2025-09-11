@@ -2555,7 +2555,13 @@ class RealEfficiencyTracker {
                                     const leaveDays = parseFloat(entry.leave_days) || 0;
                                     const rating = parseFloat(entry.quality_rating) || 0;
                                     const effectiveWorkingDays = workingDays - leaveDays;
-                                    const efficiency = effectiveWorkingDays > 0 ? (memberOutput / effectiveWorkingDays * 100) : 0;
+                                    // Use stored efficiency if available (already calculated correctly)
+                                    // Fallback to calculation only if no stored efficiency
+                                    const storedEfficiency = parseFloat(entry.efficiency) || 0;
+                                    const efficiency = storedEfficiency > 0 ? storedEfficiency : 
+                                        (effectiveWorkingDays > 0 ? (memberOutput / effectiveWorkingDays * 100) : 0);
+                                    
+                                    console.log(`🔍 Efficiency for ${entry.member_name}: stored=${storedEfficiency}, calculated=${effectiveWorkingDays > 0 ? (memberOutput / effectiveWorkingDays * 100) : 0}, using=${efficiency}`);
                                     
                                     memberSummaries.push({
                                         name: entry.member_name,
