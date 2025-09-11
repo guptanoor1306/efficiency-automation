@@ -9089,10 +9089,14 @@ class RealEfficiencyTracker {
         console.log(`🔍 Available teams in finalizedReports:`, Object.keys(this.finalizedReports || {}));
         console.log(`🔍 Team data for ${reportKey}:`, this.finalizedReports?.[reportKey]);
         
-        // Get finalized week data for the team (back to original structure)
-        const teamFinalizedReports = this.finalizedReports?.[reportKey];
+        // DEBUG: Check if we need different mapping for finalized reports vs Supabase queries
+        const finalizedReportsKey = teamId; // Use original teamId for finalized reports
+        console.log(`🔍 Checking finalized reports with key: ${finalizedReportsKey}`);
+        
+        // Get finalized week data for the team (use original teamId for finalized reports)
+        const teamFinalizedReports = this.finalizedReports?.[teamId];
         if (!teamFinalizedReports || !teamFinalizedReports[weekId]) {
-            console.log(`❌ No finalized week data found for team ${teamId} (key: ${reportKey}) for ${weekId}`);
+            console.log(`❌ No finalized week data found for team ${teamId} for ${weekId}`);
             return null;
         }
         
