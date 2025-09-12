@@ -129,6 +129,16 @@ INSERT INTO teams (id, name, members, work_types) VALUES
    "vo_animation": {"level": "L3", "name": "VO Animation", "perDay": 1},
    "intro": {"level": "L3", "name": "Intro", "perDay": 0.15},
    "shot_division": {"level": "L3", "name": "Shot Division", "perDay": 0.67}
+ }'),
+
+-- Graphics Team (uses this.graphicsWorkTypes)
+('graphics', 'Graphics Team',
+ '["Amit Joshi", "Rakhi Dhama", "Raj", "Abhishek Shukla", "Mayank", "Shreya Sureka", "Anubha", "Pranchal Chaudhary", "Piyush Vaid", "Vaibhav Singhal", "Ishika", "Aman"]',
+ '{
+   "graphics_l1": {"level": "L1", "name": "Graphics", "perDay": 5},
+   "ppt_slides": {"level": "L1", "name": "PPT Slides", "perDay": 30},
+   "research": {"level": "L1", "name": "Research", "perDay": 1},
+   "graphics_l2": {"level": "L2", "name": "Graphics", "perDay": 2}
  }');
 
 -- Create indexes for better performance
