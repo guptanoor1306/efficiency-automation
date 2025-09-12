@@ -139,6 +139,21 @@ class RealEfficiencyTracker {
             'L2': ['first_cut_storyboard', 'script_discussion', 'thumbnail_ideation', 'script_review', 'shoot_data_copy'],
             'L3': ['fss_animation', 'character_animation', 'vo_animation', 'intro', 'shot_division']
         };
+
+        
+        // Graphics team work types (user-provided levels)
+        this.graphicsWorkTypes = {
+            'graphics_l1': { level: 'L1', name: 'Graphics', perDay: 5 },
+            'ppt_slides': { level: 'L1', name: 'PPT Slides', perDay: 30 },
+            'research': { level: 'L1', name: 'Research', perDay: 1 },
+            'graphics_l2': { level: 'L2', name: 'Graphics', perDay: 2 }
+        };
+
+        // Graphics team level mapping (user-provided levels)
+        this.graphicsLevelMapping = {
+            'L1': ['graphics_l1', 'ppt_slides', 'research'],
+            'L2': ['graphics_l2']
+        };
         
         // Current team selection
         this.currentTeam = 'b2b'; // Default to B2B team
@@ -260,6 +275,39 @@ class RealEfficiencyTracker {
                 ],
                 workLevels: this.shortsLevelMapping,
                 sheetRange: 'Shorts - 2025!A1:BT1000'
+            },
+            graphics: {
+                name: 'Graphics Team',
+                members: [
+                    { name: 'Amit Joshi' },
+                    { name: 'Rakhi Dhama' },
+                    { name: 'Raj' },
+                    { name: 'Abhishek Shukla' },
+                    { name: 'Mayank' },
+                    { name: 'Shreya Sureka' },
+                    { name: 'Anubha' },
+                    { name: 'Pranchal Chaudhary' },
+                    { name: 'Piyush Vaid' },
+                    { name: 'Vaibhav Singhal' },
+                    { name: 'Ishika' },
+                    { name: 'Aman' }
+                ],
+                historicalMembers: [
+                    { name: 'Amit Joshi' },
+                    { name: 'Rakhi Dhama' },
+                    { name: 'Raj' },
+                    { name: 'Abhishek Shukla' },
+                    { name: 'Mayank' },
+                    { name: 'Shreya Sureka' },
+                    { name: 'Anubha' },
+                    { name: 'Pranchal Chaudhary' },
+                    { name: 'Piyush Vaid' },
+                    { name: 'Vaibhav Singhal' },
+                    { name: 'Ishika' },
+                    { name: 'Aman' }
+                ],
+                workLevels: this.graphicsLevelMapping,
+                sheetRange: 'Graphics - 2025!A1:BT1000'
             }
         };
 
@@ -2364,6 +2412,370 @@ class RealEfficiencyTracker {
                     totalWorkingDays: 96, // Sum: 20+19+19+19+19
                     avgEfficiency: 113.20 // Average: (104.15+105.73+115.79+124.52+115.79)/5
                 }
+            },
+            'graphics': {
+                // Graphics team historical data - June to August 2025
+                // Data will be populated when provided by user
+                'June 2025': {
+                    isComplete: true,
+                    monthlyData: {
+                        'Amit Joshi': { 
+                            weeks: [5, 5, 4.7, 6.3], 
+                            weeklyQualityRatings: [8, 8, 8, 8], 
+                            monthlyRating: 8, 
+                            target: 19.0, 
+                            totalOutput: 21.00, 
+                            workingDays: 19,
+                            efficiency: 110.53
+                        },
+                        'Rakhi Dhama': { 
+                            weeks: [3.3, 5.2, 3.8, 3.4], 
+                            weeklyQualityRatings: [7, 7, 7, 7], 
+                            monthlyRating: 7, 
+                            target: 20.0, 
+                            totalOutput: 15.70, 
+                            workingDays: 20,
+                            efficiency: 78.50
+                        },
+                        'Raj': { 
+                            weeks: [2.9, 3.2, 3.3, 3.9], 
+                            weeklyQualityRatings: [7, 7, 7, 7], 
+                            monthlyRating: 7, 
+                            target: 20.0, 
+                            totalOutput: 13.30, 
+                            workingDays: 20,
+                            efficiency: 66.50
+                        },
+                        'Abhishek Shukla': { 
+                            weeks: [2.4, 3.9, 3.5, 2.3], 
+                            weeklyQualityRatings: [7, 7, 7, 7], 
+                            monthlyRating: 7, 
+                            target: 20.0, 
+                            totalOutput: 12.10, 
+                            workingDays: 20,
+                            efficiency: 60.50
+                        },
+                        'Mayank': { 
+                            weeks: [3.8, 0, 0, 3.75], 
+                            weeklyQualityRatings: [7, 7, 7, 7], 
+                            monthlyRating: 7, 
+                            target: 19.0, 
+                            totalOutput: 7.55, 
+                            workingDays: 19,
+                            efficiency: 39.74
+                        },
+                        'Shreya Sureka': { 
+                            weeks: [4.6, 2.8, 4.3, 3.9], 
+                            weeklyQualityRatings: [8, 8, 8, 8], 
+                            monthlyRating: 8, 
+                            target: 19.0, 
+                            totalOutput: 15.60, 
+                            workingDays: 19,
+                            efficiency: 82.11
+                        },
+                        'Anubha': { 
+                            weeks: [3.7, 3.5, 4, 4.2], 
+                            weeklyQualityRatings: [8, 8, 8, 8], 
+                            monthlyRating: 8, 
+                            target: 19.0, 
+                            totalOutput: 15.40, 
+                            workingDays: 19,
+                            efficiency: 81.05
+                        },
+                        'Pranchal Chaudhary': { 
+                            weeks: [3.6, 2.8, 1.3, 1.3], 
+                            weeklyQualityRatings: [7, 7, 7, 7], 
+                            monthlyRating: 7, 
+                            target: 19.0, 
+                            totalOutput: 9.00, 
+                            workingDays: 19,
+                            efficiency: 47.37
+                        },
+                        'Piyush Vaid': { 
+                            weeks: [3.5, 5, 5, 4.7], 
+                            weeklyQualityRatings: [7, 7, 7, 7], 
+                            monthlyRating: 7, 
+                            target: 20.0, 
+                            totalOutput: 18.20, 
+                            workingDays: 20,
+                            efficiency: 91.00
+                        },
+                        'Vaibhav Singhal': { 
+                            weeks: [4.25, 3.6, 3.4, 3.1], 
+                            weeklyQualityRatings: [7, 7, 7, 7], 
+                            monthlyRating: 7, 
+                            target: 19.0, 
+                            totalOutput: 14.35, 
+                            workingDays: 19,
+                            efficiency: 75.53
+                        },
+                        'Ishika': { 
+                            weeks: [3.2, 2.4, 1.5, 4.2], 
+                            weeklyQualityRatings: [8, 8, 8, 8], 
+                            monthlyRating: 8, 
+                            target: 19.0, 
+                            totalOutput: 11.30, 
+                            workingDays: 19,
+                            efficiency: 59.47
+                        },
+                        'Aman': { 
+                            weeks: [4.6, 2.9, 3.75, 3.8], 
+                            weeklyQualityRatings: [7, 7, 7, 7], 
+                            monthlyRating: 7, 
+                            target: 20.0, 
+                            totalOutput: 15.05, 
+                            workingDays: 20,
+                            efficiency: 75.25
+                        }
+                    },
+                    teamSummary: {
+                        totalMembers: 12,
+                        avgRating: 7.25, // Average: (8+7+7+7+7+8+8+7+7+7+8+7)/12 = 7.25
+                        totalOutput: 168.05, // Sum of all outputs
+                        totalWorkingDays: 233, // Sum: 19+20+20+20+19+19+19+19+20+19+19+20
+                        avgEfficiency: 72.25 // Average of all efficiency values
+                    }
+                },
+                'July 2025': {
+                    isComplete: true,
+                    monthlyData: {
+                        'Amit Joshi': { 
+                            weeks: [2.5, 5.80, 0.00, 6.1], 
+                            weeklyQualityRatings: [8, 8, 8, 8], 
+                            monthlyRating: 8, 
+                            target: 18.0, 
+                            totalOutput: 14.40, 
+                            workingDays: 18,
+                            efficiency: 80.00
+                        },
+                        'Rakhi Dhama': { 
+                            weeks: [5, 3.10, 0.00, 2.2], 
+                            weeklyQualityRatings: [7, 7, 7, 7], 
+                            monthlyRating: 7, 
+                            target: 13.0, 
+                            totalOutput: 10.30, 
+                            workingDays: 13,
+                            efficiency: 79.23
+                        },
+                        'Raj': { 
+                            weeks: [3.6, 2.90, 3.40, 3.8], 
+                            weeklyQualityRatings: [7, 7, 7, 7], 
+                            monthlyRating: 7, 
+                            target: 18.0, 
+                            totalOutput: 13.65, 
+                            workingDays: 18,
+                            efficiency: 75.83
+                        },
+                        'Abhishek Shukla': { 
+                            weeks: [3.9, 3.20, 2.85, 4.6], 
+                            weeklyQualityRatings: [7, 7, 7, 7], 
+                            monthlyRating: 7, 
+                            target: 18.0, 
+                            totalOutput: 14.55, 
+                            workingDays: 18,
+                            efficiency: 80.83
+                        },
+                        'Mayank': { 
+                            weeks: [5.2, 5.45, 4.00, 3.4], 
+                            weeklyQualityRatings: [7, 7, 7, 7], 
+                            monthlyRating: 7, 
+                            target: 17.0, 
+                            totalOutput: 18.05, 
+                            workingDays: 17,
+                            efficiency: 106.18
+                        },
+                        'Shreya Sureka': { 
+                            weeks: [4.9, 3.8, 4.00, 2.4], 
+                            weeklyQualityRatings: [8, 8, 8, 8], 
+                            monthlyRating: 8, 
+                            target: 17.5, 
+                            totalOutput: 15.05, 
+                            workingDays: 17.5,
+                            efficiency: 86.00
+                        },
+                        'Anubha': { 
+                            weeks: [5.2, 4.5, 4.10, 3.8], 
+                            weeklyQualityRatings: [8, 8, 8, 8], 
+                            monthlyRating: 8, 
+                            target: 19.0, 
+                            totalOutput: 17.55, 
+                            workingDays: 19,
+                            efficiency: 92.37
+                        },
+                        'Pranchal Chaudhary': { 
+                            weeks: [4.2, 2.2, 3.50, 4.3], 
+                            weeklyQualityRatings: [7, 7, 7, 7], 
+                            monthlyRating: 7, 
+                            target: 17.5, 
+                            totalOutput: 14.20, 
+                            workingDays: 17.5,
+                            efficiency: 81.14
+                        },
+                        'Piyush Vaid': { 
+                            weeks: [5.6, 5.8, 4.00, 6.3], 
+                            weeklyQualityRatings: [7, 7, 7, 7], 
+                            monthlyRating: 7, 
+                            target: 19.0, 
+                            totalOutput: 21.70, 
+                            workingDays: 19,
+                            efficiency: 114.21
+                        },
+                        'Vaibhav Singhal': { 
+                            weeks: [4.9, 3.2, 3.55, 4.6], 
+                            weeklyQualityRatings: [7, 7, 7, 7], 
+                            monthlyRating: 7, 
+                            target: 19.0, 
+                            totalOutput: 16.25, 
+                            workingDays: 19,
+                            efficiency: 85.53
+                        },
+                        'Ishika': { 
+                            weeks: [5.1, 4.1, 4.00, 4.2], 
+                            weeklyQualityRatings: [8, 8, 8, 8], 
+                            monthlyRating: 8, 
+                            target: 20.0, 
+                            totalOutput: 17.40, 
+                            workingDays: 20,
+                            efficiency: 87.00
+                        },
+                        'Aman': { 
+                            weeks: [4.8, 3.0, 3.70, 5.2], 
+                            weeklyQualityRatings: [7, 7, 7, 7], 
+                            monthlyRating: 7, 
+                            target: 19.0, 
+                            totalOutput: 16.70, 
+                            workingDays: 19,
+                            efficiency: 87.89
+                        }
+                    },
+                    teamSummary: {
+                        totalMembers: 12,
+                        avgRating: 7.25, // Average: (8+7+7+7+7+8+8+7+7+7+8+7)/12 = 7.25
+                        totalOutput: 189.80, // Sum of all outputs
+                        totalWorkingDays: 215.5, // Sum of all working days
+                        avgEfficiency: 88.01 // Average of all efficiency values
+                    }
+                },
+                'August 2025': {
+                    isComplete: true,
+                    monthlyData: {
+                        'Amit Joshi': { 
+                            weeks: [3.50, 0, 4.00, 4.0], 
+                            weeklyQualityRatings: [8, 8, 8, 8], 
+                            monthlyRating: 8, 
+                            target: 13.0, 
+                            totalOutput: 11.45, 
+                            workingDays: 13,
+                            efficiency: 88.08
+                        },
+                        'Rakhi Dhama': { 
+                            weeks: [4.30, 0, 3.70, 3.7], 
+                            weeklyQualityRatings: [7, 7, 7, 7], 
+                            monthlyRating: 7, 
+                            target: 15.0, 
+                            totalOutput: 11.70, 
+                            workingDays: 15,
+                            efficiency: 78.00
+                        },
+                        'Raj': { 
+                            weeks: [2.80, 0, 3.10, 3.4], 
+                            weeklyQualityRatings: [7, 7, 7, 7], 
+                            monthlyRating: 7, 
+                            target: 13.0, 
+                            totalOutput: 9.30, 
+                            workingDays: 13,
+                            efficiency: 71.54
+                        },
+                        'Abhishek Shukla': { 
+                            weeks: [2.20, 0, 3.20, 3.7], 
+                            weeklyQualityRatings: [7, 7, 7, 7], 
+                            monthlyRating: 7, 
+                            target: 13.5, 
+                            totalOutput: 9.10, 
+                            workingDays: 13.5,
+                            efficiency: 67.41
+                        },
+                        'Mayank': { 
+                            weeks: [4.30, 0, 3.80, 4.5], 
+                            weeklyQualityRatings: [7, 7, 7, 7], 
+                            monthlyRating: 7, 
+                            target: 15.0, 
+                            totalOutput: 12.60, 
+                            workingDays: 15,
+                            efficiency: 84.00
+                        },
+                        'Shreya Sureka': { 
+                            weeks: [2.20, 0, 6.10, 0.0], 
+                            weeklyQualityRatings: [8, 8, 8, 8], 
+                            monthlyRating: 8, 
+                            target: 10.5, 
+                            totalOutput: 8.30, 
+                            workingDays: 10.5,
+                            efficiency: 79.05
+                        },
+                        'Anubha': { 
+                            weeks: [4.10, 0, 5.30, 2.9], 
+                            weeklyQualityRatings: [8, 8, 8, 8], 
+                            monthlyRating: 8, 
+                            target: 15.0, 
+                            totalOutput: 12.30, 
+                            workingDays: 15,
+                            efficiency: 82.00
+                        },
+                        'Pranchal Chaudhary': { 
+                            weeks: [3.00, 0, 5.40, 3.7], 
+                            weeklyQualityRatings: [7, 7, 7, 7], 
+                            monthlyRating: 7, 
+                            target: 16.0, 
+                            totalOutput: 12.07, 
+                            workingDays: 16,
+                            efficiency: 75.44
+                        },
+                        'Piyush Vaid': { 
+                            weeks: [3.40, 0, 5.60, 1.75], 
+                            weeklyQualityRatings: [7, 7, 7, 7], 
+                            monthlyRating: 7, 
+                            target: 13.0, 
+                            totalOutput: 10.75, 
+                            workingDays: 13,
+                            efficiency: 82.69
+                        },
+                        'Vaibhav Singhal': { 
+                            weeks: [3.40, 0, 5.70, 1.75], 
+                            weeklyQualityRatings: [7, 7, 7, 7], 
+                            monthlyRating: 7, 
+                            target: 13.5, 
+                            totalOutput: 10.85, 
+                            workingDays: 13.5,
+                            efficiency: 80.37
+                        },
+                        'Ishika': { 
+                            weeks: [2.50, 0, 5.00, 3.1], 
+                            weeklyQualityRatings: [8, 8, 8, 8], 
+                            monthlyRating: 8, 
+                            target: 13.0, 
+                            totalOutput: 10.60, 
+                            workingDays: 13,
+                            efficiency: 81.54
+                        },
+                        'Aman': { 
+                            weeks: [3.50, 0, 5.00, 4.0], 
+                            weeklyQualityRatings: [7, 7, 7, 7], 
+                            monthlyRating: 7, 
+                            target: 16.0, 
+                            totalOutput: 12.45, 
+                            workingDays: 16,
+                            efficiency: 77.81
+                        }
+                    },
+                    teamSummary: {
+                        totalMembers: 12,
+                        avgRating: 7.25, // Average: (8+7+7+7+7+8+8+7+7+7+8+7)/12 = 7.25
+                        totalOutput: 131.47, // Sum of all outputs
+                        totalWorkingDays: 166.5, // Sum of all working days
+                        avgEfficiency: 78.99 // Average of all efficiency values
+                    }
+                }
             }
         };
         
@@ -2480,14 +2892,15 @@ class RealEfficiencyTracker {
             console.log('📊 Loading all finalized weeks from Supabase...');
             
             // Get all teams - map display IDs to storage IDs for Supabase
-            const allTeams = ['b2b', 'varsity', 'zero1_bratish', 'zero1_harish', 'audio', 'shorts'];
+            const allTeams = ['b2b', 'varsity', 'zero1_bratish', 'zero1_harish', 'audio', 'shorts', 'graphics'];
             const teamStorageMapping = {
                 'zero1_bratish': 'zero1',
                 'zero1_harish': 'harish',
                 'varsity': 'varsity',
                 'b2b': 'b2b',
                 'audio': 'audio',
-                'shorts': 'shorts'
+                'shorts': 'shorts',
+                'graphics': 'graphics'
             };
             
             // Clear existing finalized reports to rebuild from Supabase data only
@@ -3657,6 +4070,9 @@ class RealEfficiencyTracker {
         } else if (this.currentTeam === 'varsity') {
             workTypes = this.varsityWorkTypes;
             levelMapping = this.varsityLevelMapping;
+        } else if (this.currentTeam === 'graphics') {
+            workTypes = this.graphicsWorkTypes;
+            levelMapping = this.graphicsLevelMapping;
         } else {
             workTypes = this.workTypes; // B2B uses original types
             levelMapping = this.levelMapping;
@@ -3726,6 +4142,8 @@ class RealEfficiencyTracker {
             workTypes = this.shortsWorkTypes;
         } else if (this.currentTeam === 'varsity') {
             workTypes = this.varsityWorkTypes;
+        } else if (this.currentTeam === 'graphics') {
+            workTypes = this.graphicsWorkTypes;
         } else {
             workTypes = this.workTypes; // B2B uses original types
         }
@@ -3858,6 +4276,8 @@ class RealEfficiencyTracker {
             teamWorkTypes = this.shortsWorkTypes;
         } else if (this.currentTeam === 'varsity') {
             teamWorkTypes = this.varsityWorkTypes;
+        } else if (this.currentTeam === 'graphics') {
+            teamWorkTypes = this.graphicsWorkTypes;
         } else {
             teamWorkTypes = this.workTypes; // B2B uses original types
         }
@@ -3910,6 +4330,8 @@ class RealEfficiencyTracker {
             teamWorkTypes = this.shortsWorkTypes;
         } else if (this.currentTeam === 'varsity') {
             teamWorkTypes = this.varsityWorkTypes;
+        } else if (this.currentTeam === 'graphics') {
+            teamWorkTypes = this.graphicsWorkTypes;
         } else {
             teamWorkTypes = this.workTypes; // B2B uses original types
         }
@@ -4349,6 +4771,8 @@ class RealEfficiencyTracker {
             teamWorkTypes = this.shortsWorkTypes;
         } else if (this.currentTeam === 'varsity') {
             teamWorkTypes = this.varsityWorkTypes;
+        } else if (this.currentTeam === 'graphics') {
+            teamWorkTypes = this.graphicsWorkTypes;
         } else {
             teamWorkTypes = this.workTypes; // B2B uses original types
         }
@@ -4403,6 +4827,8 @@ class RealEfficiencyTracker {
             teamWorkTypes = this.shortsWorkTypes;
         } else if (this.currentTeam === 'varsity') {
             teamWorkTypes = this.varsityWorkTypes;
+        } else if (this.currentTeam === 'graphics') {
+            teamWorkTypes = this.graphicsWorkTypes;
         } else {
             teamWorkTypes = this.workTypes; // B2B uses original types
         }
@@ -5840,6 +6266,9 @@ class RealEfficiencyTracker {
             } else if (newTeam === 'shorts') {
                 console.log('🎬 Switching to Shorts - loading historical data...');
                 await this.loadShortsHistoricalData();
+            } else if (newTeam === 'graphics') {
+                console.log('🎨 Switching to Graphics - loading historical data...');
+                await this.loadGraphicsHistoricalData();
             }
             
             // Refresh the interface for the new team
@@ -6761,6 +7190,87 @@ class RealEfficiencyTracker {
         this.showMessage(`✅ Loaded Varsity team data for Jan-August 2025`, 'success');
     }
 
+    async loadGraphicsHistoricalData() {
+        console.log('🎨 Loading Graphics hardcoded data...');
+        
+        // Debug the current state
+        console.log('🔍 DEBUG: this.historicalData:', this.historicalData);
+        console.log('🔍 DEBUG: this.historicalData.graphics:', this.historicalData.graphics);
+        
+        // Graphics historical data is already initialized in constructor
+        // Just confirm it's loaded and available
+        if (this.historicalData.graphics && Object.keys(this.historicalData.graphics).length > 0) {
+            console.log('✅ Graphics hardcoded data loaded successfully');
+            console.log('Available Graphics months:', Object.keys(this.historicalData.graphics));
+            this.showMessage(`✅ Loaded Graphics team data for Jun-Aug 2025`, 'success');
+        } else {
+            console.error('❌ Graphics historical data not found or empty');
+            console.log('🔍 Manually populating Graphics historical data...');
+            
+            // Manually populate Graphics data since constructor failed
+            this.historicalData.graphics = {
+                'June 2025': {
+                    isComplete: true,
+                    monthlyData: {
+                        'Amit Joshi': { weeks: [5, 5, 4.7, 6.3], weeklyQualityRatings: [8, 8, 8, 8], monthlyRating: 8, target: 19.0, totalOutput: 21.00, workingDays: 19, efficiency: 110.53 },
+                        'Rakhi Dhama': { weeks: [3.3, 5.2, 3.8, 3.4], weeklyQualityRatings: [7, 7, 7, 7], monthlyRating: 7, target: 20.0, totalOutput: 15.70, workingDays: 20, efficiency: 78.50 },
+                        'Raj': { weeks: [2.9, 3.2, 3.3, 3.9], weeklyQualityRatings: [7, 7, 7, 7], monthlyRating: 7, target: 20.0, totalOutput: 13.30, workingDays: 20, efficiency: 66.50 },
+                        'Abhishek Shukla': { weeks: [2.4, 3.9, 3.5, 2.3], weeklyQualityRatings: [7, 7, 7, 7], monthlyRating: 7, target: 20.0, totalOutput: 12.10, workingDays: 20, efficiency: 60.50 },
+                        'Mayank': { weeks: [3.8, 0, 0, 3.75], weeklyQualityRatings: [7, 7, 7, 7], monthlyRating: 7, target: 19.0, totalOutput: 7.55, workingDays: 19, efficiency: 39.74 },
+                        'Shreya Sureka': { weeks: [4.6, 2.8, 4.3, 3.9], weeklyQualityRatings: [8, 8, 8, 8], monthlyRating: 8, target: 19.0, totalOutput: 15.60, workingDays: 19, efficiency: 82.11 },
+                        'Anubha': { weeks: [3.7, 3.5, 4, 4.2], weeklyQualityRatings: [8, 8, 8, 8], monthlyRating: 8, target: 19.0, totalOutput: 15.40, workingDays: 19, efficiency: 81.05 },
+                        'Pranchal Chaudhary': { weeks: [3.6, 2.8, 1.3, 1.3], weeklyQualityRatings: [7, 7, 7, 7], monthlyRating: 7, target: 19.0, totalOutput: 9.00, workingDays: 19, efficiency: 47.37 },
+                        'Piyush Vaid': { weeks: [3.5, 5, 5, 4.7], weeklyQualityRatings: [7, 7, 7, 7], monthlyRating: 7, target: 20.0, totalOutput: 18.20, workingDays: 20, efficiency: 91.00 },
+                        'Vaibhav Singhal': { weeks: [4.25, 3.6, 3.4, 3.1], weeklyQualityRatings: [7, 7, 7, 7], monthlyRating: 7, target: 19.0, totalOutput: 14.35, workingDays: 19, efficiency: 75.53 },
+                        'Ishika': { weeks: [3.2, 2.4, 1.5, 4.2], weeklyQualityRatings: [8, 8, 8, 8], monthlyRating: 8, target: 19.0, totalOutput: 11.30, workingDays: 19, efficiency: 59.47 },
+                        'Aman': { weeks: [4.6, 2.9, 3.75, 3.8], weeklyQualityRatings: [7, 7, 7, 7], monthlyRating: 7, target: 20.0, totalOutput: 15.05, workingDays: 20, efficiency: 75.25 }
+                    },
+                    teamSummary: { totalMembers: 12, avgRating: 7.33, totalOutput: 158.55, totalWorkingDays: 234, avgEfficiency: 72.24 }
+                },
+                'July 2025': {
+                    isComplete: true,
+                    monthlyData: {
+                        'Amit Joshi': { weeks: [2.5, 5.80, 0.00, 6.1], weeklyQualityRatings: [8, 8, 8, 8], monthlyRating: 8, target: 18.0, totalOutput: 14.40, workingDays: 18, efficiency: 80.00 },
+                        'Rakhi Dhama': { weeks: [5, 3.10, 0.00, 2.2], weeklyQualityRatings: [7, 7, 7, 7], monthlyRating: 7, target: 13.0, totalOutput: 10.30, workingDays: 13, efficiency: 79.23 },
+                        'Raj': { weeks: [3.6, 2.90, 3.40, 3.8], weeklyQualityRatings: [7, 7, 7, 7], monthlyRating: 7, target: 18.0, totalOutput: 13.65, workingDays: 18, efficiency: 75.83 },
+                        'Abhishek Shukla': { weeks: [3.9, 3.20, 2.85, 4.6], weeklyQualityRatings: [7, 7, 7, 7], monthlyRating: 7, target: 18.0, totalOutput: 14.55, workingDays: 18, efficiency: 80.83 },
+                        'Mayank': { weeks: [5.2, 5.45, 4.00, 3.4], weeklyQualityRatings: [7, 7, 7, 7], monthlyRating: 7, target: 17.0, totalOutput: 18.05, workingDays: 17, efficiency: 106.18 },
+                        'Shreya Sureka': { weeks: [4.9, 3.8, 4.00, 2.4], weeklyQualityRatings: [8, 8, 8, 8], monthlyRating: 8, target: 17.5, totalOutput: 15.05, workingDays: 17.5, efficiency: 86.00 },
+                        'Anubha': { weeks: [5.2, 4.5, 4.10, 3.8], weeklyQualityRatings: [8, 8, 8, 8], monthlyRating: 8, target: 19.0, totalOutput: 17.55, workingDays: 19, efficiency: 92.37 },
+                        'Pranchal Chaudhary': { weeks: [4.2, 2.2, 3.50, 4.3], weeklyQualityRatings: [7, 7, 7, 7], monthlyRating: 7, target: 17.5, totalOutput: 14.20, workingDays: 17.5, efficiency: 81.14 },
+                        'Piyush Vaid': { weeks: [5.6, 5.8, 4.00, 6.3], weeklyQualityRatings: [7, 7, 7, 7], monthlyRating: 7, target: 19.0, totalOutput: 21.70, workingDays: 19, efficiency: 114.21 },
+                        'Vaibhav Singhal': { weeks: [4.9, 3.2, 3.55, 4.6], weeklyQualityRatings: [7, 7, 7, 7], monthlyRating: 7, target: 19.0, totalOutput: 16.25, workingDays: 19, efficiency: 85.53 },
+                        'Ishika': { weeks: [5.1, 4.1, 4.00, 4.2], weeklyQualityRatings: [8, 8, 8, 8], monthlyRating: 8, target: 20.0, totalOutput: 17.40, workingDays: 20, efficiency: 87.00 },
+                        'Aman': { weeks: [4.8, 3.0, 3.70, 5.2], weeklyQualityRatings: [7, 7, 7, 7], monthlyRating: 7, target: 19.0, totalOutput: 16.70, workingDays: 19, efficiency: 87.89 }
+                    },
+                    teamSummary: { totalMembers: 12, avgRating: 7.33, totalOutput: 189.80, totalWorkingDays: 213.5, avgEfficiency: 88.85 }
+                },
+                'August 2025': {
+                    isComplete: true,
+                    monthlyData: {
+                        'Amit Joshi': { weeks: [3.50, 4.00, 4.0, 0], weeklyQualityRatings: [8, 8, 8, 8], monthlyRating: 8, target: 13.0, totalOutput: 11.45, workingDays: 13, efficiency: 88.08 },
+                        'Rakhi Dhama': { weeks: [4.30, 3.70, 3.7, 0], weeklyQualityRatings: [7, 7, 7, 7], monthlyRating: 7, target: 15.0, totalOutput: 11.70, workingDays: 15, efficiency: 78.00 },
+                        'Raj': { weeks: [2.80, 3.10, 3.4, 0], weeklyQualityRatings: [7, 7, 7, 7], monthlyRating: 7, target: 13.0, totalOutput: 9.30, workingDays: 13, efficiency: 71.54 },
+                        'Abhishek Shukla': { weeks: [2.20, 3.20, 3.7, 0], weeklyQualityRatings: [7, 7, 7, 7], monthlyRating: 7, target: 13.5, totalOutput: 9.10, workingDays: 13.5, efficiency: 67.41 },
+                        'Mayank': { weeks: [4.30, 3.80, 4.5, 0], weeklyQualityRatings: [7, 7, 7, 7], monthlyRating: 7, target: 15.0, totalOutput: 12.60, workingDays: 15, efficiency: 84.00 },
+                        'Shreya Sureka': { weeks: [2.20, 6.10, 0.0, 0], weeklyQualityRatings: [8, 8, 8, 8], monthlyRating: 8, target: 10.5, totalOutput: 8.30, workingDays: 10.5, efficiency: 79.05 },
+                        'Anubha': { weeks: [4.10, 5.30, 2.9, 0], weeklyQualityRatings: [8, 8, 8, 8], monthlyRating: 8, target: 15.0, totalOutput: 12.30, workingDays: 15, efficiency: 82.00 },
+                        'Pranchal Chaudhary': { weeks: [3.00, 5.40, 3.7, 0], weeklyQualityRatings: [7, 7, 7, 7], monthlyRating: 7, target: 16.0, totalOutput: 12.07, workingDays: 16, efficiency: 75.44 },
+                        'Piyush Vaid': { weeks: [3.40, 5.60, 1.75, 0], weeklyQualityRatings: [7, 7, 7, 7], monthlyRating: 7, target: 13.0, totalOutput: 10.75, workingDays: 13, efficiency: 82.69 },
+                        'Vaibhav Singhal': { weeks: [3.40, 5.70, 1.75, 0], weeklyQualityRatings: [7, 7, 7, 7], monthlyRating: 7, target: 13.5, totalOutput: 10.85, workingDays: 13.5, efficiency: 80.37 },
+                        'Ishika': { weeks: [2.50, 5.00, 3.1, 0], weeklyQualityRatings: [8, 8, 8, 8], monthlyRating: 8, target: 13.0, totalOutput: 10.60, workingDays: 13, efficiency: 81.54 },
+                        'Aman': { weeks: [3.50, 5.00, 4.0, 0], weeklyQualityRatings: [7, 7, 7, 7], monthlyRating: 7, target: 16.0, totalOutput: 12.45, workingDays: 16, efficiency: 77.81 }
+                    },
+                    teamSummary: { totalMembers: 12, avgRating: 7.25, totalOutput: 131.47, totalWorkingDays: 166.5, avgEfficiency: 78.99 }
+                }
+            };
+            
+            console.log('✅ Graphics data manually populated successfully');
+            console.log('Available Graphics months:', Object.keys(this.historicalData.graphics));
+            this.showMessage(`✅ Loaded Graphics team data for Jun-Aug 2025`, 'success');
+        }
+    }
+
     async ensureAllHistoricalDataLoaded() {
         console.log('🔄 Ensuring all team historical data is loaded for Company View...');
         
@@ -6795,6 +7305,14 @@ class RealEfficiencyTracker {
             console.log('✅ Shorts data already loaded');
         }
         
+        // Check and load Graphics data if not already loaded
+        if (!this.historicalData.graphics || Object.keys(this.historicalData.graphics).length === 0) {
+            console.log('🎨 Loading Graphics historical data...');
+            loadPromises.push(this.loadGraphicsHistoricalData());
+        } else {
+            console.log('✅ Graphics data already loaded');
+        }
+        
         // Audio and B2B data is loaded in constructor, but double-check
         if (!this.historicalData.audio) {
             console.log('🎵 Initializing Audio historical data...');
@@ -6821,7 +7339,8 @@ class RealEfficiencyTracker {
             harish: Object.keys(this.historicalData.harish || {}),
             shorts: Object.keys(this.historicalData.shorts || {}),
             audio: Object.keys(this.historicalData.audio || {}),
-            b2b: Object.keys(this.historicalData.b2b || {})
+            b2b: Object.keys(this.historicalData.b2b || {}),
+            graphics: Object.keys(this.historicalData.graphics || {})
         });
         
         // Specific Varsity debug
@@ -7101,6 +7620,8 @@ class RealEfficiencyTracker {
             teamWorkTypes = this.harishWorkTypes;
         } else if (this.currentTeam === 'varsity') {
             teamWorkTypes = this.varsityWorkTypes;
+        } else if (this.currentTeam === 'graphics') {
+            teamWorkTypes = this.graphicsWorkTypes;
         } else {
             teamWorkTypes = this.workTypes; // B2B uses original types
         }
@@ -8799,7 +9320,7 @@ class RealEfficiencyTracker {
 
     setupTeamFilters() {
         const teamFiltersContainer = document.getElementById('team-filters');
-        const allTeams = ['b2b', 'varsity', 'zero1_bratish', 'zero1_harish', 'audio', 'shorts'];
+        const allTeams = ['b2b', 'varsity', 'zero1_bratish', 'zero1_harish', 'audio', 'shorts', 'graphics'];
         
         const teamDisplayNames = {
             'b2b': 'B2B Team',
@@ -8807,7 +9328,8 @@ class RealEfficiencyTracker {
             'zero1_bratish': 'Zero1 - Bratish',
             'zero1_harish': 'Zero1 - Harish',
             'audio': 'Audio Team',
-            'shorts': 'Shorts Team'
+            'shorts': 'Shorts Team',
+            'graphics': 'Graphics Team'
         };
         
         teamFiltersContainer.innerHTML = '';
@@ -9030,7 +9552,8 @@ class RealEfficiencyTracker {
             'varsity': 'varsity',
             'b2b': 'b2b',
             'audio': 'audio',
-            'shorts': 'shorts'
+            'shorts': 'shorts',
+            'graphics': 'graphics'
         };
         
         const configKey = teamMapping[teamId] || teamId;
@@ -9046,7 +9569,7 @@ class RealEfficiencyTracker {
 
     getSelectedTeams() {
         const selectedTeams = [];
-        const allTeams = ['b2b', 'varsity', 'zero1_bratish', 'zero1_harish', 'audio', 'shorts'];
+        const allTeams = ['b2b', 'varsity', 'zero1_bratish', 'zero1_harish', 'audio', 'shorts', 'graphics'];
         
         allTeams.forEach(teamId => {
             const checkbox = document.getElementById(`team-filter-${teamId}`);
@@ -9065,7 +9588,8 @@ class RealEfficiencyTracker {
             'zero1_bratish': 'Zero1-Bratish',
             'zero1_harish': 'Zero1-Harish',
             'audio': 'Audio',
-            'shorts': 'Shorts'
+            'shorts': 'Shorts',
+            'graphics': 'Graphics'
         };
         return displayNames[teamId] || teamId;
     }
@@ -9109,7 +9633,8 @@ class RealEfficiencyTracker {
             'varsity': 'varsity',
             'b2b': 'b2b',
             'audio': 'audio',
-            'shorts': 'shorts'
+            'shorts': 'shorts',
+            'graphics': 'graphics'
         };
         
         const historicalKey = teamMapping[teamId] || teamId;
@@ -9174,7 +9699,8 @@ class RealEfficiencyTracker {
             'varsity': 'varsity',
             'b2b': 'b2b',
             'audio': 'audio',
-            'shorts': 'shorts'
+            'shorts': 'shorts',
+            'graphics': 'graphics'
         };
         
         const reportKey = teamMapping[teamId] || teamId;
@@ -9444,10 +9970,16 @@ function exportWeekData() {
 
 // Initialize the application
 let tracker;
+window.tracker = null; // Make tracker globally accessible
+
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('🚀 DOM loaded, initializing tracker...');
     tracker = new RealEfficiencyTracker();
+    window.tracker = tracker; // Make tracker globally accessible
+    
     // Start with main dashboard landing page
     tracker.showMainDashboard();
+    console.log('✅ Tracker initialized and main dashboard shown');
 });
 
 // Admin function for console access
