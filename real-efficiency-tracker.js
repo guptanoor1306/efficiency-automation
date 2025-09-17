@@ -7369,11 +7369,79 @@ class RealEfficiencyTracker {
             this.historicalData.tech = {};
         }
         
-        // For now, only August 2025 data will be provided by user
-        // Once user provides data, it will be added here
-        console.log('📅 Tech historical data: Waiting for August 2025 data from user');
+        // Add August 2025 historical data
+        this.historicalData.tech = {
+            'August 2025': {
+                isComplete: true,
+                monthlyData: {
+                    'Supriya': { 
+                        weeks: [15, 15, 15, 6], 
+                        weeklyQualityRatings: [8, 8, 8, 8], 
+                        monthlyRating: 8, 
+                        target: 55, // 14+16+16+9 expected story points from data
+                        totalOutput: 51, // 15+15+15+6
+                        workingDays: 55, // Using expected as proxy for working days calculation
+                        efficiency: 92.73 // Average: (107.14+93.75+93.75+66.67)/4
+                    },
+                    'Tilak': { 
+                        weeks: [5, 16, 16, 11], 
+                        weeklyQualityRatings: [7, 7, 7, 7], 
+                        monthlyRating: 7, 
+                        target: 60, // 6+21+21+12 expected story points from data
+                        totalOutput: 48, // 5+16+16+11
+                        workingDays: 60,
+                        efficiency: 80.00 // Average: (83.33+76.19+76.19+91.67)/4
+                    },
+                    'Rishi': { 
+                        weeks: [13, 18, 18, 13], 
+                        weeklyQualityRatings: [8, 8, 8, 8], 
+                        monthlyRating: 8, 
+                        target: 59, // 14+18+18+9 expected story points from data
+                        totalOutput: 62, // 13+18+18+13
+                        workingDays: 59,
+                        efficiency: 105.08 // Average: (92.86+100.00+100.00+144.44)/4
+                    },
+                    'Sahil': { 
+                        weeks: [13, 15, 15, 12], 
+                        weeklyQualityRatings: [7, 7, 7, 7], 
+                        monthlyRating: 7, 
+                        target: 62, // 14+18+18+12 expected story points from data
+                        totalOutput: 55, // 13+15+15+12
+                        workingDays: 62,
+                        efficiency: 88.71 // Average: (92.86+83.33+83.33+100.00)/4
+                    },
+                    'Chandan': { 
+                        weeks: [14, 15, 15, 16], 
+                        weeklyQualityRatings: [8, 8, 8, 8], 
+                        monthlyRating: 8, 
+                        target: 63, // 13+19+19+12 expected story points from data
+                        totalOutput: 60, // 14+15+15+16
+                        workingDays: 63,
+                        efficiency: 95.24 // Average: (107.69+78.95+78.95+133.33)/4
+                    },
+                    'Harshita': { 
+                        weeks: [11, 23, 23, 11], 
+                        weeklyQualityRatings: [8, 8, 8, 8], 
+                        monthlyRating: 8, 
+                        target: 66, // 12+21+21+12 expected story points from data
+                        totalOutput: 68, // 11+23+23+11
+                        workingDays: 66,
+                        efficiency: 103.03 // Average: (91.67+109.52+109.52+91.67)/4
+                    }
+                },
+                teamSummary: { 
+                    totalMembers: 6, 
+                    avgRating: 7.67, // Average of monthly ratings
+                    totalOutput: 344, // Sum of all totalOutput
+                    totalWorkingDays: 365, // Sum of all workingDays 
+                    avgEfficiency: 94.13 // Average of all efficiency values
+                }
+            }
+        };
         
-        this.showMessage(`📅 Tech team ready - August 2025 data pending`, 'info');
+        console.log('✅ Tech historical data loaded successfully');
+        console.log('Available Tech months:', Object.keys(this.historicalData.tech));
+        this.showMessage(`✅ Loaded Tech team data for August 2025`, 'success');
     }
 
     async loadProductHistoricalData() {
@@ -7384,11 +7452,52 @@ class RealEfficiencyTracker {
             this.historicalData.product = {};
         }
         
-        // For now, only August 2025 data will be provided by user
-        // Once user provides data, it will be added here
-        console.log('📅 Product historical data: Waiting for August 2025 data from user');
+        // Add August 2025 historical data
+        this.historicalData.product = {
+            'August 2025': {
+                isComplete: true,
+                monthlyData: {
+                    'Akshay': { 
+                        weeks: [3.7, 4.5, 4.5, 3.0], 
+                        weeklyQualityRatings: [8, 8, 8, 8], 
+                        monthlyRating: 8, 
+                        target: 17.5, // 4.5+5+5+4 expected story points from data
+                        totalOutput: 15.7, // 3.7+4.5+4.5+3.0
+                        workingDays: 17.5, // Using expected as proxy for working days calculation
+                        efficiency: 89.71 // Average: (82.22+90.00+90.00+75.00)/4
+                    },
+                    'Ankush': { 
+                        weeks: [3.65, 6.55, 6.55, 5.05], 
+                        weeklyQualityRatings: [8, 8, 8, 8], 
+                        monthlyRating: 8, 
+                        target: 21.5, // 4.5+6.5+6.5+4.5 expected story points from data
+                        totalOutput: 21.8, // 3.65+6.55+6.55+5.05
+                        workingDays: 21.5,
+                        efficiency: 101.40 // Average: (81.11+100.77+100.77+112.22)/4
+                    },
+                    'Noor': { 
+                        weeks: [3.75, 7.0, 7.0, 5.9], 
+                        weeklyQualityRatings: [9, 9, 9, 9], 
+                        monthlyRating: 9, 
+                        target: 19.5, // 4+6.5+6.5+4.5 expected story points from data
+                        totalOutput: 23.65, // 3.75+7.0+7.0+5.9
+                        workingDays: 19.5,
+                        efficiency: 121.28 // Average: (93.75+107.69+107.69+131.11)/4
+                    }
+                },
+                teamSummary: { 
+                    totalMembers: 3, 
+                    avgRating: 8.33, // Average of monthly ratings
+                    totalOutput: 61.15, // Sum of all totalOutput
+                    totalWorkingDays: 58.5, // Sum of all workingDays 
+                    avgEfficiency: 104.13 // Average of all efficiency values
+                }
+            }
+        };
         
-        this.showMessage(`📅 Product team ready - August 2025 data pending`, 'info');
+        console.log('✅ Product historical data loaded successfully');
+        console.log('Available Product months:', Object.keys(this.historicalData.product));
+        this.showMessage(`✅ Loaded Product team data for August 2025`, 'success');
     }
 
     async ensureAllHistoricalDataLoaded() {
