@@ -154,6 +154,26 @@ class RealEfficiencyTracker {
             'L1': ['graphics_l1', 'ppt_slides', 'research'],
             'L2': ['graphics_l2']
         };
+
+        // Tech team work types (story points based)
+        this.techWorkTypes = {
+            'story_points': { level: 'SP', name: 'Story Points', perDay: 3 }
+        };
+
+        // Tech team level mapping (no traditional levels, just story points)
+        this.techLevelMapping = {
+            'SP': ['story_points']
+        };
+
+        // Product team work types (story points based)
+        this.productWorkTypes = {
+            'story_points': { level: 'SP', name: 'Story Points', perDay: 1 }
+        };
+
+        // Product team level mapping (no traditional levels, just story points)
+        this.productLevelMapping = {
+            'SP': ['story_points']
+        };
         
         // Current team selection
         this.currentTeam = 'b2b'; // Default to B2B team
@@ -308,6 +328,42 @@ class RealEfficiencyTracker {
                 ],
                 workLevels: this.graphicsLevelMapping,
                 sheetRange: 'Graphics - 2025!A1:BT1000'
+            },
+            tech: {
+                name: 'Tech Team',
+                members: [
+                    { name: 'Supriya' },
+                    { name: 'Tilak' },
+                    { name: 'Rishi' },
+                    { name: 'Sahil' },
+                    { name: 'Chandan' },
+                    { name: 'Harshita' }
+                ],
+                historicalMembers: [
+                    { name: 'Supriya' },
+                    { name: 'Tilak' },
+                    { name: 'Rishi' },
+                    { name: 'Sahil' },
+                    { name: 'Chandan' },
+                    { name: 'Harshita' }
+                ],
+                workLevels: this.techLevelMapping,
+                sheetRange: 'Tech - 2025!A1:BT1000'
+            },
+            product: {
+                name: 'Product Team',
+                members: [
+                    { name: 'Akshay' },
+                    { name: 'Ankush' },
+                    { name: 'Noor' }
+                ],
+                historicalMembers: [
+                    { name: 'Akshay' },
+                    { name: 'Ankush' },
+                    { name: 'Noor' }
+                ],
+                workLevels: this.productLevelMapping,
+                sheetRange: 'Product - 2025!A1:BT1000'
             }
         };
 
@@ -2892,7 +2948,7 @@ class RealEfficiencyTracker {
             console.log('📊 Loading all finalized weeks from Supabase...');
             
             // Get all teams - map display IDs to storage IDs for Supabase
-            const allTeams = ['b2b', 'varsity', 'zero1_bratish', 'zero1_harish', 'audio', 'shorts', 'graphics'];
+            const allTeams = ['b2b', 'varsity', 'zero1_bratish', 'zero1_harish', 'audio', 'shorts', 'graphics', 'tech', 'product'];
             const teamStorageMapping = {
                 'zero1_bratish': 'zero1',
                 'zero1_harish': 'harish',
@@ -2900,7 +2956,9 @@ class RealEfficiencyTracker {
                 'b2b': 'b2b',
                 'audio': 'audio',
                 'shorts': 'shorts',
-                'graphics': 'graphics'
+                'graphics': 'graphics',
+                'tech': 'tech',
+                'product': 'product'
             };
             
             // Clear existing finalized reports to rebuild from Supabase data only
@@ -4073,6 +4131,12 @@ class RealEfficiencyTracker {
         } else if (this.currentTeam === 'graphics') {
             workTypes = this.graphicsWorkTypes;
             levelMapping = this.graphicsLevelMapping;
+        } else if (this.currentTeam === 'tech') {
+            workTypes = this.techWorkTypes;
+            levelMapping = this.techLevelMapping;
+        } else if (this.currentTeam === 'product') {
+            workTypes = this.productWorkTypes;
+            levelMapping = this.productLevelMapping;
         } else {
             workTypes = this.workTypes; // B2B uses original types
             levelMapping = this.levelMapping;
@@ -4144,6 +4208,10 @@ class RealEfficiencyTracker {
             workTypes = this.varsityWorkTypes;
         } else if (this.currentTeam === 'graphics') {
             workTypes = this.graphicsWorkTypes;
+        } else if (this.currentTeam === 'tech') {
+            workTypes = this.techWorkTypes;
+        } else if (this.currentTeam === 'product') {
+            workTypes = this.productWorkTypes;
         } else {
             workTypes = this.workTypes; // B2B uses original types
         }
@@ -4278,6 +4346,10 @@ class RealEfficiencyTracker {
             teamWorkTypes = this.varsityWorkTypes;
         } else if (this.currentTeam === 'graphics') {
             teamWorkTypes = this.graphicsWorkTypes;
+        } else if (this.currentTeam === 'tech') {
+            teamWorkTypes = this.techWorkTypes;
+        } else if (this.currentTeam === 'product') {
+            teamWorkTypes = this.productWorkTypes;
         } else {
             teamWorkTypes = this.workTypes; // B2B uses original types
         }
@@ -4332,6 +4404,10 @@ class RealEfficiencyTracker {
             teamWorkTypes = this.varsityWorkTypes;
         } else if (this.currentTeam === 'graphics') {
             teamWorkTypes = this.graphicsWorkTypes;
+        } else if (this.currentTeam === 'tech') {
+            teamWorkTypes = this.techWorkTypes;
+        } else if (this.currentTeam === 'product') {
+            teamWorkTypes = this.productWorkTypes;
         } else {
             teamWorkTypes = this.workTypes; // B2B uses original types
         }
@@ -4773,6 +4849,10 @@ class RealEfficiencyTracker {
             teamWorkTypes = this.varsityWorkTypes;
         } else if (this.currentTeam === 'graphics') {
             teamWorkTypes = this.graphicsWorkTypes;
+        } else if (this.currentTeam === 'tech') {
+            teamWorkTypes = this.techWorkTypes;
+        } else if (this.currentTeam === 'product') {
+            teamWorkTypes = this.productWorkTypes;
         } else {
             teamWorkTypes = this.workTypes; // B2B uses original types
         }
@@ -4829,6 +4909,10 @@ class RealEfficiencyTracker {
             teamWorkTypes = this.varsityWorkTypes;
         } else if (this.currentTeam === 'graphics') {
             teamWorkTypes = this.graphicsWorkTypes;
+        } else if (this.currentTeam === 'tech') {
+            teamWorkTypes = this.techWorkTypes;
+        } else if (this.currentTeam === 'product') {
+            teamWorkTypes = this.productWorkTypes;
         } else {
             teamWorkTypes = this.workTypes; // B2B uses original types
         }
@@ -6269,6 +6353,12 @@ class RealEfficiencyTracker {
             } else if (newTeam === 'graphics') {
                 console.log('🎨 Switching to Graphics - loading historical data...');
                 await this.loadGraphicsHistoricalData();
+            } else if (newTeam === 'tech') {
+                console.log('💻 Switching to Tech - loading historical data...');
+                await this.loadTechHistoricalData();
+            } else if (newTeam === 'product') {
+                console.log('📱 Switching to Product - loading historical data...');
+                await this.loadProductHistoricalData();
             }
             
             // Refresh the interface for the new team
@@ -7271,6 +7361,36 @@ class RealEfficiencyTracker {
         }
     }
 
+    async loadTechHistoricalData() {
+        console.log('💻 Loading Tech historical data...');
+        
+        // Initialize Tech historical data structure
+        if (!this.historicalData.tech) {
+            this.historicalData.tech = {};
+        }
+        
+        // For now, only August 2025 data will be provided by user
+        // Once user provides data, it will be added here
+        console.log('📅 Tech historical data: Waiting for August 2025 data from user');
+        
+        this.showMessage(`📅 Tech team ready - August 2025 data pending`, 'info');
+    }
+
+    async loadProductHistoricalData() {
+        console.log('📱 Loading Product historical data...');
+        
+        // Initialize Product historical data structure  
+        if (!this.historicalData.product) {
+            this.historicalData.product = {};
+        }
+        
+        // For now, only August 2025 data will be provided by user
+        // Once user provides data, it will be added here
+        console.log('📅 Product historical data: Waiting for August 2025 data from user');
+        
+        this.showMessage(`📅 Product team ready - August 2025 data pending`, 'info');
+    }
+
     async ensureAllHistoricalDataLoaded() {
         console.log('🔄 Ensuring all team historical data is loaded for Company View...');
         
@@ -7311,6 +7431,22 @@ class RealEfficiencyTracker {
             loadPromises.push(this.loadGraphicsHistoricalData());
         } else {
             console.log('✅ Graphics data already loaded');
+        }
+        
+        // Check and load Tech data if not already loaded
+        if (!this.historicalData.tech || Object.keys(this.historicalData.tech).length === 0) {
+            console.log('💻 Loading Tech historical data...');
+            loadPromises.push(this.loadTechHistoricalData());
+        } else {
+            console.log('✅ Tech data already loaded');
+        }
+        
+        // Check and load Product data if not already loaded
+        if (!this.historicalData.product || Object.keys(this.historicalData.product).length === 0) {
+            console.log('📱 Loading Product historical data...');
+            loadPromises.push(this.loadProductHistoricalData());
+        } else {
+            console.log('✅ Product data already loaded');
         }
         
         // Audio and B2B data is loaded in constructor, but double-check
@@ -7622,6 +7758,10 @@ class RealEfficiencyTracker {
             teamWorkTypes = this.varsityWorkTypes;
         } else if (this.currentTeam === 'graphics') {
             teamWorkTypes = this.graphicsWorkTypes;
+        } else if (this.currentTeam === 'tech') {
+            teamWorkTypes = this.techWorkTypes;
+        } else if (this.currentTeam === 'product') {
+            teamWorkTypes = this.productWorkTypes;
         } else {
             teamWorkTypes = this.workTypes; // B2B uses original types
         }
@@ -9329,7 +9469,9 @@ class RealEfficiencyTracker {
             'zero1_harish': 'Zero1 - Harish',
             'audio': 'Audio Team',
             'shorts': 'Shorts Team',
-            'graphics': 'Graphics Team'
+            'graphics': 'Graphics Team',
+            'tech': 'Tech Team',
+            'product': 'Product Team'
         };
         
         teamFiltersContainer.innerHTML = '';
@@ -9589,7 +9731,9 @@ class RealEfficiencyTracker {
             'zero1_harish': 'Zero1-Harish',
             'audio': 'Audio',
             'shorts': 'Shorts',
-            'graphics': 'Graphics'
+            'graphics': 'Graphics',
+            'tech': 'Tech',
+            'product': 'Product'
         };
         return displayNames[teamId] || teamId;
     }
