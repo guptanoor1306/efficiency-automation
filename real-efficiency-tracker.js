@@ -4570,6 +4570,8 @@ class RealEfficiencyTracker {
                 teamWorkTypes = this.graphicsWorkTypes;
             } else if (this.currentTeam === 'product') {
                 teamWorkTypes = this.productWorkTypes;
+        } else if (this.currentTeam === 'preproduction') {
+            teamWorkTypes = this.preproductionWorkTypes;
         } else {
             teamWorkTypes = this.workTypes; // B2B uses original types
         }
