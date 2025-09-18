@@ -11311,11 +11311,11 @@ class RealEfficiencyTracker {
             let messageText;
             let imageData;
 
-            // Handle different call signatures
-            if (typeof summaryTextOrBlob === 'string' && typeof base64ImageOrReportType === 'string') {
-                // Company View: sendToSlack(summary, base64Image)
-                messageText = summaryTextOrBlob;
-                imageData = base64ImageOrReportType;
+        // Handle different call signatures
+        if (typeof summaryTextOrBlob === 'string' && (typeof base64ImageOrReportType === 'string' || base64ImageOrReportType === null)) {
+            // Company View: sendToSlack(summary, base64Image) or sendToSlack(summary, null)
+            messageText = summaryTextOrBlob;
+            imageData = base64ImageOrReportType;
             } else if (summaryData) {
                 // Team View: sendToSlack(blob, reportType, summaryData)
                 const reportType = base64ImageOrReportType;
@@ -11449,22 +11449,16 @@ class RealEfficiencyTracker {
                 height: companyContent.scrollHeight
             });
 
-            // Convert canvas to blob
-            const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+            // Generate company summary for Slack
+            const summary = this.generateCompanySummaryForSlack(periodType, periodSelect);
             
-            // Convert blob to base64
-            const reader = new FileReader();
-            reader.onload = async () => {
-                const base64Image = reader.result.split(',')[1];
-                
-                // Generate company summary for Slack
-                const summary = this.generateCompanySummaryForSlack(periodType, periodSelect);
-                
-                // Send to Slack
-                await this.sendToSlack(summary, base64Image);
-                this.showMessage('✅ Company report sent to Slack successfully!', 'success');
-            };
-            reader.readAsDataURL(blob);
+            // Note: Slack webhooks don't support image attachments directly
+            // For now, we'll send a detailed text report
+            // Future enhancement: Upload image to a service and include URL
+            
+            // Send to Slack (text only for now)
+            await this.sendToSlack(summary, null);
+            this.showMessage('✅ Company report sent to Slack successfully!', 'success');
 
         } catch (error) {
             console.error('❌ Error sending company report:', error);
@@ -11484,27 +11478,41 @@ class RealEfficiencyTracker {
             document.querySelector('#company-period-select option:checked')?.textContent || periodValue :
             periodValue;
 
-        // Get company stats
-        const avgEfficiency = document.getElementById('company-avg-efficiency')?.textContent || '--';
-        const topPerformer = document.getElementById('company-top-performer')?.textContent || '--';
-        const totalTeams = document.getElementById('company-total-teams')?.textContent || '--';
+        // Get company stats with fallbacks
+        const avgEfficiency = document.getElementById('company-avg-efficiency')?.textContent?.trim() || 'N/A';
+        const topPerformer = document.getElementById('company-top-performer')?.textContent?.trim() || 'N/A';
+        const totalTeams = document.getElementById('company-total-teams')?.textContent?.trim() || 'N/A';
+        const activeMembers = document.getElementById('company-total-members')?.textContent?.trim() || 'N/A';
 
         let summary = `🏢 *Company ${periodName} Performance Report*\n`;
         summary += `📅 Period: ${periodLabel}\n`;
         summary += `📊 Company Average Efficiency: ${avgEfficiency}\n`;
         summary += `🏆 Top Performer: ${topPerformer}\n`;
-        summary += `👥 Teams Tracked: ${totalTeams}\n\n`;
+        summary += `👥 Teams Tracked: ${totalTeams}\n`;
+        summary += `👤 Active Members: ${activeMembers}\n\n`;
 
         // Get team performance data from the visible team cards
         const teamCards = document.querySelectorAll('#team-summary .team-card');
+        console.log(`🔍 Found ${teamCards.length} team cards for Slack report`);
+        
         if (teamCards.length > 0) {
             summary += `📈 *Team Performance Rankings:*\n`;
             
             // Collect team data
             const teamData = [];
-            teamCards.forEach(card => {
-                const teamName = card.querySelector('.team-card h4')?.textContent?.trim();
-                const efficiency = card.querySelector('.efficiency-value')?.textContent?.trim();
+            teamCards.forEach((card, index) => {
+                // Try multiple selectors for team name
+                const teamName = card.querySelector('h4')?.textContent?.trim() || 
+                                card.querySelector('.team-name')?.textContent?.trim() ||
+                                card.querySelector('h3')?.textContent?.trim();
+                
+                // Try multiple selectors for efficiency
+                const efficiency = card.querySelector('.efficiency-value')?.textContent?.trim() ||
+                                 card.querySelector('.efficiency')?.textContent?.trim() ||
+                                 card.textContent.match(/(\d+\.?\d*%)/)?.[1];
+                
+                console.log(`🔍 Team card ${index}: name="${teamName}", efficiency="${efficiency}"`);
+                
                 if (teamName && efficiency) {
                     const efficiencyNum = parseFloat(efficiency.replace('%', ''));
                     teamData.push({ name: teamName, efficiency: efficiencyNum, display: efficiency });
@@ -11515,36 +11523,53 @@ class RealEfficiencyTracker {
             teamData.sort((a, b) => b.efficiency - a.efficiency);
 
             // Add to summary
-            teamData.forEach((team, index) => {
-                const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '  ';
-                summary += `${medal} ${team.name}: ${team.display}\n`;
-            });
+            if (teamData.length > 0) {
+                teamData.forEach((team, index) => {
+                    const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '  ';
+                    summary += `${medal} ${team.name}: ${team.display}\n`;
+                });
+            } else {
+                summary += `No team data found in current view\n`;
+            }
+        } else {
+            summary += `📈 *Team Performance:* No team cards visible in current view\n`;
         }
 
         // Get individual performance data from the member chart
         const memberChart = document.getElementById('member-performance-chart');
         const memberBars = memberChart?.querySelectorAll('.member-bar');
+        console.log(`🔍 Found ${memberBars?.length || 0} member bars for Slack report`);
+        
         if (memberBars && memberBars.length > 0) {
             summary += `\n👤 *Top Individual Performers:*\n`;
             
             // Get top 5 performers
             const memberData = [];
-            memberBars.forEach(bar => {
-                const nameElement = bar.querySelector('.member-name');
-                const efficiencyElement = bar.querySelector('.member-efficiency');
+            memberBars.forEach((bar, index) => {
+                // Try multiple selectors for member name and efficiency
+                const nameElement = bar.querySelector('.member-name') || bar.querySelector('.name');
+                const efficiencyElement = bar.querySelector('.member-efficiency') || bar.querySelector('.efficiency');
+                
                 if (nameElement && efficiencyElement) {
                     const name = nameElement.textContent.trim();
                     const efficiency = efficiencyElement.textContent.trim();
                     const efficiencyNum = parseFloat(efficiency.replace('%', ''));
+                    console.log(`🔍 Member ${index}: name="${name}", efficiency="${efficiency}"`);
                     memberData.push({ name, efficiency: efficiencyNum, display: efficiency });
                 }
             });
 
             // Already sorted by efficiency in the chart, take top 5
-            memberData.slice(0, 5).forEach((member, index) => {
-                const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '  ';
-                summary += `${medal} ${member.name}: ${member.display}\n`;
-            });
+            if (memberData.length > 0) {
+                memberData.slice(0, 5).forEach((member, index) => {
+                    const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '  ';
+                    summary += `${medal} ${member.name}: ${member.display}\n`;
+                });
+            } else {
+                summary += `No individual performance data found\n`;
+            }
+        } else {
+            summary += `\n👤 *Individual Performance:* No member chart visible in current view\n`;
         }
 
         return summary;
