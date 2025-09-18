@@ -5719,29 +5719,48 @@ class RealEfficiencyTracker {
             const effectiveWorkingDays = workingDays - leaveDays;
             const output = this.calculateMemberTotalOutput(member.name);
             
+            console.log(`🔍 FINALIZATION DEBUG for ${member.name} (${this.currentTeam}):`, {
+                'Raw Output': output,
+                'Working Days': workingDays,
+                'Leave Days': leaveDays,
+                'Effective Days': effectiveWorkingDays
+            });
+            
             let efficiency = 0;
             if (this.currentTeam === 'tech') {
                 // Tech team: calculateMemberTotalOutput now returns story points, so use target points
                 const targetPointsInput = document.querySelector(`[data-member="${member.name}"].target-points-input`);
                 const targetPoints = parseFloat(targetPointsInput?.value) || 0;
                 
+                console.log(`🎯 Tech team target points for ${member.name}:`, targetPoints);
+                
                 if (targetPoints > 0) {
                     // Calculate adjusted target: reduce target proportionally based on leave days
                     const adjustedTarget = targetPoints * (effectiveWorkingDays / workingDays);
                     efficiency = adjustedTarget > 0 ? (output / adjustedTarget) * 100 : 0;
                     
-                    console.log(`Tech finalization efficiency for ${member.name}:`, {
+                    console.log(`✅ Tech finalization calculation for ${member.name}:`, {
                         completedPoints: output,
                         targetPoints: targetPoints,
                         workingDays: workingDays,
                         leaveDays: leaveDays,
-                        adjustedTarget: adjustedTarget,
-                        efficiency: efficiency.toFixed(1) + '%'
+                        adjustedTarget: adjustedTarget.toFixed(1),
+                        efficiency: efficiency.toFixed(1) + '%',
+                        'Will store week_total': output,
+                        'Will store target_points': targetPoints
                     });
+                } else {
+                    console.warn(`⚠️ No target points set for ${member.name}`);
                 }
             } else {
                 // Other teams: output is days equivalent, use effective working days
                 efficiency = effectiveWorkingDays > 0 ? (output / effectiveWorkingDays) * 100 : 0;
+                
+                console.log(`✅ Standard team calculation for ${member.name}:`, {
+                    outputDays: output,
+                    effectiveWorkingDays: effectiveWorkingDays,
+                    efficiency: efficiency.toFixed(1) + '%'
+                });
             }
             
             // Only check for missing rating if this team uses ratings
