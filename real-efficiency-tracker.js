@@ -1143,7 +1143,7 @@ class RealEfficiencyTracker {
 
         // Note: Shorts team historical data is now defined later in the file
         // after Audio team data (starts from February 2025)
-
+    
         // OLD DATA REMOVED - Shorts team started in February 2025, not January
 
         // Zero1 - Harish team historical data (Jan-Aug 2025) - hardcoded from sheet
@@ -3736,7 +3736,23 @@ class RealEfficiencyTracker {
         // Remember current selection
         const currentSelection = weekSelect.value;
         
-        const weeks = this.weekSystem.getWeeksForSelector();
+        let weeks = this.weekSystem.getWeeksForSelector();
+        
+        // For Tech and Product teams, only show weeks from September 2025 onwards
+        if (this.currentTeam === 'tech' || this.currentTeam === 'product') {
+            weeks = weeks.filter(week => {
+                const weekYear = week.year;
+                const weekMonth = week.monthName;
+                
+                // Only show September 2025 onwards
+                if (weekYear > 2025) return true;
+                if (weekYear === 2025) {
+                    const monthIndex = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].indexOf(weekMonth);
+                    return monthIndex >= 8; // September is index 8
+                }
+                return false;
+            });
+        }
         
         // Determine current view mode
         const activeViewBtn = document.querySelector('.view-btn.active');
@@ -5253,7 +5269,7 @@ class RealEfficiencyTracker {
                     <thead>
                         <tr>
                             <th style="text-align: left;">Team Member</th>
-                            <th>Target<br><small>(Working Days)</small></th>
+                            <th>Target<br><small>(${this.currentTeam === 'tech' || this.currentTeam === 'product' ? 'Story Points' : 'Working Days'})</small></th>
                             <th>Total Output</th>
                             <th>Monthly Rating<br><small>(Quality Avg)</small></th>
                             <th>Efficiency vs Target</th>
@@ -7376,8 +7392,8 @@ class RealEfficiencyTracker {
                 monthlyData: {
                     'Supriya': { 
                         weeks: [15, 15, 15, 6], 
-                        weeklyQualityRatings: [8, 8, 8, 8], 
-                        monthlyRating: 8, 
+                        weeklyQualityRatings: [0, 0, 0, 0], // No ratings for Tech team
+                        monthlyRating: 0, // No ratings for Tech team
                         target: 55, // 14+16+16+9 expected story points from data
                         totalOutput: 51, // 15+15+15+6
                         workingDays: 55, // Using expected as proxy for working days calculation
@@ -7385,8 +7401,8 @@ class RealEfficiencyTracker {
                     },
                     'Tilak': { 
                         weeks: [5, 16, 16, 11], 
-                        weeklyQualityRatings: [7, 7, 7, 7], 
-                        monthlyRating: 7, 
+                        weeklyQualityRatings: [0, 0, 0, 0], // No ratings for Tech team
+                        monthlyRating: 0, // No ratings for Tech team
                         target: 60, // 6+21+21+12 expected story points from data
                         totalOutput: 48, // 5+16+16+11
                         workingDays: 60,
@@ -7394,8 +7410,8 @@ class RealEfficiencyTracker {
                     },
                     'Rishi': { 
                         weeks: [13, 18, 18, 13], 
-                        weeklyQualityRatings: [8, 8, 8, 8], 
-                        monthlyRating: 8, 
+                        weeklyQualityRatings: [0, 0, 0, 0], // No ratings for Tech team
+                        monthlyRating: 0, // No ratings for Tech team
                         target: 59, // 14+18+18+9 expected story points from data
                         totalOutput: 62, // 13+18+18+13
                         workingDays: 59,
@@ -7403,8 +7419,8 @@ class RealEfficiencyTracker {
                     },
                     'Sahil': { 
                         weeks: [13, 15, 15, 12], 
-                        weeklyQualityRatings: [7, 7, 7, 7], 
-                        monthlyRating: 7, 
+                        weeklyQualityRatings: [0, 0, 0, 0], // No ratings for Tech team
+                        monthlyRating: 0, // No ratings for Tech team
                         target: 62, // 14+18+18+12 expected story points from data
                         totalOutput: 55, // 13+15+15+12
                         workingDays: 62,
@@ -7412,8 +7428,8 @@ class RealEfficiencyTracker {
                     },
                     'Chandan': { 
                         weeks: [14, 15, 15, 16], 
-                        weeklyQualityRatings: [8, 8, 8, 8], 
-                        monthlyRating: 8, 
+                        weeklyQualityRatings: [0, 0, 0, 0], // No ratings for Tech team
+                        monthlyRating: 0, // No ratings for Tech team
                         target: 63, // 13+19+19+12 expected story points from data
                         totalOutput: 60, // 14+15+15+16
                         workingDays: 63,
@@ -7421,8 +7437,8 @@ class RealEfficiencyTracker {
                     },
                     'Harshita': { 
                         weeks: [11, 23, 23, 11], 
-                        weeklyQualityRatings: [8, 8, 8, 8], 
-                        monthlyRating: 8, 
+                        weeklyQualityRatings: [0, 0, 0, 0], // No ratings for Tech team
+                        monthlyRating: 0, // No ratings for Tech team
                         target: 66, // 12+21+21+12 expected story points from data
                         totalOutput: 68, // 11+23+23+11
                         workingDays: 66,
@@ -7431,7 +7447,7 @@ class RealEfficiencyTracker {
                 },
                 teamSummary: { 
                     totalMembers: 6, 
-                    avgRating: 7.67, // Average of monthly ratings
+                    avgRating: 0, // No ratings for Tech team
                     totalOutput: 344, // Sum of all totalOutput
                     totalWorkingDays: 365, // Sum of all workingDays 
                     avgEfficiency: 94.13 // Average of all efficiency values
@@ -7459,8 +7475,8 @@ class RealEfficiencyTracker {
                 monthlyData: {
                     'Akshay': { 
                         weeks: [3.7, 4.5, 4.5, 3.0], 
-                        weeklyQualityRatings: [8, 8, 8, 8], 
-                        monthlyRating: 8, 
+                        weeklyQualityRatings: [0, 0, 0, 0], // No ratings for Product team
+                        monthlyRating: 0, // No ratings for Product team
                         target: 17.5, // 4.5+5+5+4 expected story points from data
                         totalOutput: 15.7, // 3.7+4.5+4.5+3.0
                         workingDays: 17.5, // Using expected as proxy for working days calculation
@@ -7468,8 +7484,8 @@ class RealEfficiencyTracker {
                     },
                     'Ankush': { 
                         weeks: [3.65, 6.55, 6.55, 5.05], 
-                        weeklyQualityRatings: [8, 8, 8, 8], 
-                        monthlyRating: 8, 
+                        weeklyQualityRatings: [0, 0, 0, 0], // No ratings for Product team
+                        monthlyRating: 0, // No ratings for Product team
                         target: 21.5, // 4.5+6.5+6.5+4.5 expected story points from data
                         totalOutput: 21.8, // 3.65+6.55+6.55+5.05
                         workingDays: 21.5,
@@ -7477,8 +7493,8 @@ class RealEfficiencyTracker {
                     },
                     'Noor': { 
                         weeks: [3.75, 7.0, 7.0, 5.9], 
-                        weeklyQualityRatings: [9, 9, 9, 9], 
-                        monthlyRating: 9, 
+                        weeklyQualityRatings: [0, 0, 0, 0], // No ratings for Product team
+                        monthlyRating: 0, // No ratings for Product team
                         target: 19.5, // 4+6.5+6.5+4.5 expected story points from data
                         totalOutput: 23.65, // 3.75+7.0+7.0+5.9
                         workingDays: 19.5,
@@ -7487,7 +7503,7 @@ class RealEfficiencyTracker {
                 },
                 teamSummary: { 
                     totalMembers: 3, 
-                    avgRating: 8.33, // Average of monthly ratings
+                    avgRating: 0, // No ratings for Product team
                     totalOutput: 61.15, // Sum of all totalOutput
                     totalWorkingDays: 58.5, // Sum of all workingDays 
                     avgEfficiency: 104.13 // Average of all efficiency values
@@ -9887,7 +9903,9 @@ class RealEfficiencyTracker {
             'b2b': 'b2b',
             'audio': 'audio',
             'shorts': 'shorts',
-            'graphics': 'graphics'
+            'graphics': 'graphics',
+            'tech': 'tech',
+            'product': 'product'
         };
         
         const historicalKey = teamMapping[teamId] || teamId;
