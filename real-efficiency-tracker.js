@@ -4256,6 +4256,27 @@ class RealEfficiencyTracker {
         const activeViewBtn = document.querySelector('.view-btn.active');
         const currentView = activeViewBtn ? activeViewBtn.getAttribute('data-view') : 'weekly';
         
+        // Get available historical months for current team
+        const getHistoricalMonths = (teamId) => {
+            const monthMap = {
+                'b2b': ['January 2025', 'February 2025', 'March 2025', 'April 2025', 'May 2025', 'June 2025', 'July 2025', 'August 2025'],
+                'varsity': ['January 2025', 'February 2025', 'March 2025', 'April 2025', 'May 2025', 'June 2025', 'July 2025', 'August 2025'],
+                'zero1_bratish': ['January 2025', 'February 2025', 'March 2025', 'April 2025', 'May 2025', 'June 2025', 'July 2025', 'August 2025'],
+                'zero1_harish': ['January 2025', 'February 2025', 'March 2025', 'April 2025', 'May 2025', 'June 2025', 'July 2025', 'August 2025'],
+                'audio': ['January 2025', 'February 2025', 'March 2025', 'April 2025', 'May 2025', 'June 2025', 'July 2025', 'August 2025'],
+                'shorts': ['February 2025', 'March 2025', 'April 2025', 'May 2025', 'June 2025', 'July 2025', 'August 2025'],
+                'graphics': ['June 2025', 'July 2025', 'August 2025'],
+                'tech': ['August 2025'],
+                'product': ['August 2025'],
+                'preproduction': ['August 2025'],
+                'content': ['August 2025'],
+                'social': ['July 2025', 'August 2025']
+            };
+            return monthMap[teamId] || [];
+        };
+        
+        const availableHistoricalMonths = getHistoricalMonths(this.currentTeam);
+        
         // Group weeks by month
         const monthGroups = {};
         weeks.forEach(week => {
@@ -4274,11 +4295,12 @@ class RealEfficiencyTracker {
         Object.keys(monthGroups).forEach(monthYear => {
             const isCurrentWorkingMonth = monthYear === currentWorkingMonth;
             const isCompleteMonth = this.historicalData[this.currentTeam]?.[monthYear]?.isComplete;
+            const isHistoricalMonth = availableHistoricalMonths.includes(monthYear);
             
             // Filter options based on current view
             if (currentView === 'monthly') {
-                // In monthly view, only show completed months
-                if (isCompleteMonth) {
+                // In monthly view, show months that are either complete OR in the historical months list
+                if (isCompleteMonth || isHistoricalMonth) {
                     optionsHTML += `<option value="MONTH_${monthYear}">📊 ${monthYear} (Monthly Summary)</option>`;
                 }
             } else if (currentView === 'weekly') {
@@ -4306,7 +4328,7 @@ class RealEfficiencyTracker {
                 }
             } else {
                 // For person view or default, show all options
-                if (isCompleteMonth) {
+                if (isCompleteMonth || isHistoricalMonth) {
                     optionsHTML += `<option value="MONTH_${monthYear}">📊 ${monthYear} (Monthly Summary)</option>`;
                 } else if (isCurrentWorkingMonth) {
                     optionsHTML += `<optgroup label="📅 ${monthYear} - Current Month">`;
@@ -4327,6 +4349,16 @@ class RealEfficiencyTracker {
                 }
             }
         });
+        
+        // Add any historical months that weren't included in monthGroups
+        if (currentView === 'monthly' || currentView === 'person' || !currentView) {
+            availableHistoricalMonths.forEach(monthYear => {
+                // Only add if not already in the options
+                if (!optionsHTML.includes(`MONTH_${monthYear}`)) {
+                    optionsHTML += `<option value="MONTH_${monthYear}">📊 ${monthYear} (Monthly Summary)</option>`;
+                }
+            });
+        }
         
         weekSelect.innerHTML = optionsHTML;
         
@@ -10702,7 +10734,8 @@ class RealEfficiencyTracker {
             'tech': 'Tech',
             'product': 'Product',
             'preproduction': 'Pre-production',
-            'content': 'Content'
+            'content': 'Content',
+            'social': 'Social'
         };
         return displayNames[teamId] || teamId;
     }
