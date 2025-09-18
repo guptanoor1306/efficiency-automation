@@ -5670,9 +5670,9 @@ class RealEfficiencyTracker {
                             <th style="text-align: left;">Team Member</th>
                             <th>Target<br><small>(${this.currentTeam === 'tech' || this.currentTeam === 'product' ? 'Story Points' : 'Working Days'})</small></th>
                             <th>Total Output</th>
-                            ${(this.currentTeam === 'tech' || this.currentTeam === 'product') ? '' : '<th>Monthly Rating<br><small>(Quality Avg)</small></th>'}
+                            ${(this.currentTeam === 'tech' || this.currentTeam === 'product' || this.currentTeam === 'content') ? '' : '<th>Monthly Rating<br><small>(Quality Avg)</small></th>'}
                             <th>Efficiency vs Target</th>
-                            ${(this.currentTeam === 'tech' || this.currentTeam === 'product') ? '' : '<th>Quality Rating</th>'}
+                            ${(this.currentTeam === 'tech' || this.currentTeam === 'product' || this.currentTeam === 'content') ? '' : '<th>Quality Rating</th>'}
                         </tr>
                     </thead>
                     <tbody>
@@ -5686,13 +5686,13 @@ class RealEfficiencyTracker {
                                     <td style="text-align: left; font-weight: 600;">${memberName}</td>
                                     <td>${member.target}</td>
                                     <td>${member.totalOutput.toFixed(1)}</td>
-                                    ${(this.currentTeam === 'tech' || this.currentTeam === 'product') ? '' : `<td style="font-weight: bold; color: #27ae60;">${member.monthlyRating.toFixed(1)}</td>`}
+                                    ${(this.currentTeam === 'tech' || this.currentTeam === 'product' || this.currentTeam === 'content') ? '' : `<td style="font-weight: bold; color: #27ae60;">${member.monthlyRating.toFixed(1)}</td>`}
                                     <td>
                                         <span class="efficiency-score ${this.getEfficiencyClass((efficiency/member.target) * 100)}">
                                             ${((member.totalOutput/member.target) * 100).toFixed(1)}%
                                         </span>
                                     </td>
-                                    ${(this.currentTeam === 'tech' || this.currentTeam === 'product') ? '' : `<td>
+                                    ${(this.currentTeam === 'tech' || this.currentTeam === 'product' || this.currentTeam === 'content') ? '' : `<td>
                                         <span style="padding: 4px 8px; border-radius: 4px; font-weight: bold; color: white; background: ${qualityRating.color};">
                                             ${qualityRating.label}
                                         </span>
@@ -6726,7 +6726,7 @@ class RealEfficiencyTracker {
                         <div style="font-size: 20px; font-weight: bold; color: #28a745;">${(weekSummary.avgOutput || 0).toFixed(1)}</div>
                         <div style="color: #6c757d; font-size: 12px;">Avg Output ${this.currentTeam === 'tech' || this.currentTeam === 'product' ? '(Story Points)' : '(Days)'}</div>
                     </div>
-                    ${(this.currentTeam === 'tech' || this.currentTeam === 'product') ? '' : `
+                    ${(this.currentTeam === 'tech' || this.currentTeam === 'product' || this.currentTeam === 'content') ? '' : `
                     <div style="background: #e3f2fd; padding: 12px; border-radius: 6px; text-align: center;">
                         <div style="font-size: 20px; font-weight: bold; color: #2196f3;">${(weekSummary.avgRating || 0).toFixed(1)}/10</div>
                         <div style="color: #6c757d; font-size: 12px;">Avg Quality Rating</div>
