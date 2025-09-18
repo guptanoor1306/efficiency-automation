@@ -11364,12 +11364,14 @@ class RealEfficiencyTracker {
         } catch (error) {
             console.error('❌ Error sending to Slack:', error);
             
-            // Check if it's a webhook-related error
+            // Check if it's a CORS/webhook-related error
             if (error.message.includes('Failed to fetch') || error.message.includes('CORS')) {
-                this.showMessage('❌ Slack webhook URL is invalid or expired. Please configure a new one.', 'error');
-                // Clear the invalid webhook URL
-                this.slackWebhookUrl = null;
-                localStorage.removeItem('slackWebhookUrl');
+                this.showMessage('❌ Slack webhook blocked by browser CORS policy. Webhooks work from servers, not browsers. Please use a server-side proxy or contact your admin.', 'error');
+                console.error('ℹ️ SOLUTION: Slack webhooks are designed for server-to-server communication. To fix this:');
+                console.error('1. Create a server-side endpoint that forwards requests to Slack');
+                console.error('2. Use Slack Web API with OAuth instead of webhooks');
+                console.error('3. For testing only: disable CORS in browser (not recommended)');
+                // Don't clear the webhook URL as it might be valid, just blocked by browser
             } else {
                 this.showMessage('❌ Failed to send report to Slack', 'error');
             }
