@@ -11347,33 +11347,43 @@ class RealEfficiencyTracker {
                 icon_emoji: ":chart_with_upwards_trend:"
             };
 
-            const response = await fetch(this.slackWebhookUrl, {
+            // Use our serverless proxy to avoid CORS issues
+            const response = await fetch('/api/slack-proxy', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(payload)
+                body: JSON.stringify({
+                    webhookUrl: this.slackWebhookUrl,
+                    messageData: payload
+                })
             });
 
             if (response.ok) {
-                this.showMessage('✅ Report sent to Slack successfully!', 'success');
+                const result = await response.json();
+                if (result.success) {
+                    this.showMessage('✅ Report sent to Slack successfully!', 'success');
+                } else {
+                    throw new Error(`Slack API error: ${result.error || 'Unknown error'}`);
+                }
             } else {
-                throw new Error(`Slack API error: ${response.status}`);
+                const errorData = await response.json().catch(() => ({ error: 'Failed to parse error response' }));
+                throw new Error(`Server error: ${errorData.error || response.statusText}`);
             }
 
         } catch (error) {
             console.error('❌ Error sending to Slack:', error);
             
-            // Check if it's a CORS/webhook-related error
-            if (error.message.includes('Failed to fetch') || error.message.includes('CORS')) {
-                this.showMessage('❌ Slack webhook blocked by browser CORS policy. Webhooks work from servers, not browsers. Please use a server-side proxy or contact your admin.', 'error');
-                console.error('ℹ️ SOLUTION: Slack webhooks are designed for server-to-server communication. To fix this:');
-                console.error('1. Create a server-side endpoint that forwards requests to Slack');
-                console.error('2. Use Slack Web API with OAuth instead of webhooks');
-                console.error('3. For testing only: disable CORS in browser (not recommended)');
-                // Don't clear the webhook URL as it might be valid, just blocked by browser
+            // Check if it's a network or server error
+            if (error.message.includes('Failed to fetch')) {
+                this.showMessage('❌ Network error: Could not connect to server. Please check your internet connection.', 'error');
+            } else if (error.message.includes('Slack API error')) {
+                this.showMessage('❌ Slack webhook error: Please check your webhook URL is correct and active.', 'error');
+                // Clear the webhook URL if it's invalid
+                this.slackWebhookUrl = null;
+                localStorage.removeItem('slackWebhookUrl');
             } else {
-                this.showMessage('❌ Failed to send report to Slack', 'error');
+                this.showMessage('❌ Failed to send report to Slack: ' + error.message, 'error');
             }
             throw error;
         }
