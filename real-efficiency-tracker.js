@@ -3741,17 +3741,20 @@ class RealEfficiencyTracker {
         // For Tech and Product teams, only show weeks from September 2025 onwards
         if (this.currentTeam === 'tech' || this.currentTeam === 'product') {
             weeks = weeks.filter(week => {
-                const weekYear = week.year;
-                const weekMonth = week.monthName;
+                // Parse monthYear string (e.g., "September 2025")
+                const [monthName, yearStr] = week.monthYear.split(' ');
+                const year = parseInt(yearStr);
                 
                 // Only show September 2025 onwards
-                if (weekYear > 2025) return true;
-                if (weekYear === 2025) {
-                    const monthIndex = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].indexOf(weekMonth);
+                if (year > 2025) return true;
+                if (year === 2025) {
+                    const monthIndex = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].indexOf(monthName);
                     return monthIndex >= 8; // September is index 8
                 }
                 return false;
             });
+            
+            console.log(`🔍 Filtered weeks for ${this.currentTeam}:`, weeks.length, 'weeks from September 2025 onwards');
         }
         
         // Determine current view mode
@@ -4177,6 +4180,9 @@ class RealEfficiencyTracker {
             `<th>${workTypes[workTypeKey].name}</th>`
         ).join('');
         
+        // Hide rating column for Tech and Product teams
+        const ratingColumn = (this.currentTeam === 'tech' || this.currentTeam === 'product') ? '' : '<th rowspan="2">Weekly Rating</th>';
+        
         thead.innerHTML = `
             <tr>
                 <th rowspan="2">Work Types</th>
@@ -4184,7 +4190,7 @@ class RealEfficiencyTracker {
                 <th rowspan="2">Week Total</th>
                 <th rowspan="2">Working Days</th>
                 <th rowspan="2">Leave Days</th>
-                <th rowspan="2">Weekly Rating</th>
+                ${ratingColumn}
                 <th rowspan="2">Target</th>
                 <th rowspan="2">Efficiency %</th>
             </tr>
@@ -4243,6 +4249,27 @@ class RealEfficiencyTracker {
                 `<td><input type="number" class="level-input" data-member="${memberName}" data-work="${workTypeKey}" step="0.1" min="0"></td>`
             ).join('');
             
+            // Hide rating column for Tech and Product teams
+            const ratingCell = (this.currentTeam === 'tech' || this.currentTeam === 'product') ? '' : `
+                <td>
+                    <select class="weekly-rating-input" data-member="${memberName}" 
+                            style="width: 80px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; text-align: center;">
+                        <option value="">Select</option>
+                        <option value="0">0</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                        <option value="9">9</option>
+                        <option value="10">10</option>
+                    </select>
+                </td>
+            `;
+
             row.innerHTML = `
                 <td class="work-type-header">${memberName}</td>
                 ${workTypeInputs}
@@ -4271,23 +4298,7 @@ class RealEfficiencyTracker {
                         <option value="5">5 days</option>
                     </select>
                 </td>
-                <td>
-                    <select class="weekly-rating-input" data-member="${memberName}" 
-                            style="width: 80px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; text-align: center;">
-                        <option value="">Select</option>
-                        <option value="0">0</option>
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="3">3</option>
-                        <option value="4">4</option>
-                        <option value="5">5</option>
-                        <option value="6">6</option>
-                        <option value="7">7</option>
-                        <option value="8">8</option>
-                        <option value="9">9</option>
-                        <option value="10">10</option>
-                    </select>
-                </td>
+                ${ratingCell}
                 <td class="member-target" id="target-${memberName}">20</td>
                 <td class="efficiency-display" id="efficiency-${memberName}">0.00%</td>
             `;
@@ -6240,12 +6251,14 @@ class RealEfficiencyTracker {
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 20px;">
                     <div style="background: #e8f5e8; padding: 12px; border-radius: 6px; text-align: center;">
                         <div style="font-size: 20px; font-weight: bold; color: #28a745;">${(weekSummary.avgOutput || 0).toFixed(1)}</div>
-                        <div style="color: #6c757d; font-size: 12px;">Avg Output (Days)</div>
+                        <div style="color: #6c757d; font-size: 12px;">Avg Output ${this.currentTeam === 'tech' || this.currentTeam === 'product' ? '(Story Points)' : '(Days)'}</div>
                     </div>
+                    ${(this.currentTeam === 'tech' || this.currentTeam === 'product') ? '' : `
                     <div style="background: #e3f2fd; padding: 12px; border-radius: 6px; text-align: center;">
                         <div style="font-size: 20px; font-weight: bold; color: #2196f3;">${(weekSummary.avgRating || 0).toFixed(1)}/10</div>
                         <div style="color: #6c757d; font-size: 12px;">Avg Quality Rating</div>
                     </div>
+                    `}
                     <div style="background: #fff3e0; padding: 12px; border-radius: 6px; text-align: center;">
                         <div style="font-size: 20px; font-weight: bold; color: #ff9800;">${(weekSummary.avgEfficiency || 0).toFixed(1)}%</div>
                         <div style="color: #6c757d; font-size: 12px;">Avg Efficiency</div>
@@ -6257,7 +6270,7 @@ class RealEfficiencyTracker {
                         <tr style="background: #e9ecef;">
                             <th style="padding: 8px; border: 1px solid #dee2e6; text-align: left;">Member</th>
                             <th style="padding: 8px; border: 1px solid #dee2e6; text-align: center;">Output</th>
-                            <th style="padding: 8px; border: 1px solid #dee2e6; text-align: center;">Quality</th>
+                            ${(this.currentTeam === 'tech' || this.currentTeam === 'product') ? '' : '<th style="padding: 8px; border: 1px solid #dee2e6; text-align: center;">Quality</th>'}
                             <th style="padding: 8px; border: 1px solid #dee2e6; text-align: center;">Efficiency</th>
                             <th style="padding: 8px; border: 1px solid #dee2e6; text-align: center;">Days</th>
                         </tr>
@@ -6267,7 +6280,7 @@ class RealEfficiencyTracker {
                             <tr>
                                 <td style="padding: 6px; border: 1px solid #dee2e6;">${member?.name || 'Unknown'}</td>
                                 <td style="padding: 6px; border: 1px solid #dee2e6; text-align: center;">${(member?.output || 0).toFixed(2)}</td>
-                                <td style="padding: 6px; border: 1px solid #dee2e6; text-align: center;">${member?.rating || 0}/10</td>
+                                ${(this.currentTeam === 'tech' || this.currentTeam === 'product') ? '' : `<td style="padding: 6px; border: 1px solid #dee2e6; text-align: center;">${member?.rating || 0}/10</td>`}
                                 <td style="padding: 6px; border: 1px solid #dee2e6; text-align: center; color: ${(member?.efficiency || 0) >= 90 ? '#28a745' : (member?.efficiency || 0) >= 70 ? '#ffc107' : '#dc3545'};">${(member?.efficiency || 0).toFixed(1)}%</td>
                                 <td style="padding: 6px; border: 1px solid #dee2e6; text-align: center;">${member?.workingDays || 0}</td>
                             </tr>
