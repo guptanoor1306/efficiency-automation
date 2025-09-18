@@ -11140,6 +11140,13 @@ class RealEfficiencyTracker {
         }
     }
 
+    clearSlackWebhookUrl() {
+        this.slackWebhookUrl = null;
+        localStorage.removeItem('slackWebhookUrl');
+        this.showMessage('✅ Slack webhook URL cleared. You will be prompted for a new URL on next report send.', 'success');
+        console.log('🗑️ Slack webhook URL cleared from localStorage');
+    }
+
     async sendWeeklyReportToSlack() {
         if (!this.slackWebhookUrl) {
             this.promptForSlackWebhook();
@@ -11358,7 +11365,16 @@ class RealEfficiencyTracker {
 
         } catch (error) {
             console.error('❌ Error sending to Slack:', error);
-            this.showMessage('❌ Failed to send report to Slack', 'error');
+            
+            // Check if it's a webhook-related error
+            if (error.message.includes('Failed to fetch') || error.message.includes('CORS')) {
+                this.showMessage('❌ Slack webhook URL is invalid or expired. Please configure a new one.', 'error');
+                // Clear the invalid webhook URL
+                this.slackWebhookUrl = null;
+                localStorage.removeItem('slackWebhookUrl');
+            } else {
+                this.showMessage('❌ Failed to send report to Slack', 'error');
+            }
             throw error;
         }
     }
@@ -11385,6 +11401,12 @@ class RealEfficiencyTracker {
     async sendCompanyReportToSlack() {
         if (!this.slackWebhookUrl) {
             this.promptForSlackWebhook();
+            return;
+        }
+
+        // Double-check that we have a valid webhook URL after prompt
+        if (!this.slackWebhookUrl) {
+            this.showMessage('❌ Slack webhook URL is required to send reports', 'error');
             return;
         }
 
@@ -11436,7 +11458,13 @@ class RealEfficiencyTracker {
 
         } catch (error) {
             console.error('❌ Error sending company report:', error);
-            this.showMessage('❌ Failed to send company report to Slack', 'error');
+            
+            // If the webhook was cleared due to being invalid, show appropriate message
+            if (!this.slackWebhookUrl) {
+                this.showMessage('❌ Slack webhook URL was invalid. Please configure a new webhook URL and try again.', 'error');
+            } else {
+                this.showMessage('❌ Failed to send company report to Slack', 'error');
+            }
         }
     }
 
