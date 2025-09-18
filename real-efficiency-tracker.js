@@ -9137,16 +9137,16 @@ class RealEfficiencyTracker {
         mainContent.insertAdjacentHTML('beforeend', personViewHTML);
         
         // Add event listener for person selection
-        document.getElementById('person-select').addEventListener('change', (e) => {
+        document.getElementById('person-select').addEventListener('change', async (e) => {
             if (e.target.value) {
-                this.showPersonData(e.target.value);
+                await this.showPersonData(e.target.value);
             } else {
                 document.getElementById('person-charts').style.display = 'none';
             }
         });
     }
     
-    showPersonData(memberName) {
+    async showPersonData(memberName) {
         const chartsContainer = document.getElementById('person-charts');
         chartsContainer.style.display = 'block';
         
@@ -9161,7 +9161,7 @@ class RealEfficiencyTracker {
         console.log('Monthly data for', memberName, ':', monthlyData);
         
         // Generate weekly data for current month
-        const weeklyData = this.getPersonWeeklyData(memberName);
+        const weeklyData = await this.getPersonWeeklyData(memberName);
         console.log('Weekly data for', memberName, ':', weeklyData);
         
         // Create charts
@@ -9244,7 +9244,7 @@ class RealEfficiencyTracker {
         return monthlyData;
     }
     
-    getPersonWeeklyData(memberName) {
+    async getPersonWeeklyData(memberName) {
         const weeklyData = [];
         
         // Use current working month from this.currentWeek instead of real calendar date
@@ -9261,7 +9261,7 @@ class RealEfficiencyTracker {
         const teamFinalizedReports = this.finalizedReports?.[this.currentTeam] || {};
         console.log('Team finalized reports available:', Object.keys(teamFinalizedReports));
         
-        Object.keys(teamFinalizedReports).forEach(weekId => {
+        for (const weekId of Object.keys(teamFinalizedReports)) {
             const weekData = teamFinalizedReports[weekId];
             console.log(`Checking week ${weekId}:`, weekData);
             
@@ -9300,16 +9300,48 @@ class RealEfficiencyTracker {
                 if (memberWeekData) {
                     // Use proper week numbering (Week 1, Week 2, etc.) instead of calendar week numbers
                     const weekNumber = this.getWeekNumberInMonth(weekId);
+                    
+                    // IMPORTANT: Don't use stored efficiency as it might be calculated with old formula
+                    // Instead, recalculate efficiency based on current team type
+                    let correctEfficiency = memberWeekData.efficiency || 0;
+                    
+                    if (this.currentTeam === 'tech') {
+                        // For Tech team, recalculate efficiency from fresh Supabase data
+                        console.log(`🔄 Recalculating Tech efficiency for ${memberName} in ${weekId}`);
+                        try {
+                            // Get fresh data from Supabase for this member and week
+                            const supabaseData = await this.supabaseAPI.loadWeekData('tech', weekId);
+                            const memberEntry = supabaseData?.find(entry => entry.member_name === memberName);
+                            
+                            if (memberEntry) {
+                                const memberOutput = parseFloat(memberEntry.week_total) || 0;
+                                const workingDays = parseFloat(memberEntry.working_days) || 5;
+                                const leaveDays = parseFloat(memberEntry.leave_days) || 0;
+                                const targetPoints = parseFloat(memberEntry.target_points) || 0;
+                                const effectiveWorkingDays = workingDays - leaveDays;
+                                
+                                if (targetPoints > 0) {
+                                    const adjustedTarget = targetPoints * (effectiveWorkingDays / workingDays);
+                                    correctEfficiency = adjustedTarget > 0 ? (memberOutput / adjustedTarget * 100) : 0;
+                                    
+                                    console.log(`✅ Person View Tech recalculation for ${memberName}: output=${memberOutput}, target=${targetPoints}, adjusted=${adjustedTarget.toFixed(1)}, efficiency=${correctEfficiency.toFixed(1)}%`);
+                                }
+                            }
+                        } catch (error) {
+                            console.error(`❌ Error recalculating efficiency for ${memberName}:`, error);
+                        }
+                    }
+                    
                     weeklyData.push({
                         week: `Week ${weekNumber}`,
-                        efficiency: memberWeekData.efficiency || 0,
+                        efficiency: correctEfficiency,
                         output: memberWeekData.output || 0,
                         rating: memberWeekData.rating || 0
                     });
                 }
                 }
             }
-        });
+        }
         
         console.log('Final weekly data array:', weeklyData);
         return weeklyData;
@@ -10106,7 +10138,9 @@ class RealEfficiencyTracker {
             'b2b': 'b2b',
             'audio': 'audio',
             'shorts': 'shorts',
-            'graphics': 'graphics'
+            'graphics': 'graphics',
+            'tech': 'tech',
+            'product': 'product'
         };
         
         const reportKey = teamMapping[teamId] || teamId;
