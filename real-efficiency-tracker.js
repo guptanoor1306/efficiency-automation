@@ -10226,7 +10226,7 @@ class RealEfficiencyTracker {
 
     getSelectedTeams() {
         const selectedTeams = [];
-        const allTeams = ['b2b', 'varsity', 'zero1_bratish', 'zero1_harish', 'audio', 'shorts', 'graphics', 'tech', 'product'];
+        const allTeams = ['b2b', 'varsity', 'zero1_bratish', 'zero1_harish', 'audio', 'shorts', 'graphics', 'tech', 'product', 'preproduction'];
         
         allTeams.forEach(teamId => {
             const checkbox = document.getElementById(`team-filter-${teamId}`);
