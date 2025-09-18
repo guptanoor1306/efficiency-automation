@@ -6291,16 +6291,39 @@ class RealEfficiencyTracker {
                 teamWorkTypes = this.audioWorkTypes;
             } else if (this.currentTeam === 'varsity') {
                 teamWorkTypes = this.varsityWorkTypes;
+            } else if (this.currentTeam === 'graphics') {
+                teamWorkTypes = this.graphicsWorkTypes;
+            } else if (this.currentTeam === 'tech') {
+                teamWorkTypes = this.techWorkTypes;
+            } else if (this.currentTeam === 'product') {
+                teamWorkTypes = this.productWorkTypes;
+            } else if (this.currentTeam === 'preproduction') {
+                teamWorkTypes = this.preproductionWorkTypes;
             } else {
                 teamWorkTypes = this.workTypes; // B2B uses original types
             }
             
-            Object.keys(teamWorkTypes).forEach(workType => {
-                const input = document.querySelector(`[data-member="${memberName}"][data-work="${workType}"]`);
-                if (input && input.value) {
-                    memberOutput += parseFloat(input.value) || 0;
-                }
-            });
+            if (this.currentTeam === 'tech' || this.currentTeam === 'product') {
+                // For Tech/Product teams: use raw values (story points)
+                Object.keys(teamWorkTypes).forEach(workType => {
+                    const input = document.querySelector(`[data-member="${memberName}"][data-work="${workType}"]`);
+                    if (input && input.value) {
+                        memberOutput += parseFloat(input.value) || 0;
+                    }
+                });
+            } else {
+                // For other teams: convert to days equivalent
+                Object.keys(teamWorkTypes).forEach(workType => {
+                    const input = document.querySelector(`[data-member="${memberName}"][data-work="${workType}"]`);
+                    if (input && input.value) {
+                        const workDone = parseFloat(input.value) || 0;
+                        const perDay = teamWorkTypes[workType].perDay;
+                        if (perDay > 0) {
+                            memberOutput += workDone / perDay; // Convert to days equivalent
+                        }
+                    }
+                });
+            }
             
             // Get quality rating
             const ratingInput = document.querySelector(`.weekly-rating-input[data-member="${memberName}"]`);
