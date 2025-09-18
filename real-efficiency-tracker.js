@@ -13,7 +13,26 @@ class RealEfficiencyTracker {
         
         // Override week system method to handle team-specific filtering
         this.getFilteredWeeks = () => {
-            return this.weekSystem.getWeeksForSelector(this.currentTeam);
+            let weeks = this.weekSystem.getWeeksForSelector();
+            
+            // For Tech, Product, and Pre-production teams, only return weeks from September 2025 onwards
+            if (this.currentTeam === 'tech' || this.currentTeam === 'product' || this.currentTeam === 'preproduction') {
+                weeks = weeks.filter(week => {
+                    // Parse monthYear string (e.g., "September 2025")
+                    const [monthName, yearStr] = week.monthYear.split(' ');
+                    const year = parseInt(yearStr);
+                    
+                    // Only show September 2025 onwards
+                    if (year > 2025) return true;
+                    if (year === 2025) {
+                        const monthIndex = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].indexOf(monthName);
+                        return monthIndex >= 8; // September is index 8
+                    }
+                    return false;
+                });
+            }
+            
+            return weeks;
         };
         
         
@@ -3994,8 +4013,10 @@ class RealEfficiencyTracker {
     }
     
     getFirstIncompleteWeek() {
-        // Get all weeks from September 2025 onwards
-        const allWeeks = this.weekSystem.weeks;
+        // Get team-specific filtered weeks (September onwards for tech/product/preproduction)
+        const allWeeks = this.getFilteredWeeks();
+        
+        console.log(`🔍 Checking ${allWeeks.length} filtered weeks for ${this.currentTeam}`);
         
         // Find first week that is not in historical data and not finalized
         for (const week of allWeeks) {
@@ -4003,6 +4024,7 @@ class RealEfficiencyTracker {
             
             // Skip if this month is already in historical data (completed)
             if (this.historicalData[this.currentTeam]?.[monthYear]?.isComplete) {
+                console.log(`⏭️ Skipping completed month: ${monthYear} for ${this.currentTeam}`);
                 continue;
             }
             
@@ -4011,8 +4033,10 @@ class RealEfficiencyTracker {
             const isFinalized = teamFinalizedReports[week.id];
             
             if (!isFinalized) {
-                console.log(`🎯 Found first incomplete week for ${this.currentTeam}: ${week.label}`);
+                console.log(`🎯 Found first incomplete week for ${this.currentTeam}: ${week.label} (${week.id})`);
                 return week;
+            } else {
+                console.log(`✅ Week ${week.label} (${week.id}) already finalized for ${this.currentTeam}`);
             }
         }
         
