@@ -40,11 +40,36 @@ export default async function handler(req, res) {
                 "fallback": "Performance Report Chart"
             }];
         } else if (imageData) {
-            // For base64 image data (Team View)
-            slackPayload.attachments = [{
-                "image_url": `data:image/png;base64,${imageData}`,
-                "fallback": "Performance Report Chart"
-            }];
+            // For base64 image data, try uploading to freeimage.host
+            try {
+                console.log('📤 Uploading base64 image to temporary host...');
+                
+                const uploadResponse = await fetch('https://freeimage.host/api/1/upload', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `key=6d207e02198a847aa98d0a2a901485a5&source=${encodeURIComponent(imageData)}&format=json`
+                });
+                
+                if (uploadResponse.ok) {
+                    const uploadResult = await uploadResponse.json();
+                    if (uploadResult.status_code === 200 && uploadResult.image && uploadResult.image.url) {
+                        console.log('✅ Image uploaded successfully:', uploadResult.image.url);
+                        slackPayload.attachments = [{
+                            "image_url": uploadResult.image.url,
+                            "fallback": "Performance Report Chart"
+                        }];
+                    } else {
+                        console.log('⚠️ Image upload failed, sending text-only');
+                    }
+                } else {
+                    console.log('⚠️ Image upload service unavailable, sending text-only');
+                }
+            } catch (uploadError) {
+                console.error('❌ Error uploading image:', uploadError);
+                console.log('⚠️ Falling back to text-only report');
+            }
         }
 
         // Forward the request to Slack
