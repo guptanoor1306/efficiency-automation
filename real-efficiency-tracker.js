@@ -2965,126 +2965,127 @@ class RealEfficiencyTracker {
                         avgEfficiency: 78.99 // Average of all efficiency values
                     }
                 }
-            },
-            
-            // Pre-production team historical data
-            'preproduction': {
-                'August 2025': {
-                    isComplete: true,
-                    monthlyData: {
-                        'Vandit': { 
-                            weeks: [5.00, 0.00, 8.25, 6.00], 
-                            weeklyQualityRatings: [9, 9, 9, 9], // Quality rating provided for Pre-production team
-                            monthlyRating: 9, 
-                            target: 20, 
-                            totalOutput: 19.25, 
-                            workingDays: 20,
-                            efficiency: 96.25
-                        },
-                        'Bhavya Oberoi': { 
-                            weeks: [3.50, 3.50, 4.00, 6.50], 
-                            weeklyQualityRatings: [8, 8, 8, 8], // Quality rating provided for Pre-production team
-                            monthlyRating: 8, 
-                            target: 20, 
-                            totalOutput: 17.50, 
-                            workingDays: 20,
-                            efficiency: 87.50
-                        },
-                        'Abid': { 
-                            weeks: [4.00, 9.02, 4.52, 6.50], 
-                            weeklyQualityRatings: [10, 10, 10, 10], // Quality rating provided for Pre-production team
-                            monthlyRating: 10, 
-                            target: 20, 
-                            totalOutput: 24.03, 
-                            workingDays: 20,
-                            efficiency: 120.15
-                        },
-                        'Mudit': { 
-                            weeks: [5.00, 4.00, 7.50, 7.50], 
-                            weeklyQualityRatings: [10, 10, 10, 10], // Quality rating provided for Pre-production team
-                            monthlyRating: 10, 
-                            target: 20, 
-                            totalOutput: 24.00, 
-                            workingDays: 20,
-                            efficiency: 120.00
-                        },
-                        'Nikhil': { 
-                            weeks: [8.50, 10.52, 3.50, 5.25], 
-                            weeklyQualityRatings: [10, 10, 10, 10], // Quality rating provided for Pre-production team
-                            monthlyRating: 10, 
-                            target: 20, 
-                            totalOutput: 27.77, 
-                            workingDays: 20,
-                            efficiency: 138.83
-                        }
+            }
+        };
+        
+        // Pre-production team historical data
+        this.historicalData.preproduction = {
+            'August 2025': {
+                isComplete: true,
+                monthlyData: {
+                    'Vandit': { 
+                        weeks: [5.00, 0.00, 8.25, 6.00], 
+                        weeklyQualityRatings: [9, 9, 9, 9], // Quality rating provided for Pre-production team
+                        monthlyRating: 9, 
+                        target: 20, 
+                        totalOutput: 19.25, 
+                        workingDays: 20,
+                        efficiency: 96.25
                     },
-                    teamSummary: {
-                        totalMembers: 5,
-                        avgRating: 9.4, // Average: (9+8+10+10+10)/5 = 9.4
-                        totalOutput: 112.55, // Sum: 19.25+17.50+24.03+24.00+27.77
-                        totalWorkingDays: 100, // Sum: 20+20+20+20+20 = 100
-                        avgEfficiency: 112.53 // Average: (96.25+87.50+120.15+120.00+138.83)/5
+                    'Bhavya Oberoi': { 
+                        weeks: [3.50, 3.50, 4.00, 6.50], 
+                        weeklyQualityRatings: [8, 8, 8, 8], // Quality rating provided for Pre-production team
+                        monthlyRating: 8, 
+                        target: 20, 
+                        totalOutput: 17.50, 
+                        workingDays: 20,
+                        efficiency: 87.50
+                    },
+                    'Abid': { 
+                        weeks: [4.00, 9.02, 4.52, 6.50], 
+                        weeklyQualityRatings: [10, 10, 10, 10], // Quality rating provided for Pre-production team
+                        monthlyRating: 10, 
+                        target: 20, 
+                        totalOutput: 24.03, 
+                        workingDays: 20,
+                        efficiency: 120.15
+                    },
+                    'Mudit': { 
+                        weeks: [5.00, 4.00, 7.50, 7.50], 
+                        weeklyQualityRatings: [10, 10, 10, 10], // Quality rating provided for Pre-production team
+                        monthlyRating: 10, 
+                        target: 20, 
+                        totalOutput: 24.00, 
+                        workingDays: 20,
+                        efficiency: 120.00
+                    },
+                    'Nikhil': { 
+                        weeks: [8.50, 10.52, 3.50, 5.25], 
+                        weeklyQualityRatings: [10, 10, 10, 10], // Quality rating provided for Pre-production team
+                        monthlyRating: 10, 
+                        target: 20, 
+                        totalOutput: 27.77, 
+                        workingDays: 20,
+                        efficiency: 138.83
                     }
+                },
+                teamSummary: {
+                    totalMembers: 5,
+                    avgRating: 9.4, // Average: (9+8+10+10+10)/5 = 9.4
+                    totalOutput: 112.55, // Sum: 19.25+17.50+24.03+24.00+27.77
+                    totalWorkingDays: 100, // Sum: 20+20+20+20+20 = 100
+                    avgEfficiency: 112.53 // Average: (96.25+87.50+120.15+120.00+138.83)/5
                 }
-            },
-            
-            'content': {
-                'August 2025': {
-                    isComplete: true,
-                    monthlyData: {
-                        'Nishita': { 
-                            weeks: [2.84, 2.84, 5.94, 5.15], 
-                            weeklyQualityRatings: [0, 0, 0, 0], // No quality rating for Content team
-                            monthlyRating: 0, // No quality rating for Content team
-                            target: 16, 
-                            totalOutput: 16.76, 
-                            workingDays: 16,
-                            efficiency: 104.75
-                        },
-                        'Akshat Mandalgi': { 
-                            weeks: [2.84, 2.84, 5.10, 5.34], 
-                            weeklyQualityRatings: [0, 0, 0, 0], // No quality rating for Content team
-                            monthlyRating: 0, // No quality rating for Content team
-                            target: 15, 
-                            totalOutput: 16.12, 
-                            workingDays: 15,
-                            efficiency: 107.47
-                        },
-                        'Urvish': { 
-                            weeks: [2.93, 2.93, 5.60, 6.08], 
-                            weeklyQualityRatings: [0, 0, 0, 0], // No quality rating for Content team
-                            monthlyRating: 0, // No quality rating for Content team
-                            target: 15, 
-                            totalOutput: 17.53, 
-                            workingDays: 15,
-                            efficiency: 116.87
-                        },
-                        'Meghna': { 
-                            weeks: [2.25, 2.25, 4.40, 6.25], 
-                            weeklyQualityRatings: [0, 0, 0, 0], // No quality rating for Content team
-                            monthlyRating: 0, // No quality rating for Content team
-                            target: 15, 
-                            totalOutput: 15.14, 
-                            workingDays: 15,
-                            efficiency: 100.93
-                        },
-                        'Shuchita': { 
-                            weeks: [3.38, 3.38, 5.56, 6.13], 
-                            weeklyQualityRatings: [0, 0, 0, 0], // No quality rating for Content team
-                            monthlyRating: 0, // No quality rating for Content team
-                            target: 14, 
-                            totalOutput: 18.45, 
-                            workingDays: 14,
-                            efficiency: 131.79
-                        }
+            }
+        };
+        
+        // Content team historical data
+        this.historicalData.content = {
+            'August 2025': {
+                isComplete: true,
+                monthlyData: {
+                    'Nishita': { 
+                        weeks: [2.84, 2.84, 5.94, 5.15], 
+                        weeklyQualityRatings: [0, 0, 0, 0], // No quality rating for Content team
+                        monthlyRating: 0, // No quality rating for Content team
+                        target: 16, 
+                        totalOutput: 16.76, 
+                        workingDays: 16,
+                        efficiency: 104.75
                     },
-                    teamSummary: {
-                        totalMembers: 5,
-                        avgRating: 0, // No quality rating for Content team
-                        totalOutput: 84.00, // Sum: 16.76+16.12+17.53+15.14+18.45
-                        totalWorkingDays: 75, // Sum: 16+15+15+15+14 = 75
-                        avgEfficiency: 112.16 // Average: (104.75+107.47+116.87+100.93+131.79)/5
+                    'Akshat Mandalgi': { 
+                        weeks: [2.84, 2.84, 5.10, 5.34], 
+                        weeklyQualityRatings: [0, 0, 0, 0], // No quality rating for Content team
+                        monthlyRating: 0, // No quality rating for Content team
+                        target: 15, 
+                        totalOutput: 16.12, 
+                        workingDays: 15,
+                        efficiency: 107.47
+                    },
+                    'Urvish': { 
+                        weeks: [2.93, 2.93, 5.60, 6.08], 
+                        weeklyQualityRatings: [0, 0, 0, 0], // No quality rating for Content team
+                        monthlyRating: 0, // No quality rating for Content team
+                        target: 15, 
+                        totalOutput: 17.53, 
+                        workingDays: 15,
+                        efficiency: 116.87
+                    },
+                    'Meghna': { 
+                        weeks: [2.25, 2.25, 4.40, 6.25], 
+                        weeklyQualityRatings: [0, 0, 0, 0], // No quality rating for Content team
+                        monthlyRating: 0, // No quality rating for Content team
+                        target: 15, 
+                        totalOutput: 15.14, 
+                        workingDays: 15,
+                        efficiency: 100.93
+                    },
+                    'Shuchita': { 
+                        weeks: [3.38, 3.38, 5.56, 6.13], 
+                        weeklyQualityRatings: [0, 0, 0, 0], // No quality rating for Content team
+                        monthlyRating: 0, // No quality rating for Content team
+                        target: 14, 
+                        totalOutput: 18.45, 
+                        workingDays: 14,
+                        efficiency: 131.79
                     }
+                },
+                teamSummary: {
+                    totalMembers: 5,
+                    avgRating: 0, // No quality rating for Content team
+                    totalOutput: 84.00, // Sum: 16.76+16.12+17.53+15.14+18.45
+                    totalWorkingDays: 75, // Sum: 16+15+15+15+14 = 75
+                    avgEfficiency: 112.16 // Average: (104.75+107.47+116.87+100.93+131.79)/5
                 }
             }
         };

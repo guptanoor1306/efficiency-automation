@@ -417,13 +417,8 @@
             <div style="display: flex; align-items: center; justify-content: center; gap: 20px;">
                 <div class="logo-container" style="display: flex; align-items: center; gap: 15px;">
                     <!-- LearnApp Logo -->
-                    <img id="learnapp-logo" src="./learnapp-logo.png" 
-                         alt="LearnApp Logo" 
-                         style="width: 60px; height: 60px; border-radius: 12px; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3); object-fit: contain; background: white;"
-                         onload="console.log('✅ Logo loaded successfully')"
-                         onerror="console.error('❌ Logo failed to load:', this.src); this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                    <!-- Fallback if logo fails to load -->
-                    <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; display: none; align-items: center; justify-content: center; color: white; font-size: 20px; font-weight: bold; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
+                    <!-- LearnApp Logo - using fallback directly -->
+                    <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px; font-weight: bold; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
                         LA
                     </div>
                     <div>
