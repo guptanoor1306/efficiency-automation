@@ -15,8 +15,8 @@ class RealEfficiencyTracker {
         this.getFilteredWeeks = () => {
             let weeks = this.weekSystem.getWeeksForSelector();
             
-            // For Tech, Product, and Pre-production teams, only return weeks from September 2025 onwards
-            if (this.currentTeam === 'tech' || this.currentTeam === 'product' || this.currentTeam === 'preproduction') {
+            // For Tech, Product, Pre-production, and Content teams, only return weeks from September 2025 onwards
+            if (this.currentTeam === 'tech' || this.currentTeam === 'product' || this.currentTeam === 'preproduction' || this.currentTeam === 'content') {
                 weeks = weeks.filter(week => {
                     // Parse monthYear string (e.g., "September 2025")
                     const [monthName, yearStr] = week.monthYear.split(' ');
@@ -234,6 +234,40 @@ class RealEfficiencyTracker {
             'No PS Shoots': ['no_ps_indoor', 'no_ps_outdoor'],
             'Post-Production': ['intro_editing', 'storyboard']
         };
+
+        // Content team work types (category-based structure)
+        this.contentWorkTypes = {
+            // Shorts
+            'shorts_topics': { level: 'Shorts', name: 'Topics', perDay: 10 },
+            'shorts_og_script': { level: 'Shorts', name: 'OG Script', perDay: 3 },
+            'shorts_rp_script': { level: 'Shorts', name: 'RP Script', perDay: 4 },
+            'shorts_shoot': { level: 'Shorts', name: 'Shoot', perDay: 5 },
+            'shorts_review': { level: 'Shorts', name: 'Review', perDay: 14 },
+            'shorts_comments_community': { level: 'Shorts', name: 'Comments & Community Posts', perDay: 25 },
+            'shorts_retro': { level: 'Shorts', name: 'Retro', perDay: 10 },
+            
+            // Long-form
+            'lf_topic_research': { level: 'Long-form', name: 'Topic Research', perDay: 20 },
+            'lf_wordcloud_pov': { level: 'Long-form', name: 'Wordcloud & POV', perDay: 2 },
+            'lf_pov_v2': { level: 'Long-form', name: 'POV V2', perDay: 4 },
+            'lf_script_outline': { level: 'Long-form', name: 'Script Outline', perDay: 0.66 },
+            'lf_script_writing': { level: 'Long-form', name: 'Script Writing', perDay: 0.5 },
+            'lf_script_writing_v2': { level: 'Long-form', name: 'Script Writing V2', perDay: 1 },
+            'lf_visual_direction': { level: 'Long-form', name: 'Visual Direction', perDay: 2 },
+            'lf_shoot': { level: 'Long-form', name: 'Shoot', perDay: 2 },
+            'lf_storyboarding': { level: 'Long-form', name: 'Storyboarding', perDay: 1 },
+            'lf_video_review_changes': { level: 'Long-form', name: 'Video Review & Changes', perDay: 1 },
+            'lf_launch_doc': { level: 'Long-form', name: 'Launch Doc', perDay: 4 },
+            'lf_comments_comm_post': { level: 'Long-form', name: 'Comments & Comm Post', perDay: 25 },
+            'lf_retro': { level: 'Long-form', name: 'Retro', perDay: 2 },
+            'lf_interview_ass_rev': { level: 'Long-form', name: 'Interview Ass+ Rev/ Ext Feedback', perDay: 2 }
+        };
+
+        // Content team level mapping (category-based)
+        this.contentLevelMapping = {
+            'Shorts': ['shorts_topics', 'shorts_og_script', 'shorts_rp_script', 'shorts_shoot', 'shorts_review', 'shorts_comments_community', 'shorts_retro'],
+            'Long-form': ['lf_topic_research', 'lf_wordcloud_pov', 'lf_pov_v2', 'lf_script_outline', 'lf_script_writing', 'lf_script_writing_v2', 'lf_visual_direction', 'lf_shoot', 'lf_storyboarding', 'lf_video_review_changes', 'lf_launch_doc', 'lf_comments_comm_post', 'lf_retro', 'lf_interview_ass_rev']
+        };
         
         // Current team selection
         this.currentTeam = 'b2b'; // Default to B2B team
@@ -444,6 +478,25 @@ class RealEfficiencyTracker {
                 ],
                 workLevels: this.preproductionLevelMapping,
                 sheetRange: 'Preproduction - 2025!A1:BT1000'
+            },
+            content: {
+                name: 'Content Team',
+                members: [
+                    { name: 'Nishita' },
+                    { name: 'Akshat' },
+                    { name: 'Urvish' },
+                    { name: 'Meghna' },
+                    { name: 'Shuchita' }
+                ],
+                historicalMembers: [
+                    { name: 'Nishita' },
+                    { name: 'Akshat' },
+                    { name: 'Urvish' },
+                    { name: 'Meghna' },
+                    { name: 'Shuchita' }
+                ],
+                workLevels: this.contentLevelMapping,
+                sheetRange: 'Content - 2025!A1:BT1000'
             }
         };
 
@@ -2912,6 +2965,66 @@ class RealEfficiencyTracker {
                         avgEfficiency: 78.99 // Average of all efficiency values
                     }
                 }
+            },
+            
+            'content': {
+                'August 2025': {
+                    isComplete: true,
+                    monthlyData: {
+                        'Nishita': { 
+                            weeks: [2.84, 2.84, 5.94, 5.15], 
+                            weeklyQualityRatings: [0, 0, 0, 0], // No quality rating for Content team
+                            monthlyRating: 0, // No quality rating for Content team
+                            target: 16, 
+                            totalOutput: 16.76, 
+                            workingDays: 16,
+                            efficiency: 104.75
+                        },
+                        'Akshat': { 
+                            weeks: [2.84, 2.84, 5.10, 5.34], 
+                            weeklyQualityRatings: [0, 0, 0, 0], // No quality rating for Content team
+                            monthlyRating: 0, // No quality rating for Content team
+                            target: 15, 
+                            totalOutput: 16.12, 
+                            workingDays: 15,
+                            efficiency: 107.47
+                        },
+                        'Urvish': { 
+                            weeks: [2.93, 2.93, 5.60, 6.08], 
+                            weeklyQualityRatings: [0, 0, 0, 0], // No quality rating for Content team
+                            monthlyRating: 0, // No quality rating for Content team
+                            target: 15, 
+                            totalOutput: 17.53, 
+                            workingDays: 15,
+                            efficiency: 116.87
+                        },
+                        'Meghna': { 
+                            weeks: [2.25, 2.25, 4.40, 6.25], 
+                            weeklyQualityRatings: [0, 0, 0, 0], // No quality rating for Content team
+                            monthlyRating: 0, // No quality rating for Content team
+                            target: 15, 
+                            totalOutput: 15.14, 
+                            workingDays: 15,
+                            efficiency: 100.93
+                        },
+                        'Shuchita': { 
+                            weeks: [3.38, 3.38, 5.56, 6.13], 
+                            weeklyQualityRatings: [0, 0, 0, 0], // No quality rating for Content team
+                            monthlyRating: 0, // No quality rating for Content team
+                            target: 14, 
+                            totalOutput: 18.45, 
+                            workingDays: 14,
+                            efficiency: 131.79
+                        }
+                    },
+                    teamSummary: {
+                        totalMembers: 5,
+                        avgRating: 0, // No quality rating for Content team
+                        totalOutput: 84.00, // Sum: 16.76+16.12+17.53+15.14+18.45
+                        totalWorkingDays: 75, // Sum: 16+15+15+15+14 = 75
+                        avgEfficiency: 112.16 // Average: (104.75+107.47+116.87+100.93+131.79)/5
+                    }
+                }
             }
         };
         
@@ -3028,7 +3141,7 @@ class RealEfficiencyTracker {
             console.log('📊 Loading all finalized weeks from Supabase...');
             
             // Get all teams - map display IDs to storage IDs for Supabase
-            const allTeams = ['b2b', 'varsity', 'zero1_bratish', 'zero1_harish', 'audio', 'shorts', 'graphics', 'tech', 'product', 'preproduction'];
+            const allTeams = ['b2b', 'varsity', 'zero1_bratish', 'zero1_harish', 'audio', 'shorts', 'graphics', 'tech', 'product', 'preproduction', 'content'];
             const teamStorageMapping = {
                 'zero1_bratish': 'zero1',
                 'zero1_harish': 'harish',
@@ -3039,7 +3152,8 @@ class RealEfficiencyTracker {
                 'graphics': 'graphics',
                 'tech': 'tech',
                 'product': 'product',
-                'preproduction': 'preproduction'
+                'preproduction': 'preproduction',
+                'content': 'content'
             };
             
             // Clear existing finalized reports to rebuild from Supabase data only
@@ -3825,8 +3939,8 @@ class RealEfficiencyTracker {
         
         let weeks = this.weekSystem.getWeeksForSelector();
         
-        // For Tech, Product, and Pre-production teams, only show weeks from September 2025 onwards
-        if (this.currentTeam === 'tech' || this.currentTeam === 'product' || this.currentTeam === 'preproduction') {
+        // For Tech, Product, Pre-production, and Content teams, only show weeks from September 2025 onwards
+        if (this.currentTeam === 'tech' || this.currentTeam === 'product' || this.currentTeam === 'preproduction' || this.currentTeam === 'content') {
             weeks = weeks.filter(week => {
                 // Parse monthYear string (e.g., "September 2025")
                 const [monthName, yearStr] = week.monthYear.split(' ');
@@ -4253,6 +4367,9 @@ class RealEfficiencyTracker {
         } else if (this.currentTeam === 'preproduction') {
             workTypes = this.preproductionWorkTypes;
             levelMapping = this.preproductionLevelMapping;
+        } else if (this.currentTeam === 'content') {
+            workTypes = this.contentWorkTypes;
+            levelMapping = this.contentLevelMapping;
         } else {
             workTypes = this.workTypes; // B2B uses original types
             levelMapping = this.levelMapping;
@@ -4277,8 +4394,8 @@ class RealEfficiencyTracker {
             `<th>${workTypes[workTypeKey].name}</th>`
         ).join('');
         
-        // Hide rating column for Tech and Product teams
-        const ratingColumn = (this.currentTeam === 'tech' || this.currentTeam === 'product') ? '' : '<th rowspan="2">Weekly Rating</th>';
+        // Hide rating column for Tech, Product, and Content teams
+        const ratingColumn = (this.currentTeam === 'tech' || this.currentTeam === 'product' || this.currentTeam === 'content') ? '' : '<th rowspan="2">Weekly Rating</th>';
         // Add Target Points column for Tech team only
         const targetPointsColumn = (this.currentTeam === 'tech') ? '<th rowspan="2">Target Points</th>' : '';
         
@@ -4336,6 +4453,8 @@ class RealEfficiencyTracker {
             workTypes = this.productWorkTypes;
         } else if (this.currentTeam === 'preproduction') {
             workTypes = this.preproductionWorkTypes;
+        } else if (this.currentTeam === 'content') {
+            workTypes = this.contentWorkTypes;
         } else {
             workTypes = this.workTypes; // B2B uses original types
         }
@@ -4351,8 +4470,8 @@ class RealEfficiencyTracker {
                 `<td><input type="number" class="level-input" data-member="${memberName}" data-work="${workTypeKey}" step="0.1" min="0"></td>`
             ).join('');
             
-            // Hide rating column for Tech and Product teams
-            const ratingCell = (this.currentTeam === 'tech' || this.currentTeam === 'product') ? '' : `
+            // Hide rating column for Tech, Product, and Content teams
+            const ratingCell = (this.currentTeam === 'tech' || this.currentTeam === 'product' || this.currentTeam === 'content') ? '' : `
                 <td>
                     <select class="weekly-rating-input" data-member="${memberName}" 
                             style="width: 80px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; text-align: center;">
@@ -4483,6 +4602,8 @@ class RealEfficiencyTracker {
             teamWorkTypes = this.productWorkTypes;
         } else if (this.currentTeam === 'preproduction') {
             teamWorkTypes = this.preproductionWorkTypes;
+        } else if (this.currentTeam === 'content') {
+            teamWorkTypes = this.contentWorkTypes;
         } else {
             teamWorkTypes = this.workTypes; // B2B uses original types
         }
@@ -4604,6 +4725,8 @@ class RealEfficiencyTracker {
                 teamWorkTypes = this.productWorkTypes;
         } else if (this.currentTeam === 'preproduction') {
             teamWorkTypes = this.preproductionWorkTypes;
+        } else if (this.currentTeam === 'content') {
+            teamWorkTypes = this.contentWorkTypes;
         } else {
             teamWorkTypes = this.workTypes; // B2B uses original types
         }
@@ -5054,6 +5177,8 @@ class RealEfficiencyTracker {
             teamWorkTypes = this.productWorkTypes;
         } else if (this.currentTeam === 'preproduction') {
             teamWorkTypes = this.preproductionWorkTypes;
+        } else if (this.currentTeam === 'content') {
+            teamWorkTypes = this.contentWorkTypes;
         } else {
             teamWorkTypes = this.workTypes; // B2B uses original types
         }
@@ -5128,6 +5253,8 @@ class RealEfficiencyTracker {
             teamWorkTypes = this.productWorkTypes;
         } else if (this.currentTeam === 'preproduction') {
             teamWorkTypes = this.preproductionWorkTypes;
+        } else if (this.currentTeam === 'content') {
+            teamWorkTypes = this.contentWorkTypes;
         } else {
             teamWorkTypes = this.workTypes; // B2B uses original types
         }
@@ -6331,18 +6458,20 @@ class RealEfficiencyTracker {
                 teamWorkTypes = this.productWorkTypes;
             } else if (this.currentTeam === 'preproduction') {
                 teamWorkTypes = this.preproductionWorkTypes;
+            } else if (this.currentTeam === 'content') {
+                teamWorkTypes = this.contentWorkTypes;
             } else {
                 teamWorkTypes = this.workTypes; // B2B uses original types
             }
             
             if (this.currentTeam === 'tech' || this.currentTeam === 'product') {
                 // For Tech/Product teams: use raw values (story points)
-                Object.keys(teamWorkTypes).forEach(workType => {
-                    const input = document.querySelector(`[data-member="${memberName}"][data-work="${workType}"]`);
-                    if (input && input.value) {
-                        memberOutput += parseFloat(input.value) || 0;
-                    }
-                });
+            Object.keys(teamWorkTypes).forEach(workType => {
+                const input = document.querySelector(`[data-member="${memberName}"][data-work="${workType}"]`);
+                if (input && input.value) {
+                    memberOutput += parseFloat(input.value) || 0;
+                }
+            });
             } else {
                 // For other teams: convert to days equivalent
                 Object.keys(teamWorkTypes).forEach(workType => {
@@ -6562,7 +6691,7 @@ class RealEfficiencyTracker {
                             <tr>
                                 <td style="padding: 6px; border: 1px solid #dee2e6;">${member?.name || 'Unknown'}</td>
                                 <td style="padding: 6px; border: 1px solid #dee2e6; text-align: center;">${(member?.output || 0).toFixed(2)}</td>
-                                ${(this.currentTeam === 'tech' || this.currentTeam === 'product') ? '' : `<td style="padding: 6px; border: 1px solid #dee2e6; text-align: center;">${member?.rating || 0}/10</td>`}
+                                ${(this.currentTeam === 'tech' || this.currentTeam === 'product' || this.currentTeam === 'content') ? '' : `<td style="padding: 6px; border: 1px solid #dee2e6; text-align: center;">${member?.rating || 0}/10</td>`}
                                 <td style="padding: 6px; border: 1px solid #dee2e6; text-align: center; color: ${(member?.efficiency || 0) >= 90 ? '#28a745' : (member?.efficiency || 0) >= 70 ? '#ffc107' : '#dc3545'};">${(member?.efficiency || 0).toFixed(1)}%</td>
                                 <td style="padding: 6px; border: 1px solid #dee2e6; text-align: center;">${member?.workingDays || 0}</td>
                             </tr>
@@ -8184,6 +8313,8 @@ class RealEfficiencyTracker {
             teamWorkTypes = this.productWorkTypes;
         } else if (this.currentTeam === 'preproduction') {
             teamWorkTypes = this.preproductionWorkTypes;
+        } else if (this.currentTeam === 'content') {
+            teamWorkTypes = this.contentWorkTypes;
         } else {
             teamWorkTypes = this.workTypes; // B2B uses original types
         }
@@ -9508,12 +9639,12 @@ class RealEfficiencyTracker {
                         } catch (error) {
                             console.error(`❌ Error recalculating efficiency for ${memberName}:`, error);
                         }
-                    } else if (this.currentTeam === 'preproduction') {
-                        // For Pre-production team, recalculate efficiency from fresh Supabase data
-                        console.log(`🔄 Recalculating Pre-production efficiency for ${memberName} in ${weekId}`);
+                    } else if (this.currentTeam === 'preproduction' || this.currentTeam === 'content') {
+                        // For Pre-production and Content teams, recalculate efficiency from fresh Supabase data
+                        console.log(`🔄 Recalculating ${this.currentTeam} efficiency for ${memberName} in ${weekId}`);
                         try {
                             // Get fresh data from Supabase for this member and week
-                            const supabaseData = await this.supabaseAPI.loadWeekData('preproduction', weekId);
+                            const supabaseData = await this.supabaseAPI.loadWeekData(this.currentTeam, weekId);
                             const memberEntry = supabaseData?.find(entry => entry.member_name === memberName);
                             
                             if (memberEntry && memberEntry.work_type_data) {
@@ -9523,6 +9654,8 @@ class RealEfficiencyTracker {
                                 
                                 // Calculate total days equivalent from work type data
                                 let totalDaysEquivalent = 0;
+                                const teamWorkTypes = this.currentTeam === 'preproduction' ? this.preproductionWorkTypes : this.contentWorkTypes;
+                                
                                 Object.keys(memberEntry.work_type_data).forEach(workType => {
                                     const dailyData = memberEntry.work_type_data[workType];
                                     if (dailyData && typeof dailyData === 'object') {
@@ -9530,7 +9663,7 @@ class RealEfficiencyTracker {
                                         const totalWork = Object.values(dailyData).reduce((sum, val) => sum + (parseFloat(val) || 0), 0);
                                         
                                         // Convert to days equivalent using perDay rate
-                                        const perDay = this.preproductionWorkTypes[workType]?.perDay || 1;
+                                        const perDay = teamWorkTypes[workType]?.perDay || 1;
                                         if (perDay > 0) {
                                             totalDaysEquivalent += totalWork / perDay;
                                         }
@@ -9540,7 +9673,7 @@ class RealEfficiencyTracker {
                                 // Calculate correct efficiency: (total_days_equivalent / effective_working_days) * 100
                                 correctEfficiency = effectiveWorkingDays > 0 ? (totalDaysEquivalent / effectiveWorkingDays) * 100 : 0;
                                 
-                                console.log(`✅ Person View Pre-production: ${memberName} = ${totalDaysEquivalent.toFixed(2)} days / ${effectiveWorkingDays} days = ${correctEfficiency.toFixed(1)}%`);
+                                console.log(`✅ Person View ${this.currentTeam}: ${memberName} = ${totalDaysEquivalent.toFixed(2)} days / ${effectiveWorkingDays} days = ${correctEfficiency.toFixed(1)}%`);
                             }
                         } catch (error) {
                             console.error(`❌ Error recalculating efficiency for ${memberName}:`, error);
@@ -9738,7 +9871,7 @@ class RealEfficiencyTracker {
                         ${data.output.toFixed(1)}${this.currentTeam === 'tech' || this.currentTeam === 'product' ? 'pts' : 'd'}
                     </div>
                     <div style="width: 40px; font-size: 10px; color: #666; flex-shrink: 0; text-align: center;">
-                        ${(this.currentTeam === 'tech' || this.currentTeam === 'product') ? '-' : data.rating + '/10'}
+                        ${(this.currentTeam === 'tech' || this.currentTeam === 'product' || this.currentTeam === 'content') ? '-' : data.rating + '/10'}
                     </div>
                 </div>
             `;
@@ -9967,7 +10100,7 @@ class RealEfficiencyTracker {
 
     setupTeamFilters() {
         const teamFiltersContainer = document.getElementById('team-filters');
-        const allTeams = ['b2b', 'varsity', 'zero1_bratish', 'zero1_harish', 'audio', 'shorts', 'graphics', 'tech', 'product', 'preproduction'];
+        const allTeams = ['b2b', 'varsity', 'zero1_bratish', 'zero1_harish', 'audio', 'shorts', 'graphics', 'tech', 'product', 'preproduction', 'content'];
         
         const teamDisplayNames = {
             'b2b': 'B2B Team',
@@ -9979,7 +10112,8 @@ class RealEfficiencyTracker {
             'graphics': 'Graphics Team',
             'tech': 'Tech Team',
             'product': 'Product Team',
-            'preproduction': 'Pre-production Team'
+            'preproduction': 'Pre-production Team',
+            'content': 'Content Team'
         };
         
         teamFiltersContainer.innerHTML = '';
@@ -10161,7 +10295,8 @@ class RealEfficiencyTracker {
                 'graphics': 'graphics',
                 'tech': 'tech',
                 'product': 'product',
-                'preproduction': 'preproduction'
+                'preproduction': 'preproduction',
+                'content': 'content'
             };
             
             const historicalKey = teamMapping[teamId] || teamId;
@@ -10210,7 +10345,8 @@ class RealEfficiencyTracker {
             'graphics': 'graphics',
             'tech': 'tech',
             'product': 'product',
-            'preproduction': 'preproduction'
+            'preproduction': 'preproduction',
+            'content': 'content'
         };
         
         const configKey = teamMapping[teamId] || teamId;
@@ -10226,7 +10362,7 @@ class RealEfficiencyTracker {
 
     getSelectedTeams() {
         const selectedTeams = [];
-        const allTeams = ['b2b', 'varsity', 'zero1_bratish', 'zero1_harish', 'audio', 'shorts', 'graphics', 'tech', 'product', 'preproduction'];
+        const allTeams = ['b2b', 'varsity', 'zero1_bratish', 'zero1_harish', 'audio', 'shorts', 'graphics', 'tech', 'product', 'preproduction', 'content'];
         
         allTeams.forEach(teamId => {
             const checkbox = document.getElementById(`team-filter-${teamId}`);
@@ -10249,7 +10385,8 @@ class RealEfficiencyTracker {
             'graphics': 'Graphics',
             'tech': 'Tech',
             'product': 'Product',
-            'preproduction': 'Pre-production'
+            'preproduction': 'Pre-production',
+            'content': 'Content'
         };
         return displayNames[teamId] || teamId;
     }
@@ -10297,7 +10434,8 @@ class RealEfficiencyTracker {
             'graphics': 'graphics',
             'tech': 'tech',
             'product': 'product',
-            'preproduction': 'preproduction'
+            'preproduction': 'preproduction',
+            'content': 'content'
         };
         
         const historicalKey = teamMapping[teamId] || teamId;
@@ -10366,7 +10504,8 @@ class RealEfficiencyTracker {
             'graphics': 'graphics',
             'tech': 'tech',
             'product': 'product',
-            'preproduction': 'preproduction'
+            'preproduction': 'preproduction',
+            'content': 'content'
         };
         
         const reportKey = teamMapping[teamId] || teamId;
