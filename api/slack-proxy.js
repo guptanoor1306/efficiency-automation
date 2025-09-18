@@ -11,7 +11,7 @@ export default async function handler(req, res) {
 
     try {
         // Get the Slack webhook URL and message data from the request
-        const { webhookUrl, messageData } = req.body;
+        const { webhookUrl, messageData, imageUrl, imageData } = req.body;
 
         // Validate required fields
         if (!webhookUrl || !messageData) {
@@ -28,6 +28,24 @@ export default async function handler(req, res) {
         }
 
         console.log('📤 Forwarding request to Slack webhook...');
+        
+        // Prepare Slack payload with image support
+        let slackPayload = { ...messageData };
+        
+        // Add image attachment if provided
+        if (imageUrl) {
+            // For image URLs (like Imgur links)
+            slackPayload.attachments = [{
+                "image_url": imageUrl,
+                "fallback": "Performance Report Chart"
+            }];
+        } else if (imageData) {
+            // For base64 image data (Team View)
+            slackPayload.attachments = [{
+                "image_url": `data:image/png;base64,${imageData}`,
+                "fallback": "Performance Report Chart"
+            }];
+        }
 
         // Forward the request to Slack
         const slackResponse = await fetch(webhookUrl, {
@@ -35,7 +53,7 @@ export default async function handler(req, res) {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(messageData)
+            body: JSON.stringify(slackPayload)
         });
 
         // Check if Slack request was successful

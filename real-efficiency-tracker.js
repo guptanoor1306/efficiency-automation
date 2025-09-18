@@ -11145,6 +11145,42 @@ class RealEfficiencyTracker {
         console.log('🗑️ Slack webhook URL cleared from localStorage');
     }
 
+    // Upload image to Imgur for Slack sharing
+    async uploadImageToImgur(base64Image) {
+        try {
+            const formData = new FormData();
+            formData.append('image', base64Image);
+            formData.append('type', 'base64');
+
+            const response = await fetch('https://api.imgur.com/3/image', {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Client-ID 546c25a59c58ad7' // Anonymous upload client ID
+                },
+                body: formData
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success && data.data && data.data.link) {
+                    console.log('✅ Image uploaded to Imgur:', data.data.link);
+                    return data.data.link;
+                } else {
+                    console.error('❌ Imgur API returned unsuccessful response:', data);
+                    return null;
+                }
+            } else {
+                console.error('❌ Imgur upload failed with status:', response.status);
+                const errorText = await response.text();
+                console.error('❌ Imgur error response:', errorText);
+                return null;
+            }
+        } catch (error) {
+            console.error('❌ Error uploading to Imgur:', error);
+            return null;
+        }
+    }
+
     async sendWeeklyReportToSlack() {
         if (!this.slackWebhookUrl) {
             this.promptForSlackWebhook();
@@ -11313,7 +11349,7 @@ class RealEfficiencyTracker {
 
         // Handle different call signatures
         if (typeof summaryTextOrBlob === 'string' && (typeof base64ImageOrReportType === 'string' || base64ImageOrReportType === null)) {
-            // Company View: sendToSlack(summary, base64Image) or sendToSlack(summary, null)
+            // Company View: sendToSlack(summary, imageUrl) or sendToSlack(summary, null)
             messageText = summaryTextOrBlob;
             imageData = base64ImageOrReportType;
             } else if (summaryData) {
@@ -11355,7 +11391,8 @@ class RealEfficiencyTracker {
                 },
                 body: JSON.stringify({
                     webhookUrl: this.slackWebhookUrl,
-                    messageData: payload
+                    messageData: payload,
+                    imageUrl: imageData // Pass image URL (Company View) or base64 data (Team View)
                 })
             });
 
@@ -11449,16 +11486,25 @@ class RealEfficiencyTracker {
                 height: companyContent.scrollHeight
             });
 
+            // Convert canvas to base64
+            const base64Image = canvas.toDataURL('image/png').split(',')[1];
+            
             // Generate company summary for Slack
             const summary = this.generateCompanySummaryForSlack(periodType, periodSelect);
             
-            // Note: Slack webhooks don't support image attachments directly
-            // For now, we'll send a detailed text report
-            // Future enhancement: Upload image to a service and include URL
+            // Upload image to Imgur and send to Slack
+            this.showMessage('📤 Uploading image to Imgur...', 'info');
+            const imageUrl = await this.uploadImageToImgur(base64Image);
             
-            // Send to Slack (text only for now)
-            await this.sendToSlack(summary, null);
-            this.showMessage('✅ Company report sent to Slack successfully!', 'success');
+            if (imageUrl) {
+                this.showMessage('📤 Sending report with image to Slack...', 'info');
+                await this.sendToSlack(summary, imageUrl);
+                this.showMessage('✅ Company report with image sent to Slack successfully!', 'success');
+            } else {
+                this.showMessage('⚠️ Image upload failed, sending text-only report...', 'warning');
+                await this.sendToSlack(summary, null);
+                this.showMessage('✅ Company report sent to Slack (text only)', 'success');
+            }
 
         } catch (error) {
             console.error('❌ Error sending company report:', error);
