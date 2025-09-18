@@ -11301,18 +11301,40 @@ class RealEfficiencyTracker {
         };
     }
 
-    async sendToSlack(imageBlob, reportType, summaryData) {
+    async sendToSlack(summaryTextOrBlob, base64ImageOrReportType, summaryData = null) {
         try {
-            // Create message text with full team listing
-            const emoji = reportType === 'weekly' ? '📊' : '📈';
-            const messageText = `${emoji} *${summaryData.teamName} - ${reportType.charAt(0).toUpperCase() + reportType.slice(1)} Report*\n` +
-                               `📅 Period: ${summaryData.period}\n` +
-                               `📋 Summary: ${summaryData.summary}\n\n` +
-                               `*Team Performance (Highest to Lowest):*\n` +
-                               summaryData.members.map((member, index) => {
-                                   const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '▪️';
-                                   return `${medal} ${member.name}: ${member.efficiency.toFixed(1)}%`;
-                               }).join('\n');
+            let messageText;
+            let imageData;
+
+            // Handle different call signatures
+            if (typeof summaryTextOrBlob === 'string' && typeof base64ImageOrReportType === 'string') {
+                // Company View: sendToSlack(summary, base64Image)
+                messageText = summaryTextOrBlob;
+                imageData = base64ImageOrReportType;
+            } else if (summaryData) {
+                // Team View: sendToSlack(blob, reportType, summaryData)
+                const reportType = base64ImageOrReportType;
+                const emoji = reportType === 'weekly' ? '📊' : '📈';
+                messageText = `${emoji} *${summaryData.teamName} - ${reportType.charAt(0).toUpperCase() + reportType.slice(1)} Report*\n` +
+                             `📅 Period: ${summaryData.period}\n` +
+                             `📋 Summary: ${summaryData.summary}\n\n` +
+                             `*Team Performance (Highest to Lowest):*\n` +
+                             summaryData.members.map((member, index) => {
+                                 const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '▪️';
+                                 return `${medal} ${member.name}: ${member.efficiency.toFixed(1)}%`;
+                             }).join('\n');
+                
+                // Convert blob to base64 for team view
+                if (summaryTextOrBlob instanceof Blob) {
+                    const reader = new FileReader();
+                    imageData = await new Promise(resolve => {
+                        reader.onload = () => resolve(reader.result.split(',')[1]);
+                        reader.readAsDataURL(summaryTextOrBlob);
+                    });
+                }
+            } else {
+                throw new Error('Invalid parameters for sendToSlack function');
+            }
 
             const payload = {
                 text: messageText,
