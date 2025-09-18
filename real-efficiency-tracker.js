@@ -4151,10 +4151,12 @@ class RealEfficiencyTracker {
         const saveButton = document.querySelector('button[onclick="tracker.saveWeekData()"]');
         const finalizeButton = document.querySelector('button[onclick="tracker.finalizeWeeklyReport()"]');
         
-        console.log(`Checking Week ${weekKey}:`);
-        console.log(`All finalized reports for ${this.currentTeam}:`, Object.keys(teamFinalizedReports));
-        console.log(`Week ${weekKey} finalization status:`, isFinalized);
-        console.log('Finalized data:', teamFinalizedReports[weekKey] || 'No finalized data');
+        console.log(`🔍 Checking Week ${weekKey} for team ${this.currentTeam}:`);
+        console.log(`📊 All finalized reports structure:`, this.finalizedReports);
+        console.log(`📋 Team finalized reports for ${this.currentTeam}:`, teamFinalizedReports);
+        console.log(`📅 Available weeks for ${this.currentTeam}:`, Object.keys(teamFinalizedReports));
+        console.log(`✅ Week ${weekKey} finalization status:`, isFinalized);
+        console.log('📝 Finalized data:', teamFinalizedReports[weekKey] || 'No finalized data');
         
         if (isFinalized) {
             // Use the standard finalization display (hide buttons, show summary)
