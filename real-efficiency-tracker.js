@@ -2967,6 +2967,67 @@ class RealEfficiencyTracker {
                 }
             },
             
+            // Pre-production team historical data
+            'preproduction': {
+                'August 2025': {
+                    isComplete: true,
+                    monthlyData: {
+                        'Vandit': { 
+                            weeks: [5.00, 0.00, 8.25, 6.00], 
+                            weeklyQualityRatings: [9, 9, 9, 9], // Quality rating provided for Pre-production team
+                            monthlyRating: 9, 
+                            target: 20, 
+                            totalOutput: 19.25, 
+                            workingDays: 20,
+                            efficiency: 96.25
+                        },
+                        'Bhavya Oberoi': { 
+                            weeks: [3.50, 3.50, 4.00, 6.50], 
+                            weeklyQualityRatings: [8, 8, 8, 8], // Quality rating provided for Pre-production team
+                            monthlyRating: 8, 
+                            target: 20, 
+                            totalOutput: 17.50, 
+                            workingDays: 20,
+                            efficiency: 87.50
+                        },
+                        'Abid': { 
+                            weeks: [4.00, 9.02, 4.52, 6.50], 
+                            weeklyQualityRatings: [10, 10, 10, 10], // Quality rating provided for Pre-production team
+                            monthlyRating: 10, 
+                            target: 20, 
+                            totalOutput: 24.03, 
+                            workingDays: 20,
+                            efficiency: 120.15
+                        },
+                        'Mudit': { 
+                            weeks: [5.00, 4.00, 7.50, 7.50], 
+                            weeklyQualityRatings: [10, 10, 10, 10], // Quality rating provided for Pre-production team
+                            monthlyRating: 10, 
+                            target: 20, 
+                            totalOutput: 24.00, 
+                            workingDays: 20,
+                            efficiency: 120.00
+                        },
+                        'Nikhil': { 
+                            weeks: [8.50, 10.52, 3.50, 5.25], 
+                            weeklyQualityRatings: [10, 10, 10, 10], // Quality rating provided for Pre-production team
+                            monthlyRating: 10, 
+                            target: 20, 
+                            totalOutput: 27.77, 
+                            workingDays: 20,
+                            efficiency: 138.83
+                        }
+                    },
+                    teamSummary: {
+                        totalMembers: 5,
+                        avgRating: 9.4, // Average: (9+8+10+10+10)/5 = 9.4
+                        totalOutput: 112.55, // Sum: 19.25+17.50+24.03+24.00+27.77
+                        totalWorkingDays: 100, // Sum: 20+20+20+20+20 = 100
+                        avgEfficiency: 112.53 // Average: (96.25+87.50+120.15+120.00+138.83)/5
+                    }
+                }
+            },
+            
             'content': {
                 'August 2025': {
                     isComplete: true,
