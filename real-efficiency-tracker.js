@@ -4182,6 +4182,8 @@ class RealEfficiencyTracker {
         
         // Hide rating column for Tech and Product teams
         const ratingColumn = (this.currentTeam === 'tech' || this.currentTeam === 'product') ? '' : '<th rowspan="2">Weekly Rating</th>';
+        // Add Target Points column for Tech team only
+        const targetPointsColumn = (this.currentTeam === 'tech') ? '<th rowspan="2">Target Points</th>' : '';
         
         thead.innerHTML = `
             <tr>
@@ -4191,6 +4193,7 @@ class RealEfficiencyTracker {
                 <th rowspan="2">Working Days</th>
                 <th rowspan="2">Leave Days</th>
                 ${ratingColumn}
+                ${targetPointsColumn}
                 <th rowspan="2">Target</th>
                 <th rowspan="2">Efficiency %</th>
             </tr>
@@ -4299,6 +4302,7 @@ class RealEfficiencyTracker {
                     </select>
                 </td>
                 ${ratingCell}
+                ${this.currentTeam === 'tech' ? `<td><input type="number" class="target-points-input" data-member="${memberName}" min="0" step="0.5" placeholder="Target" style="width: 60px; text-align: center;"></td>` : ''}
                 <td class="member-target" id="target-${memberName}">20</td>
                 <td class="efficiency-display" id="efficiency-${memberName}">0.00%</td>
             `;
@@ -4317,7 +4321,8 @@ class RealEfficiencyTracker {
         document.addEventListener('change', (e) => {
             if (e.target.classList.contains('working-days-select') || 
                 e.target.classList.contains('leave-days-select') ||
-                e.target.classList.contains('weekly-rating-input')) {
+                e.target.classList.contains('weekly-rating-input') ||
+                e.target.classList.contains('target-points-input')) {
                 const memberName = e.target.dataset.member;
                 this.calculateMemberTotal(memberName);
                 // Update summary stats in real-time
@@ -4399,17 +4404,19 @@ class RealEfficiencyTracker {
         const workingDaysSelect = document.querySelector(`[data-member="${memberName}"].working-days-select`);
         const leaveDaysSelect = document.querySelector(`[data-member="${memberName}"].leave-days-select`);
         const ratingSelect = document.querySelector(`[data-member="${memberName}"].weekly-rating-input`);
+        const targetPointsInput = document.querySelector(`[data-member="${memberName}"].target-points-input`);
         
         if (workingDaysSelect) workingDaysSelect.value = weekEntry.workingDays || 5;
         if (leaveDaysSelect) leaveDaysSelect.value = weekEntry.leaveDays || 0;
         if (ratingSelect) ratingSelect.value = weekEntry.weeklyRating || '';
+        
+        // Load target points for Tech team
+        if (this.currentTeam === 'tech' && targetPointsInput) {
+            targetPointsInput.value = weekEntry.targetPoints || '';
+        }
     }
 
     calculateMemberTotal(memberName) {
-        // Calculate week total for specific member using the correct formula
-        let weekTotal = 0;
-        let totalDays = 0;
-        
         // Get working days and leave days for this member
         const workingDaysSelect = document.querySelector(`[data-member="${memberName}"].working-days-select`);
         const leaveDaysSelect = document.querySelector(`[data-member="${memberName}"].leave-days-select`);
@@ -4417,75 +4424,137 @@ class RealEfficiencyTracker {
         const leaveDays = parseFloat(leaveDaysSelect?.value) || 0;
         const effectiveWorkingDays = workingDays - leaveDays;
         
-        // Get work types based on current team
-        let teamWorkTypes;
-        if (this.currentTeam === 'zero1') {
-            teamWorkTypes = this.zero1WorkTypes;
-        } else if (this.currentTeam === 'harish') {
-            teamWorkTypes = this.harishWorkTypes;
-        } else if (this.currentTeam === 'audio') {
-            teamWorkTypes = this.audioWorkTypes;
-        } else if (this.currentTeam === 'shorts') {
-            teamWorkTypes = this.shortsWorkTypes;
-        } else if (this.currentTeam === 'varsity') {
-            teamWorkTypes = this.varsityWorkTypes;
-        } else if (this.currentTeam === 'graphics') {
-            teamWorkTypes = this.graphicsWorkTypes;
-        } else if (this.currentTeam === 'tech') {
-            teamWorkTypes = this.techWorkTypes;
-        } else if (this.currentTeam === 'product') {
-            teamWorkTypes = this.productWorkTypes;
-        } else {
-            teamWorkTypes = this.workTypes; // B2B uses original types
-        }
-        
-        Object.keys(teamWorkTypes).forEach(workType => {
-            const input = document.querySelector(`[data-member="${memberName}"][data-work="${workType}"]`);
-            const workDone = parseFloat(input?.value) || 0;
-            const perDay = teamWorkTypes[workType].perDay;
+        let weekTotal = 0;
+        let totalDays = 0;
+        let efficiency = 0;
+        let adjustedTarget = 0;
+
+        // Special handling for Tech team using story points
+        if (this.currentTeam === 'tech') {
+            // Get target points input for this member
+            const targetPointsInput = document.querySelector(`[data-member="${memberName}"].target-points-input`);
+            const targetPoints = parseFloat(targetPointsInput?.value) || 0;
             
-            // Convert work done to days: work done / per day capacity
-            // Example: 10 OST / 20 OST per day = 0.5 days
-            if (perDay > 0) {
-                const daysSpent = workDone / perDay;
-                totalDays += daysSpent;
+            // Get completed story points (direct input)
+            Object.keys(this.techWorkTypes).forEach(workType => {
+                const input = document.querySelector(`[data-member="${memberName}"][data-work="${workType}"]`);
+                const workDone = parseFloat(input?.value) || 0;
+                weekTotal += workDone; // For Tech team, weekTotal = completed story points
+            });
+            
+            // Calculate adjusted target: reduce target proportionally based on leave days
+            // Example: Target=12, Working=5, Leave=1 → Adjusted=12*(4/5)=9.6
+            if (workingDays > 0 && targetPoints > 0) {
+                adjustedTarget = targetPoints * (effectiveWorkingDays / workingDays);
+                efficiency = (weekTotal / adjustedTarget) * 100;
             }
-        });
-        
-        // Calculate efficiency percentage
-        const efficiency = effectiveWorkingDays > 0 ? (totalDays / effectiveWorkingDays) * 100 : 0;
-        
-        // Update displays
-        const weekTotalDisplay = document.getElementById(`week-total-${memberName}`);
-        const targetDisplay = document.getElementById(`target-${memberName}`);
-        const efficiencyDisplay = document.getElementById(`efficiency-${memberName}`);
-        
-        if (weekTotalDisplay) {
-            weekTotalDisplay.textContent = totalDays.toFixed(1);
-        }
-        
-        if (targetDisplay) {
-            targetDisplay.textContent = effectiveWorkingDays;
-        }
-        
-        if (efficiencyDisplay) {
-            efficiencyDisplay.textContent = efficiency.toFixed(1) + '%';
-            // Color code efficiency
-            if (efficiency >= 90) {
-                efficiencyDisplay.style.color = '#28a745'; // Green
-            } else if (efficiency >= 70) {
-                efficiencyDisplay.style.color = '#ffc107'; // Yellow
+            
+            // Update displays
+            const weekTotalDisplay = document.getElementById(`week-total-${memberName}`);
+            const targetDisplay = document.getElementById(`target-${memberName}`);
+            const efficiencyDisplay = document.getElementById(`efficiency-${memberName}`);
+            
+            if (weekTotalDisplay) {
+                weekTotalDisplay.textContent = weekTotal.toFixed(1); // Story points completed
+            }
+            
+            if (targetDisplay) {
+                targetDisplay.textContent = adjustedTarget.toFixed(1); // Adjusted target points
+            }
+            
+            if (efficiencyDisplay) {
+                efficiencyDisplay.textContent = efficiency.toFixed(1) + '%';
+                // Color code efficiency
+                if (efficiency >= 90) {
+                    efficiencyDisplay.style.color = '#28a745'; // Green
+                } else if (efficiency >= 70) {
+                    efficiencyDisplay.style.color = '#ffc107'; // Yellow
+                } else {
+                    efficiencyDisplay.style.color = '#dc3545'; // Red
+                }
+            }
+            
+            console.log(`${memberName} Tech calculation:`, {
+                'Completed Points': weekTotal.toFixed(1),
+                'Target Points': targetPoints,
+                'Working Days': workingDays,
+                'Leave Days': leaveDays,
+                'Adjusted Target': adjustedTarget.toFixed(1),
+                'Efficiency': efficiency.toFixed(1) + '%'
+            });
+            
+        } else {
+            // Original calculation logic for other teams
+            // Get work types based on current team
+            let teamWorkTypes;
+            if (this.currentTeam === 'zero1') {
+                teamWorkTypes = this.zero1WorkTypes;
+            } else if (this.currentTeam === 'harish') {
+                teamWorkTypes = this.harishWorkTypes;
+            } else if (this.currentTeam === 'audio') {
+                teamWorkTypes = this.audioWorkTypes;
+            } else if (this.currentTeam === 'shorts') {
+                teamWorkTypes = this.shortsWorkTypes;
+            } else if (this.currentTeam === 'varsity') {
+                teamWorkTypes = this.varsityWorkTypes;
+            } else if (this.currentTeam === 'graphics') {
+                teamWorkTypes = this.graphicsWorkTypes;
+            } else if (this.currentTeam === 'product') {
+                teamWorkTypes = this.productWorkTypes;
             } else {
-                efficiencyDisplay.style.color = '#dc3545'; // Red
+                teamWorkTypes = this.workTypes; // B2B uses original types
             }
+            
+            Object.keys(teamWorkTypes).forEach(workType => {
+                const input = document.querySelector(`[data-member="${memberName}"][data-work="${workType}"]`);
+                const workDone = parseFloat(input?.value) || 0;
+                const perDay = teamWorkTypes[workType].perDay;
+                
+                // Convert work done to days: work done / per day capacity
+                // Example: 10 OST / 20 OST per day = 0.5 days
+                if (perDay > 0) {
+                    const daysSpent = workDone / perDay;
+                    totalDays += daysSpent;
+                }
+            });
+            
+            // Calculate efficiency percentage
+            efficiency = effectiveWorkingDays > 0 ? (totalDays / effectiveWorkingDays) * 100 : 0;
+            
+            // Update displays
+            const weekTotalDisplay = document.getElementById(`week-total-${memberName}`);
+            const targetDisplay = document.getElementById(`target-${memberName}`);
+            const efficiencyDisplay = document.getElementById(`efficiency-${memberName}`);
+            
+            if (weekTotalDisplay) {
+                weekTotalDisplay.textContent = totalDays.toFixed(1);
+            }
+            
+            if (targetDisplay) {
+                targetDisplay.textContent = effectiveWorkingDays;
+            }
+            
+            if (efficiencyDisplay) {
+                efficiencyDisplay.textContent = efficiency.toFixed(1) + '%';
+                // Color code efficiency
+                if (efficiency >= 90) {
+                    efficiencyDisplay.style.color = '#28a745'; // Green
+                } else if (efficiency >= 70) {
+                    efficiencyDisplay.style.color = '#ffc107'; // Yellow
+                } else {
+                    efficiencyDisplay.style.color = '#dc3545'; // Red
+                }
+            }
+            
+            // Show calculation in console for debugging
+            console.log(`${memberName} calculation:`, {
+                'Total Days Used': totalDays.toFixed(1),
+                'Working Days': workingDays,
+                'Leave Days': leaveDays, 
+                'Effective Working Days': effectiveWorkingDays,
+                'Efficiency': efficiency.toFixed(1) + '%'
+            });
         }
-        
-        // Show calculation in console for debugging
-        console.log(`${memberName} calculation:`, {
-            'Total Days Used': totalDays.toFixed(1),
-            'Effective Working Days': effectiveWorkingDays,
-            'Efficiency': efficiency.toFixed(1) + '%'
-        });
     }
     
     populateFromSheetData(weekEntry) {
@@ -4906,8 +4975,9 @@ class RealEfficiencyTracker {
         const workingDaysSelect = document.querySelector(`[data-member="${memberName}"].working-days-select`);
         const leaveDaysSelect = document.querySelector(`[data-member="${memberName}"].leave-days-select`);
         const ratingSelect = document.querySelector(`[data-member="${memberName}"].weekly-rating-input`);
+        const targetPointsInput = document.querySelector(`[data-member="${memberName}"].target-points-input`);
         
-        return {
+        const weekEntry = {
             weekId: this.currentWeek.id,
             memberName: memberName,
             workTypes: workTypes,
@@ -4917,6 +4987,13 @@ class RealEfficiencyTracker {
             totalOutput: this.calculateMemberTotalOutput(memberName),
             timestamp: new Date().toISOString()
         };
+        
+        // Add target points for Tech team only
+        if (this.currentTeam === 'tech' && targetPointsInput) {
+            weekEntry.targetPoints = parseFloat(targetPointsInput.value) || 0;
+        }
+        
+        return weekEntry;
     }
 
     calculateMemberTotalOutput(memberName) {

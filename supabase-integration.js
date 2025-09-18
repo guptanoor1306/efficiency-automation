@@ -85,7 +85,8 @@ class SupabaseAPI {
                 working_days: weekData.workingDays || 5,
                 leave_days: parseFloat(weekData.leaveDays) || 0,
                 weekly_rating: parseFloat(weekData.weeklyRating) || 0,
-                week_total: parseFloat(weekData.weekTotal) || 0
+                week_total: parseFloat(weekData.weekTotal) || 0,
+                target_points: weekData.targetPoints ? parseFloat(weekData.targetPoints) : null
             };
 
             console.log('📝 Week entry to save:', weekEntry);

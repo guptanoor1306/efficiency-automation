@@ -24,6 +24,7 @@ CREATE TABLE weekly_entries (
   leave_days DECIMAL DEFAULT 0,
   weekly_rating DECIMAL DEFAULT 0,
   week_total DECIMAL NOT NULL,
+  target_points DECIMAL DEFAULT NULL, -- For Tech team target story points
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW(),
   UNIQUE(team_id, week_id, member_name)
