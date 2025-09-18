@@ -5282,9 +5282,9 @@ class RealEfficiencyTracker {
                             <th style="text-align: left;">Team Member</th>
                             <th>Target<br><small>(${this.currentTeam === 'tech' || this.currentTeam === 'product' ? 'Story Points' : 'Working Days'})</small></th>
                             <th>Total Output</th>
-                            <th>Monthly Rating<br><small>(Quality Avg)</small></th>
+                            ${(this.currentTeam === 'tech' || this.currentTeam === 'product') ? '' : '<th>Monthly Rating<br><small>(Quality Avg)</small></th>'}
                             <th>Efficiency vs Target</th>
-                            <th>Quality Rating</th>
+                            ${(this.currentTeam === 'tech' || this.currentTeam === 'product') ? '' : '<th>Quality Rating</th>'}
                         </tr>
                     </thead>
                     <tbody>
@@ -5298,17 +5298,17 @@ class RealEfficiencyTracker {
                                     <td style="text-align: left; font-weight: 600;">${memberName}</td>
                                     <td>${member.target}</td>
                                     <td>${member.totalOutput.toFixed(1)}</td>
-                                    <td style="font-weight: bold; color: #27ae60;">${member.monthlyRating.toFixed(1)}</td>
+                                    ${(this.currentTeam === 'tech' || this.currentTeam === 'product') ? '' : `<td style="font-weight: bold; color: #27ae60;">${member.monthlyRating.toFixed(1)}</td>`}
                                     <td>
                                         <span class="efficiency-score ${this.getEfficiencyClass((efficiency/member.target) * 100)}">
                                             ${((member.totalOutput/member.target) * 100).toFixed(1)}%
                                         </span>
                                     </td>
-                                    <td>
+                                    ${(this.currentTeam === 'tech' || this.currentTeam === 'product') ? '' : `<td>
                                         <span style="padding: 4px 8px; border-radius: 4px; font-weight: bold; color: white; background: ${qualityRating.color};">
                                             ${qualityRating.label}
                                         </span>
-                                    </td>
+                                    </td>`}
                                 </tr>
                             `;
                         }).join('')}
@@ -5632,7 +5632,8 @@ class RealEfficiencyTracker {
             const output = this.calculateMemberTotalOutput(member.name);
             const efficiency = effectiveWorkingDays > 0 ? (output / effectiveWorkingDays) * 100 : 0;
             
-            if (rating === 0) {
+            // Only check for missing rating if this team uses ratings
+            if (rating === 0 && this.currentTeam !== 'tech' && this.currentTeam !== 'product') {
                 this.showMessage(`Missing quality rating for ${member.name}. Please complete all entries before finalizing.`, 'error');
                 return;
             }
@@ -9849,7 +9850,7 @@ class RealEfficiencyTracker {
 
     getSelectedTeams() {
         const selectedTeams = [];
-        const allTeams = ['b2b', 'varsity', 'zero1_bratish', 'zero1_harish', 'audio', 'shorts', 'graphics'];
+        const allTeams = ['b2b', 'varsity', 'zero1_bratish', 'zero1_harish', 'audio', 'shorts', 'graphics', 'tech', 'product'];
         
         allTeams.forEach(teamId => {
             const checkbox = document.getElementById(`team-filter-${teamId}`);
