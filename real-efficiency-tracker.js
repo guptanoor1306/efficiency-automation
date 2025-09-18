@@ -15,8 +15,8 @@ class RealEfficiencyTracker {
         this.getFilteredWeeks = () => {
             let weeks = this.weekSystem.getWeeksForSelector();
             
-            // For Tech, Product, Pre-production, Content, and Social teams, only return weeks from September 2025 onwards
-            if (this.currentTeam === 'tech' || this.currentTeam === 'product' || this.currentTeam === 'preproduction' || this.currentTeam === 'content' || this.currentTeam === 'social') {
+            // For Graphics, Tech, Product, Pre-production, Content, and Social teams, only return weeks from September 2025 onwards
+            if (this.currentTeam === 'graphics' || this.currentTeam === 'tech' || this.currentTeam === 'product' || this.currentTeam === 'preproduction' || this.currentTeam === 'content' || this.currentTeam === 'social') {
                 weeks = weeks.filter(week => {
                     // Parse monthYear string (e.g., "September 2025")
                     const [monthName, yearStr] = week.monthYear.split(' ');
@@ -4239,8 +4239,8 @@ class RealEfficiencyTracker {
         
         let weeks = this.weekSystem.getWeeksForSelector();
         
-        // For Tech, Product, Pre-production, Content, and Social teams, only show weeks from September 2025 onwards
-        if (this.currentTeam === 'tech' || this.currentTeam === 'product' || this.currentTeam === 'preproduction' || this.currentTeam === 'content' || this.currentTeam === 'social') {
+        // For Graphics, Tech, Product, Pre-production, Content, and Social teams, only show weeks from September 2025 onwards
+        if (this.currentTeam === 'graphics' || this.currentTeam === 'tech' || this.currentTeam === 'product' || this.currentTeam === 'preproduction' || this.currentTeam === 'content' || this.currentTeam === 'social') {
             weeks = weeks.filter(week => {
                 // Parse monthYear string (e.g., "September 2025")
                 const [monthName, yearStr] = week.monthYear.split(' ');
