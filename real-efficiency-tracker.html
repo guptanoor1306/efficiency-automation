@@ -610,6 +610,12 @@
                             <!-- Team checkboxes will be populated here -->
                         </div>
                     </div>
+                    
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <button id="send-company-report-btn" onclick="tracker.sendCompanyReportToSlack()" style="padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 6px; font-size: 14px; display: none;">
+                            <i class="fas fa-share"></i> Send Report to Slack
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -666,6 +672,7 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <script src="supabase-integration.js"></script>
     <script src="week-system.js"></script>
     <script src="real-efficiency-tracker.js?v=2025090515"></script>

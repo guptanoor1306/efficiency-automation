@@ -578,6 +578,9 @@ class RealEfficiencyTracker {
         // Flag to prevent multiple simultaneous saves
         this.isSyncingToDatabase = false;
         
+        // Slack webhook configuration for reports
+        this.slackWebhookUrl = ''; // Will be set by user
+        
         // Historical data - January to May 2025 (completed months)
         // Organized by team: this.historicalData[team][month]
         this.historicalData = {
@@ -3329,6 +3332,14 @@ class RealEfficiencyTracker {
         }).catch(error => {
             console.warn('⚠️ Issue loading team data:', error);
         });
+        
+        // Load Slack webhook URL from localStorage
+        this.loadSlackWebhookUrl();
+        
+        // Set the provided webhook URL if not already configured
+        if (!this.slackWebhookUrl) {
+            this.setSlackWebhookUrl('https://hooks.slack.com/services/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');
+        }
         
         // Also load any stored historical data for this team
         this.loadStoredHistoricalData();
@@ -10971,6 +10982,12 @@ class RealEfficiencyTracker {
         document.getElementById('team-summary').style.display = 'block';
         document.getElementById('member-chart-section').style.display = 'block';
         
+        // Show the Send Report button when data is loaded
+        const sendReportBtn = document.getElementById('send-company-report-btn');
+        if (sendReportBtn) {
+            sendReportBtn.style.display = 'inline-block';
+        }
+        
         // Update company statistics
         this.updateCompanyStats(companyData);
         
@@ -11106,6 +11123,376 @@ class RealEfficiencyTracker {
         document.getElementById('team-summary').style.display = 'none';
         document.getElementById('member-chart-section').style.display = 'none';
         document.getElementById('company-period-info').textContent = 'Select a period to view company-wide performance data';
+        
+        // Hide the Send Report button when no data is shown
+        const sendReportBtn = document.getElementById('send-company-report-btn');
+        if (sendReportBtn) {
+            sendReportBtn.style.display = 'none';
+        }
+    }
+
+    // Slack Report Functions
+    setSlackWebhookUrl(url) {
+        this.slackWebhookUrl = url;
+        localStorage.setItem('slackWebhookUrl', url);
+        console.log('✅ Slack webhook URL configured');
+    }
+
+    loadSlackWebhookUrl() {
+        const savedUrl = localStorage.getItem('slackWebhookUrl');
+        if (savedUrl) {
+            this.slackWebhookUrl = savedUrl;
+        }
+    }
+
+    async sendWeeklyReportToSlack() {
+        if (!this.slackWebhookUrl) {
+            this.promptForSlackWebhook();
+            return;
+        }
+
+        if (!this.currentWeek || !this.currentTeam) {
+            this.showMessage('Please select a team and week first', 'error');
+            return;
+        }
+
+        try {
+            this.showMessage('📸 Generating weekly report...', 'info');
+            
+            // Capture the efficiency data section
+            const chartElement = document.getElementById('efficiency-data');
+            if (!chartElement) {
+                this.showMessage('❌ No chart data to capture', 'error');
+                return;
+            }
+
+            // Generate image from the chart
+            const canvas = await html2canvas(chartElement, {
+                backgroundColor: '#ffffff',
+                scale: 2,
+                useCORS: true,
+                allowTaint: true
+            });
+
+            // Convert to blob
+            const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+            
+            // Get current data for text summary
+            const weekSummary = this.generateWeekSummaryForSlack();
+            
+            // Send to Slack
+            await this.sendToSlack(blob, 'weekly', weekSummary);
+            
+        } catch (error) {
+            console.error('❌ Error sending weekly report:', error);
+            this.showMessage('❌ Failed to send weekly report to Slack', 'error');
+        }
+    }
+
+    async sendMonthlyReportToSlack() {
+        if (!this.slackWebhookUrl) {
+            this.promptForSlackWebhook();
+            return;
+        }
+
+        if (!this.currentTeam) {
+            this.showMessage('Please select a team first', 'error');
+            return;
+        }
+
+        try {
+            this.showMessage('📸 Generating monthly report...', 'info');
+            
+            // Capture the monthly table
+            const monthlyElement = document.getElementById('monthly-table') || document.getElementById('efficiency-data');
+            if (!monthlyElement) {
+                this.showMessage('❌ No monthly data to capture', 'error');
+                return;
+            }
+
+            // Generate image from the monthly view
+            const canvas = await html2canvas(monthlyElement, {
+                backgroundColor: '#ffffff',
+                scale: 2,
+                useCORS: true,
+                allowTaint: true
+            });
+
+            // Convert to blob
+            const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+            
+            // Get current data for text summary
+            const monthlySummary = this.generateMonthlySummaryForSlack();
+            
+            // Send to Slack
+            await this.sendToSlack(blob, 'monthly', monthlySummary);
+            
+        } catch (error) {
+            console.error('❌ Error sending monthly report:', error);
+            this.showMessage('❌ Failed to send monthly report to Slack', 'error');
+        }
+    }
+
+    generateWeekSummaryForSlack() {
+        const teamName = this.teamConfigs[this.currentTeam]?.name || this.currentTeam;
+        const weekLabel = this.currentWeek?.label || 'Current Week';
+        
+        // Get member data from current finalized reports or live data
+        const weekData = this.finalizedReports[this.currentTeam]?.[this.currentWeek?.id];
+        if (!weekData || !weekData.memberSummaries) {
+            return {
+                teamName,
+                period: weekLabel,
+                summary: 'No data available for this week',
+                members: []
+            };
+        }
+
+        // Sort members by efficiency (highest to lowest)
+        const sortedMembers = Object.entries(weekData.memberSummaries)
+            .map(([name, data]) => ({
+                name,
+                efficiency: data.efficiency || 0,
+                output: data.output || 0
+            }))
+            .sort((a, b) => b.efficiency - a.efficiency);
+
+        return {
+            teamName,
+            period: weekLabel,
+            summary: `${sortedMembers.length} members • Avg Efficiency: ${weekData.avgEfficiency?.toFixed(1) || 0}%`,
+            members: sortedMembers
+        };
+    }
+
+    generateMonthlySummaryForSlack() {
+        const teamName = this.teamConfigs[this.currentTeam]?.name || this.currentTeam;
+        
+        // Get selected month from dropdown
+        const weekSelect = document.getElementById('week-select');
+        const selectedValue = weekSelect?.value;
+        let monthYear = 'Current Month';
+        
+        if (selectedValue && selectedValue.startsWith('MONTH_')) {
+            monthYear = selectedValue.replace('MONTH_', '');
+        }
+
+        // Get monthly data
+        const monthData = this.historicalData[this.currentTeam]?.[monthYear];
+        if (!monthData || !monthData.monthlyData) {
+            return {
+                teamName,
+                period: monthYear,
+                summary: 'No data available for this month',
+                members: []
+            };
+        }
+
+        // Sort members by efficiency (highest to lowest)
+        const sortedMembers = Object.entries(monthData.monthlyData)
+            .map(([name, data]) => ({
+                name,
+                efficiency: data.efficiency || 0,
+                output: data.totalOutput || 0,
+                target: data.target || 0
+            }))
+            .sort((a, b) => b.efficiency - a.efficiency);
+
+        return {
+            teamName,
+            period: monthYear,
+            summary: `${sortedMembers.length} members • Avg Efficiency: ${monthData.teamSummary?.avgEfficiency?.toFixed(1) || 0}%`,
+            members: sortedMembers
+        };
+    }
+
+    async sendToSlack(imageBlob, reportType, summaryData) {
+        try {
+            // Create message text with full team listing
+            const emoji = reportType === 'weekly' ? '📊' : '📈';
+            const messageText = `${emoji} *${summaryData.teamName} - ${reportType.charAt(0).toUpperCase() + reportType.slice(1)} Report*\n` +
+                               `📅 Period: ${summaryData.period}\n` +
+                               `📋 Summary: ${summaryData.summary}\n\n` +
+                               `*Team Performance (Highest to Lowest):*\n` +
+                               summaryData.members.map((member, index) => {
+                                   const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '▪️';
+                                   return `${medal} ${member.name}: ${member.efficiency.toFixed(1)}%`;
+                               }).join('\n');
+
+            const payload = {
+                text: messageText,
+                username: "Efficiency Tracker",
+                icon_emoji: ":chart_with_upwards_trend:"
+            };
+
+            const response = await fetch(this.slackWebhookUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+                this.showMessage('✅ Report sent to Slack successfully!', 'success');
+            } else {
+                throw new Error(`Slack API error: ${response.status}`);
+            }
+
+        } catch (error) {
+            console.error('❌ Error sending to Slack:', error);
+            this.showMessage('❌ Failed to send report to Slack', 'error');
+            throw error;
+        }
+    }
+
+    promptForSlackWebhook() {
+        const url = prompt(
+            'Please enter your Slack Webhook URL:\n\n' +
+            'To get this:\n' +
+            '1. Go to https://api.slack.com/apps\n' +
+            '2. Create a new app\n' +
+            '3. Enable "Incoming Webhooks"\n' +
+            '4. Add webhook to your desired channel\n' +
+            '5. Copy the webhook URL here'
+        );
+        
+        if (url && url.startsWith('https://hooks.slack.com/')) {
+            this.setSlackWebhookUrl(url);
+            this.showMessage('✅ Slack webhook configured! You can now send reports.', 'success');
+        } else if (url) {
+            this.showMessage('❌ Invalid Slack webhook URL. It should start with https://hooks.slack.com/', 'error');
+        }
+    }
+
+    async sendCompanyReportToSlack() {
+        if (!this.slackWebhookUrl) {
+            this.promptForSlackWebhook();
+            return;
+        }
+
+        // Check if company data is loaded
+        const periodType = document.getElementById('company-period-type').value;
+        const periodSelect = document.getElementById('company-period-select').value;
+        
+        if (!periodSelect) {
+            this.showMessage('Please select a period first', 'error');
+            return;
+        }
+
+        try {
+            this.showMessage('📸 Generating company report...', 'info');
+            
+            // Capture the entire company performance content
+            const companyContent = document.getElementById('company-performance-content');
+            if (!companyContent) {
+                this.showMessage('❌ No company data to capture', 'error');
+                return;
+            }
+
+            // Generate image from the company view
+            const canvas = await html2canvas(companyContent, {
+                backgroundColor: '#ffffff',
+                scale: 2,
+                useCORS: true,
+                allowTaint: true,
+                width: companyContent.scrollWidth,
+                height: companyContent.scrollHeight
+            });
+
+            // Convert canvas to blob
+            const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+            
+            // Convert blob to base64
+            const reader = new FileReader();
+            reader.onload = async () => {
+                const base64Image = reader.result.split(',')[1];
+                
+                // Generate company summary for Slack
+                const summary = this.generateCompanySummaryForSlack(periodType, periodSelect);
+                
+                // Send to Slack
+                await this.sendToSlack(summary, base64Image);
+                this.showMessage('✅ Company report sent to Slack successfully!', 'success');
+            };
+            reader.readAsDataURL(blob);
+
+        } catch (error) {
+            console.error('❌ Error sending company report:', error);
+            this.showMessage('❌ Failed to send company report to Slack', 'error');
+        }
+    }
+
+    generateCompanySummaryForSlack(periodType, periodValue) {
+        const periodName = periodType === 'week' ? 'Weekly' : 'Monthly';
+        const periodLabel = periodType === 'week' ? 
+            document.querySelector('#company-period-select option:checked')?.textContent || periodValue :
+            periodValue;
+
+        // Get company stats
+        const avgEfficiency = document.getElementById('company-avg-efficiency')?.textContent || '--';
+        const topPerformer = document.getElementById('company-top-performer')?.textContent || '--';
+        const totalTeams = document.getElementById('company-total-teams')?.textContent || '--';
+
+        let summary = `🏢 *Company ${periodName} Performance Report*\n`;
+        summary += `📅 Period: ${periodLabel}\n`;
+        summary += `📊 Company Average Efficiency: ${avgEfficiency}\n`;
+        summary += `🏆 Top Performer: ${topPerformer}\n`;
+        summary += `👥 Teams Tracked: ${totalTeams}\n\n`;
+
+        // Get team performance data from the visible team cards
+        const teamCards = document.querySelectorAll('#team-summary .team-card');
+        if (teamCards.length > 0) {
+            summary += `📈 *Team Performance Rankings:*\n`;
+            
+            // Collect team data
+            const teamData = [];
+            teamCards.forEach(card => {
+                const teamName = card.querySelector('.team-card h4')?.textContent?.trim();
+                const efficiency = card.querySelector('.efficiency-value')?.textContent?.trim();
+                if (teamName && efficiency) {
+                    const efficiencyNum = parseFloat(efficiency.replace('%', ''));
+                    teamData.push({ name: teamName, efficiency: efficiencyNum, display: efficiency });
+                }
+            });
+
+            // Sort by efficiency (highest to lowest)
+            teamData.sort((a, b) => b.efficiency - a.efficiency);
+
+            // Add to summary
+            teamData.forEach((team, index) => {
+                const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '  ';
+                summary += `${medal} ${team.name}: ${team.display}\n`;
+            });
+        }
+
+        // Get individual performance data from the member chart
+        const memberChart = document.getElementById('member-performance-chart');
+        const memberBars = memberChart?.querySelectorAll('.member-bar');
+        if (memberBars && memberBars.length > 0) {
+            summary += `\n👤 *Top Individual Performers:*\n`;
+            
+            // Get top 5 performers
+            const memberData = [];
+            memberBars.forEach(bar => {
+                const nameElement = bar.querySelector('.member-name');
+                const efficiencyElement = bar.querySelector('.member-efficiency');
+                if (nameElement && efficiencyElement) {
+                    const name = nameElement.textContent.trim();
+                    const efficiency = efficiencyElement.textContent.trim();
+                    const efficiencyNum = parseFloat(efficiency.replace('%', ''));
+                    memberData.push({ name, efficiency: efficiencyNum, display: efficiency });
+                }
+            });
+
+            // Already sorted by efficiency in the chart, take top 5
+            memberData.slice(0, 5).forEach((member, index) => {
+                const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '  ';
+                summary += `${medal} ${member.name}: ${member.display}\n`;
+            });
+        }
+
+        return summary;
     }
 }
 
