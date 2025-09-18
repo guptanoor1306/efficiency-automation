@@ -139,6 +139,20 @@ INSERT INTO teams (id, name, members, work_types) VALUES
    "ppt_slides": {"level": "L1", "name": "PPT Slides", "perDay": 30},
    "research": {"level": "L1", "name": "Research", "perDay": 1},
    "graphics_l2": {"level": "L2", "name": "Graphics", "perDay": 2}
+ }'),
+
+-- Tech Team (uses this.techWorkTypes - story points based)
+('tech', 'Tech Team',
+ '["Supriya", "Tilak", "Rishi", "Sahil", "Chandan", "Harshita"]',
+ '{
+   "story_points": {"level": "SP", "name": "Story Points", "perDay": 3}
+ }'),
+
+-- Product Team (uses this.productWorkTypes - story points based)
+('product', 'Product Team',
+ '["Akshay", "Ankush", "Noor"]',
+ '{
+   "story_points": {"level": "SP", "name": "Story Points", "perDay": 1}
  }');
 
 -- Create indexes for better performance
