@@ -174,6 +174,44 @@ class RealEfficiencyTracker {
         this.productLevelMapping = {
             'SP': ['story_points']
         };
+
+        // Pre-production team work types (diverse content creation)
+        this.preproductionWorkTypes = {
+            // 1. YT Shorts
+            'yt_shorts_full': { level: 'L1', name: 'YT Shorts (Script+Pre-Planning+VD+Shoot)', perDay: 2 },
+            
+            // 2. YT LF (Normal)
+            'yt_lf_moodboard': { level: 'L1', name: 'YT LF Visual Moodboard', perDay: 2 },
+            'yt_lf_direction_script': { level: 'L2', name: 'YT LF Visual Direction + Script', perDay: 1 },
+            'yt_lf_preplanning': { level: 'L1', name: 'YT LF Pre-planning', perDay: 2 },
+            'yt_lf_shoots': { level: 'L1', name: 'YT LF Shoots (PS)', perDay: 2 },
+            
+            // 3. YT LF (Big)
+            'yt_lf_big_moodboard': { level: 'L3', name: 'YT LF Big Visual Moodboard', perDay: 0.5 },
+            'yt_lf_big_direction': { level: 'L3', name: 'YT LF Big Visual Direction + Script', perDay: 0.5 },
+            'yt_lf_big_preplanning': { level: 'L3', name: 'YT LF Big Pre-planning (Location/Recce)', perDay: 0.5 },
+            'yt_lf_big_shoots': { level: 'L2', name: 'YT LF Big Pre-Planning + Shoots (PS)', perDay: 1 },
+            
+            // 4. Reels Pre-planning + Shoots
+            'reels_phone': { level: 'L1', name: 'Reels (Phone)', perDay: 2 },
+            'production_outdoor': { level: 'L3', name: 'Production Outdoor', perDay: 0.66 },
+            'production_indoor': { level: 'L2', name: 'Production Indoor', perDay: 1 },
+            
+            // 5. No PS Shoots
+            'no_ps_indoor': { level: 'L2', name: 'No PS Shoots Indoor', perDay: 1 },
+            'no_ps_outdoor': { level: 'L3', name: 'No PS Shoots Outdoor', perDay: 0.5 },
+            
+            // 6. Post-Production
+            'intro_editing': { level: 'L1', name: 'Intro/Sequence Editing/Overview', perDay: 2 },
+            'storyboard': { level: 'L2', name: 'Storyboard', perDay: 1 }
+        };
+
+        // Pre-production team level mapping
+        this.preproductionLevelMapping = {
+            'L1': ['yt_shorts_full', 'yt_lf_moodboard', 'yt_lf_preplanning', 'yt_lf_shoots', 'reels_phone', 'intro_editing'],
+            'L2': ['yt_lf_direction_script', 'yt_lf_big_shoots', 'production_indoor', 'no_ps_indoor', 'storyboard'],
+            'L3': ['yt_lf_big_moodboard', 'yt_lf_big_direction', 'yt_lf_big_preplanning', 'production_outdoor', 'no_ps_outdoor']
+        };
         
         // Current team selection
         this.currentTeam = 'b2b'; // Default to B2B team
@@ -364,6 +402,26 @@ class RealEfficiencyTracker {
                 ],
                 workLevels: this.productLevelMapping,
                 sheetRange: 'Product - 2025!A1:BT1000'
+            },
+
+            preproduction: {
+                name: 'Pre-production Team',
+                members: [
+                    { name: 'Vandit' },
+                    { name: 'Bhavya Oberoi' },
+                    { name: 'Abid' },
+                    { name: 'Mudit' },
+                    { name: 'Nikhil' }
+                ],
+                historicalMembers: [
+                    { name: 'Vandit' },
+                    { name: 'Bhavya Oberoi' },
+                    { name: 'Abid' },
+                    { name: 'Mudit' },
+                    { name: 'Nikhil' }
+                ],
+                workLevels: this.preproductionLevelMapping,
+                sheetRange: 'Preproduction - 2025!A1:BT1000'
             }
         };
 
@@ -2948,7 +3006,7 @@ class RealEfficiencyTracker {
             console.log('📊 Loading all finalized weeks from Supabase...');
             
             // Get all teams - map display IDs to storage IDs for Supabase
-            const allTeams = ['b2b', 'varsity', 'zero1_bratish', 'zero1_harish', 'audio', 'shorts', 'graphics', 'tech', 'product'];
+            const allTeams = ['b2b', 'varsity', 'zero1_bratish', 'zero1_harish', 'audio', 'shorts', 'graphics', 'tech', 'product', 'preproduction'];
             const teamStorageMapping = {
                 'zero1_bratish': 'zero1',
                 'zero1_harish': 'harish',
@@ -2958,7 +3016,8 @@ class RealEfficiencyTracker {
                 'shorts': 'shorts',
                 'graphics': 'graphics',
                 'tech': 'tech',
-                'product': 'product'
+                'product': 'product',
+                'preproduction': 'preproduction'
             };
             
             // Clear existing finalized reports to rebuild from Supabase data only
@@ -4156,6 +4215,9 @@ class RealEfficiencyTracker {
         } else if (this.currentTeam === 'product') {
             workTypes = this.productWorkTypes;
             levelMapping = this.productLevelMapping;
+        } else if (this.currentTeam === 'preproduction') {
+            workTypes = this.preproductionWorkTypes;
+            levelMapping = this.preproductionLevelMapping;
         } else {
             workTypes = this.workTypes; // B2B uses original types
             levelMapping = this.levelMapping;
@@ -4237,6 +4299,8 @@ class RealEfficiencyTracker {
             workTypes = this.techWorkTypes;
         } else if (this.currentTeam === 'product') {
             workTypes = this.productWorkTypes;
+        } else if (this.currentTeam === 'preproduction') {
+            workTypes = this.preproductionWorkTypes;
         } else {
             workTypes = this.workTypes; // B2B uses original types
         }
@@ -4272,7 +4336,7 @@ class RealEfficiencyTracker {
                     </select>
                 </td>
             `;
-
+            
             row.innerHTML = `
                 <td class="work-type-header">${memberName}</td>
                 ${workTypeInputs}
@@ -4382,6 +4446,8 @@ class RealEfficiencyTracker {
             teamWorkTypes = this.techWorkTypes;
         } else if (this.currentTeam === 'product') {
             teamWorkTypes = this.productWorkTypes;
+        } else if (this.currentTeam === 'preproduction') {
+            teamWorkTypes = this.preproductionWorkTypes;
         } else {
             teamWorkTypes = this.workTypes; // B2B uses original types
         }
@@ -4485,75 +4551,75 @@ class RealEfficiencyTracker {
             
         } else {
             // Original calculation logic for other teams
-            // Get work types based on current team
-            let teamWorkTypes;
-            if (this.currentTeam === 'zero1') {
-                teamWorkTypes = this.zero1WorkTypes;
-            } else if (this.currentTeam === 'harish') {
-                teamWorkTypes = this.harishWorkTypes;
+        // Get work types based on current team
+        let teamWorkTypes;
+        if (this.currentTeam === 'zero1') {
+            teamWorkTypes = this.zero1WorkTypes;
+        } else if (this.currentTeam === 'harish') {
+            teamWorkTypes = this.harishWorkTypes;
             } else if (this.currentTeam === 'audio') {
                 teamWorkTypes = this.audioWorkTypes;
-            } else if (this.currentTeam === 'shorts') {
-                teamWorkTypes = this.shortsWorkTypes;
-            } else if (this.currentTeam === 'varsity') {
-                teamWorkTypes = this.varsityWorkTypes;
+        } else if (this.currentTeam === 'shorts') {
+            teamWorkTypes = this.shortsWorkTypes;
+        } else if (this.currentTeam === 'varsity') {
+            teamWorkTypes = this.varsityWorkTypes;
             } else if (this.currentTeam === 'graphics') {
                 teamWorkTypes = this.graphicsWorkTypes;
             } else if (this.currentTeam === 'product') {
                 teamWorkTypes = this.productWorkTypes;
-            } else {
-                teamWorkTypes = this.workTypes; // B2B uses original types
+        } else {
+            teamWorkTypes = this.workTypes; // B2B uses original types
+        }
+        
+        Object.keys(teamWorkTypes).forEach(workType => {
+            const input = document.querySelector(`[data-member="${memberName}"][data-work="${workType}"]`);
+            const workDone = parseFloat(input?.value) || 0;
+            const perDay = teamWorkTypes[workType].perDay;
+            
+            // Convert work done to days: work done / per day capacity
+            // Example: 10 OST / 20 OST per day = 0.5 days
+            if (perDay > 0) {
+                const daysSpent = workDone / perDay;
+                totalDays += daysSpent;
             }
-            
-            Object.keys(teamWorkTypes).forEach(workType => {
-                const input = document.querySelector(`[data-member="${memberName}"][data-work="${workType}"]`);
-                const workDone = parseFloat(input?.value) || 0;
-                const perDay = teamWorkTypes[workType].perDay;
-                
-                // Convert work done to days: work done / per day capacity
-                // Example: 10 OST / 20 OST per day = 0.5 days
-                if (perDay > 0) {
-                    const daysSpent = workDone / perDay;
-                    totalDays += daysSpent;
-                }
-            });
-            
-            // Calculate efficiency percentage
+        });
+        
+        // Calculate efficiency percentage
             efficiency = effectiveWorkingDays > 0 ? (totalDays / effectiveWorkingDays) * 100 : 0;
-            
-            // Update displays
-            const weekTotalDisplay = document.getElementById(`week-total-${memberName}`);
-            const targetDisplay = document.getElementById(`target-${memberName}`);
-            const efficiencyDisplay = document.getElementById(`efficiency-${memberName}`);
-            
-            if (weekTotalDisplay) {
-                weekTotalDisplay.textContent = totalDays.toFixed(1);
+        
+        // Update displays
+        const weekTotalDisplay = document.getElementById(`week-total-${memberName}`);
+        const targetDisplay = document.getElementById(`target-${memberName}`);
+        const efficiencyDisplay = document.getElementById(`efficiency-${memberName}`);
+        
+        if (weekTotalDisplay) {
+            weekTotalDisplay.textContent = totalDays.toFixed(1);
+        }
+        
+        if (targetDisplay) {
+            targetDisplay.textContent = effectiveWorkingDays;
+        }
+        
+        if (efficiencyDisplay) {
+            efficiencyDisplay.textContent = efficiency.toFixed(1) + '%';
+            // Color code efficiency
+            if (efficiency >= 90) {
+                efficiencyDisplay.style.color = '#28a745'; // Green
+            } else if (efficiency >= 70) {
+                efficiencyDisplay.style.color = '#ffc107'; // Yellow
+            } else {
+                efficiencyDisplay.style.color = '#dc3545'; // Red
             }
-            
-            if (targetDisplay) {
-                targetDisplay.textContent = effectiveWorkingDays;
-            }
-            
-            if (efficiencyDisplay) {
-                efficiencyDisplay.textContent = efficiency.toFixed(1) + '%';
-                // Color code efficiency
-                if (efficiency >= 90) {
-                    efficiencyDisplay.style.color = '#28a745'; // Green
-                } else if (efficiency >= 70) {
-                    efficiencyDisplay.style.color = '#ffc107'; // Yellow
-                } else {
-                    efficiencyDisplay.style.color = '#dc3545'; // Red
-                }
-            }
-            
-            // Show calculation in console for debugging
-            console.log(`${memberName} calculation:`, {
-                'Total Days Used': totalDays.toFixed(1),
+        }
+        
+        // Show calculation in console for debugging
+        console.log(`${memberName} calculation:`, {
+            'Total Days Used': totalDays.toFixed(1),
                 'Working Days': workingDays,
                 'Leave Days': leaveDays, 
-                'Effective Working Days': effectiveWorkingDays,
-                'Efficiency': efficiency.toFixed(1) + '%'
-            });
+            'Effective Working Days': effectiveWorkingDays,
+            'Efficiency': efficiency.toFixed(1) + '%'
+        });
         }
     }
     
@@ -4949,6 +5015,8 @@ class RealEfficiencyTracker {
             teamWorkTypes = this.techWorkTypes;
         } else if (this.currentTeam === 'product') {
             teamWorkTypes = this.productWorkTypes;
+        } else if (this.currentTeam === 'preproduction') {
+            teamWorkTypes = this.preproductionWorkTypes;
         } else {
             teamWorkTypes = this.workTypes; // B2B uses original types
         }
@@ -5021,6 +5089,8 @@ class RealEfficiencyTracker {
             teamWorkTypes = this.techWorkTypes;
         } else if (this.currentTeam === 'product') {
             teamWorkTypes = this.productWorkTypes;
+        } else if (this.currentTeam === 'preproduction') {
+            teamWorkTypes = this.preproductionWorkTypes;
         } else {
             teamWorkTypes = this.workTypes; // B2B uses original types
         }
@@ -5034,14 +5104,14 @@ class RealEfficiencyTracker {
             });
         } else {
             // For other teams: convert to days equivalent (original logic)
-            Object.keys(teamWorkTypes).forEach(workType => {
-                const input = document.querySelector(`[data-member="${memberName}"][data-work="${workType}"]`);
-                const workDone = parseFloat(input?.value) || 0;
-                const perDay = teamWorkTypes[workType].perDay;
-                if (perDay > 0) {
+        Object.keys(teamWorkTypes).forEach(workType => {
+            const input = document.querySelector(`[data-member="${memberName}"][data-work="${workType}"]`);
+            const workDone = parseFloat(input?.value) || 0;
+            const perDay = teamWorkTypes[workType].perDay;
+            if (perDay > 0) {
                     totalOutput += workDone / perDay;
-                }
-            });
+            }
+        });
         }
         
         return totalOutput;
@@ -8052,6 +8122,8 @@ class RealEfficiencyTracker {
             teamWorkTypes = this.techWorkTypes;
         } else if (this.currentTeam === 'product') {
             teamWorkTypes = this.productWorkTypes;
+        } else if (this.currentTeam === 'preproduction') {
+            teamWorkTypes = this.preproductionWorkTypes;
         } else {
             teamWorkTypes = this.workTypes; // B2B uses original types
         }
@@ -9385,7 +9457,7 @@ class RealEfficiencyTracker {
                         rating: memberWeekData.rating || 0
                     });
                 }
-                }
+            }
             }
         }
         
@@ -9798,7 +9870,7 @@ class RealEfficiencyTracker {
 
     setupTeamFilters() {
         const teamFiltersContainer = document.getElementById('team-filters');
-        const allTeams = ['b2b', 'varsity', 'zero1_bratish', 'zero1_harish', 'audio', 'shorts', 'graphics', 'tech', 'product'];
+        const allTeams = ['b2b', 'varsity', 'zero1_bratish', 'zero1_harish', 'audio', 'shorts', 'graphics', 'tech', 'product', 'preproduction'];
         
         const teamDisplayNames = {
             'b2b': 'B2B Team',
@@ -9809,7 +9881,8 @@ class RealEfficiencyTracker {
             'shorts': 'Shorts Team',
             'graphics': 'Graphics Team',
             'tech': 'Tech Team',
-            'product': 'Product Team'
+            'product': 'Product Team',
+            'preproduction': 'Pre-production Team'
         };
         
         teamFiltersContainer.innerHTML = '';
@@ -9987,7 +10060,11 @@ class RealEfficiencyTracker {
                 'varsity': 'varsity',
                 'b2b': 'b2b',
                 'audio': 'audio',
-                'shorts': 'shorts'
+                'shorts': 'shorts',
+                'graphics': 'graphics',
+                'tech': 'tech',
+                'product': 'product',
+                'preproduction': 'preproduction'
             };
             
             const historicalKey = teamMapping[teamId] || teamId;
@@ -10033,7 +10110,10 @@ class RealEfficiencyTracker {
             'b2b': 'b2b',
             'audio': 'audio',
             'shorts': 'shorts',
-            'graphics': 'graphics'
+            'graphics': 'graphics',
+            'tech': 'tech',
+            'product': 'product',
+            'preproduction': 'preproduction'
         };
         
         const configKey = teamMapping[teamId] || teamId;
@@ -10071,7 +10151,8 @@ class RealEfficiencyTracker {
             'shorts': 'Shorts',
             'graphics': 'Graphics',
             'tech': 'Tech',
-            'product': 'Product'
+            'product': 'Product',
+            'preproduction': 'Pre-production'
         };
         return displayNames[teamId] || teamId;
     }
@@ -10118,7 +10199,8 @@ class RealEfficiencyTracker {
             'shorts': 'shorts',
             'graphics': 'graphics',
             'tech': 'tech',
-            'product': 'product'
+            'product': 'product',
+            'preproduction': 'preproduction'
         };
         
         const historicalKey = teamMapping[teamId] || teamId;
@@ -10186,7 +10268,8 @@ class RealEfficiencyTracker {
             'shorts': 'shorts',
             'graphics': 'graphics',
             'tech': 'tech',
-            'product': 'product'
+            'product': 'product',
+            'preproduction': 'preproduction'
         };
         
         const reportKey = teamMapping[teamId] || teamId;
