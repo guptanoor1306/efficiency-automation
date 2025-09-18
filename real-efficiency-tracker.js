@@ -5707,7 +5707,31 @@ class RealEfficiencyTracker {
             const rating = parseFloat(ratingSelect?.value) || 0;
             const effectiveWorkingDays = workingDays - leaveDays;
             const output = this.calculateMemberTotalOutput(member.name);
-            const efficiency = effectiveWorkingDays > 0 ? (output / effectiveWorkingDays) * 100 : 0;
+            
+            let efficiency = 0;
+            if (this.currentTeam === 'tech') {
+                // Tech team: use target points instead of effective working days
+                const targetPointsInput = document.querySelector(`[data-member="${member.name}"].target-points-input`);
+                const targetPoints = parseFloat(targetPointsInput?.value) || 0;
+                
+                if (targetPoints > 0) {
+                    // Calculate adjusted target: reduce target proportionally based on leave days
+                    const adjustedTarget = targetPoints * (effectiveWorkingDays / workingDays);
+                    efficiency = adjustedTarget > 0 ? (output / adjustedTarget) * 100 : 0;
+                    
+                    console.log(`Tech finalization efficiency for ${member.name}:`, {
+                        output: output,
+                        targetPoints: targetPoints,
+                        workingDays: workingDays,
+                        leaveDays: leaveDays,
+                        adjustedTarget: adjustedTarget,
+                        efficiency: efficiency.toFixed(1) + '%'
+                    });
+                }
+            } else {
+                // Other teams: use original formula
+                efficiency = effectiveWorkingDays > 0 ? (output / effectiveWorkingDays) * 100 : 0;
+            }
             
             // Only check for missing rating if this team uses ratings
             if (rating === 0 && this.currentTeam !== 'tech' && this.currentTeam !== 'product') {
@@ -9352,9 +9376,9 @@ class RealEfficiencyTracker {
         }
         
         // Create simple text-based chart
-        // Use a fixed scale from 0 to 100% for better visual comparison
-        const maxScale = 100;
-        const minScale = 0;
+        // Calculate dynamic scale to accommodate >100% efficiency values
+        const maxEfficiency = Math.max(...monthlyData.map(d => d.efficiency), 100);
+        const maxScale = Math.max(100, maxEfficiency * 1.1); // Add 10% padding for >100% values
         
         let chartHTML = `
             <div style="padding: 20px; width: 100%; max-width: 100%; overflow: hidden;">
@@ -9365,22 +9389,26 @@ class RealEfficiencyTracker {
         `;
         
         monthlyData.forEach((data, index) => {
-            // Use the actual efficiency percentage for bar width (0-100%)
+            // Fixed calculation: efficiency is already a percentage, so divide by maxScale to get bar width percentage
             const barWidth = Math.max(5, (data.efficiency / maxScale) * 100); // Min 5% width for visibility
             const color = data.efficiency >= 90 ? '#27ae60' : data.efficiency >= 70 ? '#f39c12' : '#e74c3c';
             
-            console.log(`Chart data for ${data.month}: efficiency=${data.efficiency}%, barWidth=${barWidth}%`);
+            // Show data label outside bar if efficiency > 100% or bar is too narrow
+            const showLabelOutside = data.efficiency > 100 || barWidth < 35;
+            
+            console.log(`Monthly chart data for ${data.month}: efficiency=${data.efficiency}%, barWidth=${barWidth}%, maxScale=${maxScale}`);
             
             chartHTML += `
                 <div style="display: flex; align-items: center; margin-bottom: 8px;">
-                    <div style="width: 80px; font-size: 12px; font-weight: 500; flex-shrink: 0;">${data.month.split(' ')[0]}</div>
+                    <div style="width: 60px; font-size: 11px; color: #666; text-align: left; flex-shrink: 0;">${data.efficiency.toFixed(1)}%</div>
+                    <div style="width: 70px; font-size: 12px; font-weight: 500; flex-shrink: 0;">${data.month.split(' ')[0]}</div>
                     <div style="flex: 1; background: #f0f0f0; height: 25px; border-radius: 12px; margin: 0 10px; position: relative; min-width: 0;">
-                        <div style="background: ${color}; height: 100%; width: ${barWidth}%; border-radius: 12px; display: flex; align-items: center; justify-content: flex-end; padding-right: 8px; min-width: 30px;">
-                            <span style="color: white; font-size: 11px; font-weight: bold; white-space: nowrap;">${data.efficiency.toFixed(1)}%</span>
+                        <div style="background: ${color}; height: 100%; width: ${barWidth}%; border-radius: 12px; display: flex; align-items: center; ${showLabelOutside ? 'justify-content: flex-start;' : 'justify-content: flex-end; padding-right: 8px;'} min-width: 15px;">
+                            ${!showLabelOutside ? `<span style="color: white; font-size: 11px; font-weight: bold; white-space: nowrap;">${data.efficiency.toFixed(1)}%</span>` : ''}
                         </div>
                     </div>
                     <div style="width: 80px; font-size: 11px; color: #666; flex-shrink: 0; text-align: right;">
-                        ${data.output.toFixed(1)} days
+                        ${data.output.toFixed(1)} ${this.currentTeam === 'tech' || this.currentTeam === 'product' ? 'pts' : 'days'}
                     </div>
                 </div>
             `;
@@ -9417,8 +9445,9 @@ class RealEfficiencyTracker {
         }
         
         // Create weekly chart
-        // Use a fixed scale from 0 to 100% for better visual comparison
-        const maxScale = 100;
+        // Calculate dynamic scale to accommodate >100% efficiency values
+        const maxEfficiency = Math.max(...weeklyData.map(d => d.efficiency), 100);
+        const maxScale = Math.max(100, maxEfficiency * 1.1); // Add 10% padding for >100% values
         
         let chartHTML = `
             <div style="padding: 20px; width: 100%; max-width: 100%; overflow: hidden;">
@@ -9429,25 +9458,29 @@ class RealEfficiencyTracker {
         `;
         
         weeklyData.forEach((data, index) => {
-            // Use the actual efficiency percentage for bar width (0-100%)
+            // Fixed calculation: efficiency is already a percentage, so divide by maxScale to get bar width percentage
             const barWidth = Math.max(5, (data.efficiency / maxScale) * 100); // Min 5% width for visibility
             const color = data.efficiency >= 90 ? '#27ae60' : data.efficiency >= 70 ? '#f39c12' : '#e74c3c';
             
-            console.log(`Weekly chart data for ${data.week}: efficiency=${data.efficiency}%, barWidth=${barWidth}%`);
+            // Show data label outside bar if efficiency > 100% or bar is too narrow
+            const showLabelOutside = data.efficiency > 100 || barWidth < 30;
+            
+            console.log(`Weekly chart data for ${data.week}: efficiency=${data.efficiency}%, barWidth=${barWidth}%, maxScale=${maxScale}`);
             
             chartHTML += `
                 <div style="display: flex; align-items: center; margin-bottom: 6px;">
-                    <div style="width: 120px; font-size: 11px; font-weight: 500; flex-shrink: 0;">${data.week.replace('Week ', 'W')}</div>
+                    <div style="width: 50px; font-size: 10px; color: #666; text-align: left; flex-shrink: 0;">${data.efficiency.toFixed(1)}%</div>
+                    <div style="width: 60px; font-size: 11px; font-weight: 500; flex-shrink: 0;">${data.week.replace('Week ', 'W')}</div>
                     <div style="flex: 1; background: #f0f0f0; height: 20px; border-radius: 10px; margin: 0 8px; position: relative; min-width: 0;">
-                        <div style="background: ${color}; height: 100%; width: ${barWidth}%; border-radius: 10px; display: flex; align-items: center; justify-content: flex-end; padding-right: 6px; min-width: 25px;">
-                            <span style="color: white; font-size: 10px; font-weight: bold; white-space: nowrap;">${data.efficiency.toFixed(1)}%</span>
+                        <div style="background: ${color}; height: 100%; width: ${barWidth}%; border-radius: 10px; display: flex; align-items: center; ${showLabelOutside ? 'justify-content: flex-start;' : 'justify-content: flex-end; padding-right: 6px;'} min-width: 10px;">
+                            ${!showLabelOutside ? `<span style="color: white; font-size: 10px; font-weight: bold; white-space: nowrap;">${data.efficiency.toFixed(1)}%</span>` : ''}
                         </div>
                     </div>
                     <div style="width: 60px; font-size: 10px; color: #666; flex-shrink: 0; text-align: right;">
-                        ${data.output.toFixed(1)}d
+                        ${data.output.toFixed(1)}${this.currentTeam === 'tech' || this.currentTeam === 'product' ? 'pts' : 'd'}
                     </div>
                     <div style="width: 40px; font-size: 10px; color: #666; flex-shrink: 0; text-align: center;">
-                        ${data.rating}/10
+                        ${(this.currentTeam === 'tech' || this.currentTeam === 'product') ? '-' : data.rating + '/10'}
                     </div>
                 </div>
             `;
@@ -10102,10 +10135,23 @@ class RealEfficiencyTracker {
                     const rating = parseFloat(entry.weekly_rating) || 0;
                     const effectiveWorkingDays = workingDays - leaveDays;
                     
-                    // Calculate correct efficiency: (week_total / effective_working_days) * 100
-                    const efficiency = effectiveWorkingDays > 0 ? (memberOutput / effectiveWorkingDays * 100) : 0;
-                    
-                    console.log(`✅ Fresh calculation for ${entry.member_name}: week_total=${memberOutput}, working_days=${workingDays}, leave_days=${leaveDays}, effective_days=${effectiveWorkingDays}, efficiency=${efficiency.toFixed(1)}%`);
+                    let efficiency = 0;
+                    if (teamId === 'tech') {
+                        // Tech team: use target points calculation
+                        const targetPoints = parseFloat(entry.target_points) || 0;
+                        if (targetPoints > 0) {
+                            // Calculate adjusted target: reduce target proportionally based on leave days
+                            const adjustedTarget = targetPoints * (effectiveWorkingDays / workingDays);
+                            efficiency = adjustedTarget > 0 ? (memberOutput / adjustedTarget * 100) : 0;
+                            
+                            console.log(`✅ Tech Company View calculation for ${entry.member_name}: output=${memberOutput}, target=${targetPoints}, adjusted=${adjustedTarget.toFixed(1)}, efficiency=${efficiency.toFixed(1)}%`);
+                        }
+                    } else {
+                        // Other teams: use original formula (week_total / effective_working_days) * 100
+                        efficiency = effectiveWorkingDays > 0 ? (memberOutput / effectiveWorkingDays * 100) : 0;
+                        
+                        console.log(`✅ Standard calculation for ${entry.member_name}: week_total=${memberOutput}, working_days=${workingDays}, leave_days=${leaveDays}, effective_days=${effectiveWorkingDays}, efficiency=${efficiency.toFixed(1)}%`);
+                    }
                     
                     members.push({
                         name: entry.member_name,
