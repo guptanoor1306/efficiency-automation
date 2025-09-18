@@ -3663,11 +3663,17 @@ class RealEfficiencyTracker {
     
     // Check if current week is finalized
     isWeekFinalized() {
-        if (!this.currentWeek || !this.finalizedReports) return false;
+        if (!this.currentWeek || !this.finalizedReports || !this.currentTeam) return false;
         
         const weekKey = this.currentWeek.id;
-        return this.finalizedReports.hasOwnProperty(weekKey) && 
-               this.finalizedReports[weekKey] !== null;
+        const teamFinalizedReports = this.finalizedReports[this.currentTeam] || {};
+        const isFinalized = teamFinalizedReports.hasOwnProperty(weekKey) && 
+                           teamFinalizedReports[weekKey] !== null;
+        
+        console.log(`🔍 isWeekFinalized check: team=${this.currentTeam}, week=${weekKey}, finalized=${isFinalized}`);
+        console.log(`📋 Available finalized weeks for ${this.currentTeam}:`, Object.keys(teamFinalizedReports));
+        
+        return isFinalized;
     }
     
     // Update sync status display
@@ -9498,6 +9504,43 @@ class RealEfficiencyTracker {
                                 } else {
                                     console.warn(`⚠️ Person View: No target_points for ${memberName} in ${weekId} (found: ${memberEntry.target_points})`);
                                 }
+                            }
+                        } catch (error) {
+                            console.error(`❌ Error recalculating efficiency for ${memberName}:`, error);
+                        }
+                    } else if (this.currentTeam === 'preproduction') {
+                        // For Pre-production team, recalculate efficiency from fresh Supabase data
+                        console.log(`🔄 Recalculating Pre-production efficiency for ${memberName} in ${weekId}`);
+                        try {
+                            // Get fresh data from Supabase for this member and week
+                            const supabaseData = await this.supabaseAPI.loadWeekData('preproduction', weekId);
+                            const memberEntry = supabaseData?.find(entry => entry.member_name === memberName);
+                            
+                            if (memberEntry && memberEntry.work_type_data) {
+                                const workingDays = parseFloat(memberEntry.working_days) || 5;
+                                const leaveDays = parseFloat(memberEntry.leave_days) || 0;
+                                const effectiveWorkingDays = workingDays - leaveDays;
+                                
+                                // Calculate total days equivalent from work type data
+                                let totalDaysEquivalent = 0;
+                                Object.keys(memberEntry.work_type_data).forEach(workType => {
+                                    const dailyData = memberEntry.work_type_data[workType];
+                                    if (dailyData && typeof dailyData === 'object') {
+                                        // Sum up all daily values to get total work done
+                                        const totalWork = Object.values(dailyData).reduce((sum, val) => sum + (parseFloat(val) || 0), 0);
+                                        
+                                        // Convert to days equivalent using perDay rate
+                                        const perDay = this.preproductionWorkTypes[workType]?.perDay || 1;
+                                        if (perDay > 0) {
+                                            totalDaysEquivalent += totalWork / perDay;
+                                        }
+                                    }
+                                });
+                                
+                                // Calculate correct efficiency: (total_days_equivalent / effective_working_days) * 100
+                                correctEfficiency = effectiveWorkingDays > 0 ? (totalDaysEquivalent / effectiveWorkingDays) * 100 : 0;
+                                
+                                console.log(`✅ Person View Pre-production: ${memberName} = ${totalDaysEquivalent.toFixed(2)} days / ${effectiveWorkingDays} days = ${correctEfficiency.toFixed(1)}%`);
                             }
                         } catch (error) {
                             console.error(`❌ Error recalculating efficiency for ${memberName}:`, error);
