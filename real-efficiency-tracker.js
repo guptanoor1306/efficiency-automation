@@ -175,42 +175,45 @@ class RealEfficiencyTracker {
             'SP': ['story_points']
         };
 
-        // Pre-production team work types (diverse content creation)
+        // Pre-production team work types (category-based structure)
         this.preproductionWorkTypes = {
-            // 1. YT Shorts
-            'yt_shorts_full': { level: 'L1', name: 'YT Shorts (Script+Pre-Planning+VD+Shoot)', perDay: 2 },
+            // YT Shorts
+            'script_preplanning_vd_shoot': { level: 'YT Shorts', name: 'Script Screenplay + Pre-Planning + VD + Shoot', perDay: 2 },
             
-            // 2. YT LF (Normal)
-            'yt_lf_moodboard': { level: 'L1', name: 'YT LF Visual Moodboard', perDay: 2 },
-            'yt_lf_direction_script': { level: 'L2', name: 'YT LF Visual Direction + Script', perDay: 1 },
-            'yt_lf_preplanning': { level: 'L1', name: 'YT LF Pre-planning', perDay: 2 },
-            'yt_lf_shoots': { level: 'L1', name: 'YT LF Shoots (PS)', perDay: 2 },
+            // YT LF (Normal)
+            'yt_normal_moodboard': { level: 'YT LF (Normal)', name: 'Visual Moodboard', perDay: 2 },
+            'yt_normal_direction_script': { level: 'YT LF (Normal)', name: 'Visual Direction + Script Screenplay', perDay: 1 },
+            'yt_normal_preplanning': { level: 'YT LF (Normal)', name: 'Pre-planning', perDay: 2 },
+            'yt_normal_shoots': { level: 'YT LF (Normal)', name: 'Shoots (PS)', perDay: 2 },
             
-            // 3. YT LF (Big)
-            'yt_lf_big_moodboard': { level: 'L3', name: 'YT LF Big Visual Moodboard', perDay: 0.5 },
-            'yt_lf_big_direction': { level: 'L3', name: 'YT LF Big Visual Direction + Script', perDay: 0.5 },
-            'yt_lf_big_preplanning': { level: 'L3', name: 'YT LF Big Pre-planning (Location/Recce)', perDay: 0.5 },
-            'yt_lf_big_shoots': { level: 'L2', name: 'YT LF Big Pre-Planning + Shoots (PS)', perDay: 1 },
+            // YT LF (Big)
+            'yt_big_moodboard': { level: 'YT LF (Big)', name: 'Visual Moodboard', perDay: 0.5 },
+            'yt_big_direction_script': { level: 'YT LF (Big)', name: 'Visual Direction + Script Screenplay', perDay: 0.5 },
+            'yt_big_preplanning': { level: 'YT LF (Big)', name: 'Pre-planning (location scouting/recce/permissions, etc)', perDay: 0.5 },
+            'yt_big_shoots': { level: 'YT LF (Big)', name: 'Pre Planning + Shoots (PS)', perDay: 1 },
             
-            // 4. Reels Pre-planning + Shoots
-            'reels_phone': { level: 'L1', name: 'Reels (Phone)', perDay: 2 },
-            'production_outdoor': { level: 'L3', name: 'Production Outdoor', perDay: 0.66 },
-            'production_indoor': { level: 'L2', name: 'Production Indoor', perDay: 1 },
+            // Reels Pre-planning + Shoots
+            'reels_phone': { level: 'Reels Pre-planning + Shoots', name: 'Reels (Phone)', perDay: 2 },
+            'production_outdoor': { level: 'Reels Pre-planning + Shoots', name: 'Production Outdoor', perDay: 0.66 },
+            'production_indoor': { level: 'Reels Pre-planning + Shoots', name: 'Production Indoor', perDay: 1 },
             
-            // 5. No PS Shoots
-            'no_ps_indoor': { level: 'L2', name: 'No PS Shoots Indoor', perDay: 1 },
-            'no_ps_outdoor': { level: 'L3', name: 'No PS Shoots Outdoor', perDay: 0.5 },
+            // No PS Shoots
+            'no_ps_indoor': { level: 'No PS Shoots', name: 'Indoor', perDay: 1 },
+            'no_ps_outdoor': { level: 'No PS Shoots', name: 'Outdoor', perDay: 0.5 },
             
-            // 6. Post-Production
-            'intro_editing': { level: 'L1', name: 'Intro/Sequence Editing/Overview', perDay: 2 },
-            'storyboard': { level: 'L2', name: 'Storyboard', perDay: 1 }
+            // Post-Production
+            'intro_editing': { level: 'Post-Production', name: 'Intro/sequence Editing/overview', perDay: 2 },
+            'storyboard': { level: 'Post-Production', name: 'Storyboard', perDay: 1 }
         };
 
-        // Pre-production team level mapping
+        // Pre-production team level mapping (category-based)
         this.preproductionLevelMapping = {
-            'L1': ['yt_shorts_full', 'yt_lf_moodboard', 'yt_lf_preplanning', 'yt_lf_shoots', 'reels_phone', 'intro_editing'],
-            'L2': ['yt_lf_direction_script', 'yt_lf_big_shoots', 'production_indoor', 'no_ps_indoor', 'storyboard'],
-            'L3': ['yt_lf_big_moodboard', 'yt_lf_big_direction', 'yt_lf_big_preplanning', 'production_outdoor', 'no_ps_outdoor']
+            'YT Shorts': ['script_preplanning_vd_shoot'],
+            'YT LF (Normal)': ['yt_normal_moodboard', 'yt_normal_direction_script', 'yt_normal_preplanning', 'yt_normal_shoots'],
+            'YT LF (Big)': ['yt_big_moodboard', 'yt_big_direction_script', 'yt_big_preplanning', 'yt_big_shoots'],
+            'Reels Pre-planning + Shoots': ['reels_phone', 'production_outdoor', 'production_indoor'],
+            'No PS Shoots': ['no_ps_indoor', 'no_ps_outdoor'],
+            'Post-Production': ['intro_editing', 'storyboard']
         };
         
         // Current team selection
