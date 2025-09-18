@@ -3470,6 +3470,22 @@ class RealEfficiencyTracker {
                     const teamWeekData = await this.supabaseAPI.loadAllWeekData(storageTeamId);
                     console.log(`📊 Found ${teamWeekData?.length || 0} entries for ${team} (${storageTeamId})`);
                     
+                    // Special debugging for Graphics team
+                    if (team === 'graphics') {
+                        console.log('🎨 GRAPHICS DEBUG: Raw team week data:', teamWeekData);
+                        if (teamWeekData && teamWeekData.length > 0) {
+                            teamWeekData.forEach((entry, index) => {
+                                console.log(`🎨 GRAPHICS Entry ${index}:`, {
+                                    week_id: entry.week_id,
+                                    member_name: entry.member_name,
+                                    week_total: entry.week_total,
+                                    efficiency: entry.efficiency,
+                                    created_at: entry.created_at
+                                });
+                            });
+                        }
+                    }
+                    
                     if (teamWeekData && teamWeekData.length > 0) {
                         // Initialize team in finalized reports if not exists
                         if (!this.finalizedReports[team]) {
@@ -9917,6 +9933,15 @@ class RealEfficiencyTracker {
         const teamFinalizedReports = this.finalizedReports?.[this.currentTeam] || {};
         console.log('Team finalized reports available:', Object.keys(teamFinalizedReports));
         
+        // Special debugging for Graphics team
+        if (this.currentTeam === 'graphics') {
+            console.log('🎨 GRAPHICS DEBUG in getPersonWeeklyData:');
+            console.log('🎨 Current team:', this.currentTeam);
+            console.log('🎨 Selected member:', memberName);
+            console.log('🎨 Available Graphics weeks:', Object.keys(teamFinalizedReports));
+            console.log('🎨 Full Graphics finalized reports:', teamFinalizedReports);
+        }
+        
         for (const weekId of Object.keys(teamFinalizedReports)) {
             const weekData = teamFinalizedReports[weekId];
             console.log(`Checking week ${weekId}:`, weekData);
@@ -10869,6 +10894,14 @@ class RealEfficiencyTracker {
         console.log(`🔍 getTeamWeeklyData: teamId=${teamId}, reportKey=${reportKey}`);
         console.log(`🔍 Available teams in finalizedReports:`, Object.keys(this.finalizedReports || {}));
         console.log(`🔍 Team data for ${reportKey}:`, this.finalizedReports?.[reportKey]);
+        
+        // Special debugging for Graphics team
+        if (teamId === 'graphics') {
+            console.log('🎨 GRAPHICS DEBUG in getTeamWeeklyData:');
+            console.log('🎨 Requested weekId:', weekId);
+            console.log('🎨 Graphics finalized reports:', this.finalizedReports?.graphics);
+            console.log('🎨 Available weeks for Graphics:', Object.keys(this.finalizedReports?.graphics || {}));
+        }
         
         // DEBUG: Check if we need different mapping for finalized reports vs Supabase queries
         const finalizedReportsKey = teamId; // Use original teamId for finalized reports
