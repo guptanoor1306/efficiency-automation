@@ -3800,8 +3800,8 @@ class RealEfficiencyTracker {
         
         let weeks = this.weekSystem.getWeeksForSelector();
         
-        // For Tech and Product teams, only show weeks from September 2025 onwards
-        if (this.currentTeam === 'tech' || this.currentTeam === 'product') {
+        // For Tech, Product, and Pre-production teams, only show weeks from September 2025 onwards
+        if (this.currentTeam === 'tech' || this.currentTeam === 'product' || this.currentTeam === 'preproduction') {
             weeks = weeks.filter(week => {
                 // Parse monthYear string (e.g., "September 2025")
                 const [monthName, yearStr] = week.monthYear.split(' ');
