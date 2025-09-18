@@ -90,6 +90,11 @@ class SupabaseAPI {
             };
 
             console.log('📝 Week entry to save:', weekEntry);
+            console.log('🎯 Target points being saved:', {
+                'weekData.targetPoints': weekData.targetPoints,
+                'parsed target_points': weekEntry.target_points,
+                'teamId': teamId
+            });
 
             // Use upsert to insert or update
             const { data, error } = await this.supabase
