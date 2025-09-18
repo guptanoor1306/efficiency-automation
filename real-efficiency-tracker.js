@@ -6347,7 +6347,7 @@ class RealEfficiencyTracker {
             }
             
             // Only check for missing rating if this team uses ratings
-            const teamsWithoutRatings = ['tech', 'product', 'content', 'preproduction', 'social'];
+            const teamsWithoutRatings = ['tech', 'product', 'content', 'social'];
             if (rating === 0 && !teamsWithoutRatings.includes(this.currentTeam)) {
                 this.showMessage(`Missing quality rating for ${member.name}. Please complete all entries before finalizing.`, 'error');
                 return;
