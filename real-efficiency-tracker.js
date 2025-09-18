@@ -3336,11 +3336,6 @@ class RealEfficiencyTracker {
         // Load Slack webhook URL from localStorage
         this.loadSlackWebhookUrl();
         
-        // Set the provided webhook URL if not already configured
-        if (!this.slackWebhookUrl) {
-            this.setSlackWebhookUrl('https://hooks.slack.com/services/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');
-        }
-        
         // Also load any stored historical data for this team
         this.loadStoredHistoricalData();
         
