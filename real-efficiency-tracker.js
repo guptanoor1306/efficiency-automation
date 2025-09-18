@@ -483,14 +483,14 @@ class RealEfficiencyTracker {
                 name: 'Content Team',
                 members: [
                     { name: 'Nishita' },
-                    { name: 'Akshat' },
+                    { name: 'Akshat Mandalgi' },
                     { name: 'Urvish' },
                     { name: 'Meghna' },
                     { name: 'Shuchita' }
                 ],
                 historicalMembers: [
                     { name: 'Nishita' },
-                    { name: 'Akshat' },
+                    { name: 'Akshat Mandalgi' },
                     { name: 'Urvish' },
                     { name: 'Meghna' },
                     { name: 'Shuchita' }
@@ -3041,7 +3041,7 @@ class RealEfficiencyTracker {
                             workingDays: 16,
                             efficiency: 104.75
                         },
-                        'Akshat': { 
+                        'Akshat Mandalgi': { 
                             weeks: [2.84, 2.84, 5.10, 5.34], 
                             weeklyQualityRatings: [0, 0, 0, 0], // No quality rating for Content team
                             monthlyRating: 0, // No quality rating for Content team

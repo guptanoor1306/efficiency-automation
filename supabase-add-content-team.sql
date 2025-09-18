@@ -3,7 +3,7 @@
 
 INSERT INTO teams (id, name, members, work_types) VALUES 
 ('content', 'Content Team',
- '["Nishita", "Akshat", "Urvish", "Meghna", "Shuchita"]',
+ '["Nishita", "Akshat Mandalgi", "Urvish", "Meghna", "Shuchita"]',
  '{
    "shorts_topics": {"level": "Shorts", "name": "Topics", "perDay": 10},
    "shorts_og_script": {"level": "Shorts", "name": "OG Script", "perDay": 3},
