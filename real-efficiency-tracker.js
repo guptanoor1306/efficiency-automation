@@ -4997,7 +4997,7 @@ class RealEfficiencyTracker {
     }
 
     calculateMemberTotalOutput(memberName) {
-        let totalDays = 0;
+        let totalOutput = 0;
         
         // Get work types based on current team
         let teamWorkTypes;
@@ -5021,15 +5021,26 @@ class RealEfficiencyTracker {
             teamWorkTypes = this.workTypes; // B2B uses original types
         }
         
-        Object.keys(teamWorkTypes).forEach(workType => {
-            const input = document.querySelector(`[data-member="${memberName}"][data-work="${workType}"]`);
-            const workDone = parseFloat(input?.value) || 0;
-            const perDay = teamWorkTypes[workType].perDay;
-            if (perDay > 0) {
-                totalDays += workDone / perDay;
-            }
-        });
-        return totalDays;
+        if (this.currentTeam === 'tech' || this.currentTeam === 'product') {
+            // For Tech/Product teams: return raw story points (no conversion to days)
+            Object.keys(teamWorkTypes).forEach(workType => {
+                const input = document.querySelector(`[data-member="${memberName}"][data-work="${workType}"]`);
+                const workDone = parseFloat(input?.value) || 0;
+                totalOutput += workDone; // Direct story points, no division
+            });
+        } else {
+            // For other teams: convert to days equivalent (original logic)
+            Object.keys(teamWorkTypes).forEach(workType => {
+                const input = document.querySelector(`[data-member="${memberName}"][data-work="${workType}"]`);
+                const workDone = parseFloat(input?.value) || 0;
+                const perDay = teamWorkTypes[workType].perDay;
+                if (perDay > 0) {
+                    totalOutput += workDone / perDay;
+                }
+            });
+        }
+        
+        return totalOutput;
     }
     
     // REMOVED: saveToGoogleSheets() method to prevent duplicate calls
@@ -5710,7 +5721,7 @@ class RealEfficiencyTracker {
             
             let efficiency = 0;
             if (this.currentTeam === 'tech') {
-                // Tech team: use target points instead of effective working days
+                // Tech team: calculateMemberTotalOutput now returns story points, so use target points
                 const targetPointsInput = document.querySelector(`[data-member="${member.name}"].target-points-input`);
                 const targetPoints = parseFloat(targetPointsInput?.value) || 0;
                 
@@ -5720,7 +5731,7 @@ class RealEfficiencyTracker {
                     efficiency = adjustedTarget > 0 ? (output / adjustedTarget) * 100 : 0;
                     
                     console.log(`Tech finalization efficiency for ${member.name}:`, {
-                        output: output,
+                        completedPoints: output,
                         targetPoints: targetPoints,
                         workingDays: workingDays,
                         leaveDays: leaveDays,
@@ -5729,7 +5740,7 @@ class RealEfficiencyTracker {
                     });
                 }
             } else {
-                // Other teams: use original formula
+                // Other teams: output is days equivalent, use effective working days
                 efficiency = effectiveWorkingDays > 0 ? (output / effectiveWorkingDays) * 100 : 0;
             }
             
@@ -10137,20 +10148,20 @@ class RealEfficiencyTracker {
                     
                     let efficiency = 0;
                     if (teamId === 'tech') {
-                        // Tech team: use target points calculation
+                        // Tech team: week_total now contains story points, use target points calculation
                         const targetPoints = parseFloat(entry.target_points) || 0;
                         if (targetPoints > 0) {
                             // Calculate adjusted target: reduce target proportionally based on leave days
                             const adjustedTarget = targetPoints * (effectiveWorkingDays / workingDays);
                             efficiency = adjustedTarget > 0 ? (memberOutput / adjustedTarget * 100) : 0;
                             
-                            console.log(`✅ Tech Company View calculation for ${entry.member_name}: output=${memberOutput}, target=${targetPoints}, adjusted=${adjustedTarget.toFixed(1)}, efficiency=${efficiency.toFixed(1)}%`);
+                            console.log(`✅ Tech Company View calculation for ${entry.member_name}: completedPoints=${memberOutput}, target=${targetPoints}, adjusted=${adjustedTarget.toFixed(1)}, efficiency=${efficiency.toFixed(1)}%`);
                         }
                     } else {
-                        // Other teams: use original formula (week_total / effective_working_days) * 100
+                        // Other teams: week_total contains days equivalent, use effective working days
                         efficiency = effectiveWorkingDays > 0 ? (memberOutput / effectiveWorkingDays * 100) : 0;
                         
-                        console.log(`✅ Standard calculation for ${entry.member_name}: week_total=${memberOutput}, working_days=${workingDays}, leave_days=${leaveDays}, effective_days=${effectiveWorkingDays}, efficiency=${efficiency.toFixed(1)}%`);
+                        console.log(`✅ Standard calculation for ${entry.member_name}: days=${memberOutput}, working_days=${workingDays}, leave_days=${leaveDays}, effective_days=${effectiveWorkingDays}, efficiency=${efficiency.toFixed(1)}%`);
                     }
                     
                     members.push({
