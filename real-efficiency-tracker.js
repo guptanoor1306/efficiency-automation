@@ -4701,8 +4701,6 @@ class RealEfficiencyTracker {
             levelMapping = this.preproductionLevelMapping;
         } else if (this.currentTeam === 'content') {
             workTypes = this.contentWorkTypes;
-        } else if (this.currentTeam === 'social') {
-            workTypes = this.socialWorkTypes;
             levelMapping = this.contentLevelMapping;
         } else if (this.currentTeam === 'social') {
             workTypes = this.socialWorkTypes;
