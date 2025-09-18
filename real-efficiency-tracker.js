@@ -11481,8 +11481,10 @@ class RealEfficiencyTracker {
         // Get company stats with fallbacks
         const avgEfficiency = document.getElementById('company-avg-efficiency')?.textContent?.trim() || 'N/A';
         const topPerformer = document.getElementById('company-top-performer')?.textContent?.trim() || 'N/A';
-        const totalTeams = document.getElementById('company-total-teams')?.textContent?.trim() || 'N/A';
+        const totalTeams = document.getElementById('company-active-teams')?.textContent?.trim() || 'N/A';
         const activeMembers = document.getElementById('company-total-members')?.textContent?.trim() || 'N/A';
+        
+        console.log(`🔍 Company stats extracted: efficiency=${avgEfficiency}, performer=${topPerformer}, teams=${totalTeams}, members=${activeMembers}`);
 
         let summary = `🏢 *Company ${periodName} Performance Report*\n`;
         summary += `📅 Period: ${periodLabel}\n`;
@@ -11491,27 +11493,31 @@ class RealEfficiencyTracker {
         summary += `👥 Teams Tracked: ${totalTeams}\n`;
         summary += `👤 Active Members: ${activeMembers}\n\n`;
 
-        // Get team performance data from the visible team cards
-        const teamCards = document.querySelectorAll('#team-summary .team-card');
+        // Get team performance data from the team summary grid
+        const teamSummaryGrid = document.getElementById('team-summary-grid');
+        const teamCards = teamSummaryGrid?.children || [];
         console.log(`🔍 Found ${teamCards.length} team cards for Slack report`);
+        console.log(`🔍 Team summary grid element:`, teamSummaryGrid);
         
         if (teamCards.length > 0) {
             summary += `📈 *Team Performance Rankings:*\n`;
             
             // Collect team data
             const teamData = [];
-            teamCards.forEach((card, index) => {
-                // Try multiple selectors for team name
+            Array.from(teamCards).forEach((card, index) => {
+                // Try multiple selectors for team name and efficiency
                 const teamName = card.querySelector('h4')?.textContent?.trim() || 
                                 card.querySelector('.team-name')?.textContent?.trim() ||
-                                card.querySelector('h3')?.textContent?.trim();
+                                card.querySelector('h5')?.textContent?.trim() ||
+                                card.querySelector('strong')?.textContent?.trim();
                 
-                // Try multiple selectors for efficiency
-                const efficiency = card.querySelector('.efficiency-value')?.textContent?.trim() ||
-                                 card.querySelector('.efficiency')?.textContent?.trim() ||
+                // Try to find efficiency percentage in various formats
+                const efficiency = card.querySelector('.efficiency')?.textContent?.trim() ||
+                                 card.querySelector('.percentage')?.textContent?.trim() ||
                                  card.textContent.match(/(\d+\.?\d*%)/)?.[1];
                 
                 console.log(`🔍 Team card ${index}: name="${teamName}", efficiency="${efficiency}"`);
+                console.log(`🔍 Team card ${index} HTML:`, card.innerHTML);
                 
                 if (teamName && efficiency) {
                     const efficiencyNum = parseFloat(efficiency.replace('%', ''));
@@ -11537,29 +11543,53 @@ class RealEfficiencyTracker {
 
         // Get individual performance data from the member chart
         const memberChart = document.getElementById('member-performance-chart');
-        const memberBars = memberChart?.querySelectorAll('.member-bar');
-        console.log(`🔍 Found ${memberBars?.length || 0} member bars for Slack report`);
+        const memberBars = memberChart?.children || [];
+        console.log(`🔍 Found ${memberBars.length} member bars for Slack report`);
+        console.log(`🔍 Member chart element:`, memberChart);
         
-        if (memberBars && memberBars.length > 0) {
+        if (memberBars.length > 0) {
             summary += `\n👤 *Top Individual Performers:*\n`;
             
             // Get top 5 performers
             const memberData = [];
-            memberBars.forEach((bar, index) => {
+            Array.from(memberBars).forEach((bar, index) => {
                 // Try multiple selectors for member name and efficiency
-                const nameElement = bar.querySelector('.member-name') || bar.querySelector('.name');
-                const efficiencyElement = bar.querySelector('.member-efficiency') || bar.querySelector('.efficiency');
+                const nameElement = bar.querySelector('.member-name') || 
+                                  bar.querySelector('.name') ||
+                                  bar.querySelector('strong') ||
+                                  bar.querySelector('span');
                 
-                if (nameElement && efficiencyElement) {
-                    const name = nameElement.textContent.trim();
-                    const efficiency = efficiencyElement.textContent.trim();
+                const efficiencyElement = bar.querySelector('.member-efficiency') || 
+                                        bar.querySelector('.efficiency') ||
+                                        bar.querySelector('.percentage');
+                
+                // If no specific elements found, try extracting from text content
+                let name = nameElement?.textContent?.trim();
+                let efficiency = efficiencyElement?.textContent?.trim();
+                
+                // Fallback: try to extract from the bar's text content
+                if (!name || !efficiency) {
+                    const textContent = bar.textContent || '';
+                    const efficiencyMatch = textContent.match(/(\d+\.?\d*%)/);
+                    if (efficiencyMatch) {
+                        efficiency = efficiencyMatch[1];
+                        // Extract name (everything before the percentage)
+                        name = textContent.replace(efficiencyMatch[0], '').trim();
+                    }
+                }
+                
+                console.log(`🔍 Member ${index}: name="${name}", efficiency="${efficiency}"`);
+                console.log(`🔍 Member bar ${index} HTML:`, bar.innerHTML);
+                
+                if (name && efficiency) {
                     const efficiencyNum = parseFloat(efficiency.replace('%', ''));
-                    console.log(`🔍 Member ${index}: name="${name}", efficiency="${efficiency}"`);
                     memberData.push({ name, efficiency: efficiencyNum, display: efficiency });
                 }
             });
 
-            // Already sorted by efficiency in the chart, take top 5
+            // Sort by efficiency (highest to lowest) and take top 5
+            memberData.sort((a, b) => b.efficiency - a.efficiency);
+            
             if (memberData.length > 0) {
                 memberData.slice(0, 5).forEach((member, index) => {
                     const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '  ';
