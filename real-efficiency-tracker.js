@@ -6244,9 +6244,25 @@ class RealEfficiencyTracker {
                 memberLeaveDays = parseFloat(leaveDaysInput.value) || 0;
             }
             
-            // Calculate efficiency (TEMPORARY - using basic calculation)
+            // Calculate efficiency using correct formula for each team type
             const effectiveWorkingDays = memberWorkingDays - memberLeaveDays;
-            const memberEfficiency = effectiveWorkingDays > 0 ? (memberOutput / effectiveWorkingDays * 100) : 0;
+            let memberEfficiency = 0;
+            
+            if (this.currentTeam === 'tech') {
+                // Tech team: (completed points / target points) * (effective days / working days)
+                const targetPointsInput = document.querySelector(`[data-member="${memberName}"].target-points-input`);
+                const targetPoints = parseFloat(targetPointsInput?.value) || 0;
+                
+                if (targetPoints > 0) {
+                    memberEfficiency = (memberOutput / targetPoints) * (effectiveWorkingDays / memberWorkingDays) * 100;
+                    console.log(`🎯 Tech summary for ${memberName}: ${memberOutput}/${targetPoints} * ${effectiveWorkingDays}/${memberWorkingDays} = ${memberEfficiency.toFixed(1)}%`);
+                } else {
+                    console.warn(`⚠️ No target points for ${memberName} in summary`);
+                }
+            } else {
+                // Other teams: standard calculation
+                memberEfficiency = effectiveWorkingDays > 0 ? (memberOutput / effectiveWorkingDays * 100) : 0;
+            }
             
             console.log(`📊 ${memberName}: Output=${memberOutput}, Rating=${memberRating}, Days=${effectiveWorkingDays}, Efficiency=${memberEfficiency.toFixed(1)}%`);
             
@@ -9348,10 +9364,11 @@ class RealEfficiencyTracker {
                                 const effectiveWorkingDays = workingDays - leaveDays;
                                 
                                 if (targetPoints > 0) {
-                                    // Person View: Simple week_total / target_points
-                                    correctEfficiency = (memberOutput / targetPoints) * 100;
+                                    // Person View: Use leave-adjusted formula like finalization
+                                    const adjustedTarget = targetPoints * (effectiveWorkingDays / workingDays);
+                                    correctEfficiency = adjustedTarget > 0 ? (memberOutput / adjustedTarget) * 100 : 0;
                                     
-                                    console.log(`✅ Person View Tech display: ${memberOutput} story points / ${targetPoints} target = ${correctEfficiency.toFixed(1)}%`);
+                                    console.log(`✅ Person View Tech: ${memberOutput}/(${targetPoints}*${effectiveWorkingDays}/${workingDays}) = ${memberOutput}/${adjustedTarget.toFixed(1)} = ${correctEfficiency.toFixed(1)}%`);
                                 } else {
                                     console.warn(`⚠️ Person View: No target_points for ${memberName} in ${weekId} (found: ${memberEntry.target_points})`);
                                 }
@@ -10211,12 +10228,13 @@ class RealEfficiencyTracker {
                     
                     let efficiency = 0;
                     if (teamId === 'tech') {
-                        // Tech team: Company View uses simple week_total / target_points
+                        // Tech team: Use leave-adjusted formula consistently
                         const targetPoints = parseFloat(entry.target_points) || 0;
                         if (targetPoints > 0) {
-                            efficiency = (memberOutput / targetPoints) * 100;
+                            const adjustedTarget = targetPoints * (effectiveWorkingDays / workingDays);
+                            efficiency = adjustedTarget > 0 ? (memberOutput / adjustedTarget) * 100 : 0;
                             
-                            console.log(`✅ Tech Company View display: ${memberOutput} story points / ${targetPoints} target = ${efficiency.toFixed(1)}%`);
+                            console.log(`✅ Tech Company View: ${memberOutput}/(${targetPoints}*${effectiveWorkingDays}/${workingDays}) = ${memberOutput}/${adjustedTarget.toFixed(1)} = ${efficiency.toFixed(1)}%`);
                         } else {
                             console.warn(`⚠️ Company View: No target_points for ${entry.member_name} (found: ${entry.target_points})`);
                         }
