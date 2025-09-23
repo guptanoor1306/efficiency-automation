@@ -53,70 +53,49 @@ export default async function handler(req, res) {
             try {
                 console.log('📤 Uploading base64 image to temporary host...');
                 
-                // Try imgbb.com first (better mobile support)
-                let uploadResponse = await fetch('https://api.imgbb.com/1/upload', {
+                // Skip imgbb for now, go directly to freeimage.host which was working
+                console.log('📤 Using freeimage.host for reliable upload...');
+                let uploadResponse = await fetch('https://freeimage.host/api/1/upload', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
                     },
-                    body: `key=f9d2c9fb6d9a5e8a26b23c4b8a5e4d1f&image=${encodeURIComponent(imageData)}`
+                    body: `key=6d207e02198a847aa98d0a2a901485a5&source=${encodeURIComponent(imageData)}&format=json`
                 });
                 
                 if (uploadResponse.ok) {
                     const uploadResult = await uploadResponse.json();
-                    if (uploadResult.success && uploadResult.data && uploadResult.data.url) {
-                        console.log('✅ Image uploaded to imgbb successfully:', uploadResult.data.url);
+                    console.log('🔍 Upload response:', uploadResult);
+                    
+                    if (uploadResult.status_code === 200 && uploadResult.image && uploadResult.image.url) {
+                        console.log('✅ Image uploaded to freeimage.host successfully:', uploadResult.image.url);
                         
                         // Use multiple attachment formats for better mobile compatibility
                         slackPayload.attachments = [{
-                            "image_url": uploadResult.data.url,
+                            "image_url": uploadResult.image.url,
                             "fallback": "Performance Report Chart",
                             "title": "📊 Performance Report Chart",
-                            "title_link": uploadResult.data.url,
+                            "title_link": uploadResult.image.url,
                             "color": "#36a64f"
                         }];
                         
                         // Also add the image URL as a fallback in the text
-                        slackPayload.text += `\n\n📊 Chart: ${uploadResult.data.url}`;
+                        slackPayload.text += `\n\n📊 Chart: ${uploadResult.image.url}`;
                     } else {
-                        console.log('⚠️ imgbb upload failed, trying fallback...');
-                        
-                        // Fallback to freeimage.host
-                        uploadResponse = await fetch('https://freeimage.host/api/1/upload', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/x-www-form-urlencoded',
-                            },
-                            body: `key=6d207e02198a847aa98d0a2a901485a5&source=${encodeURIComponent(imageData)}&format=json`
-                        });
-                        
-                        if (uploadResponse.ok) {
-                            const fallbackResult = await uploadResponse.json();
-                            if (fallbackResult.status_code === 200 && fallbackResult.image && fallbackResult.image.url) {
-                                console.log('✅ Image uploaded to freeimage.host successfully:', fallbackResult.image.url);
-                                
-                                slackPayload.attachments = [{
-                                    "image_url": fallbackResult.image.url,
-                                    "fallback": "Performance Report Chart",
-                                    "title": "📊 Performance Report Chart",
-                                    "title_link": fallbackResult.image.url,
-                                    "color": "#36a64f"
-                                }];
-                                
-                                slackPayload.text += `\n\n📊 Chart: ${fallbackResult.image.url}`;
-                            } else {
-                                console.log('⚠️ All image upload services failed, sending text-only');
-                            }
-                        } else {
-                            console.log('⚠️ All image upload services failed, sending text-only');
-                        }
+                        console.log('⚠️ freeimage.host upload failed. Response:', uploadResult);
+                        console.log('⚠️ Adding chart placeholder in text');
+                        slackPayload.text += `\n\n📊 Chart: [Image upload failed - check Company View for visual data]`;
                     }
                 } else {
-                    console.log('⚠️ Image upload service unavailable, sending text-only');
+                    console.log('⚠️ Image upload service returned error:', uploadResponse.status, uploadResponse.statusText);
+                    const errorText = await uploadResponse.text();
+                    console.log('⚠️ Error details:', errorText);
+                    slackPayload.text += `\n\n📊 Chart: [Image upload failed - check Company View for visual data]`;
                 }
             } catch (uploadError) {
                 console.error('❌ Error uploading image:', uploadError);
                 console.log('⚠️ Falling back to text-only report');
+                slackPayload.text += `\n\n📊 Chart: [Image upload error - check Company View for visual data]`;
             }
         }
 
