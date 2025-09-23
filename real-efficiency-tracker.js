@@ -6965,11 +6965,11 @@ class RealEfficiencyTracker {
                         console.log(`🎯 Tech efficiency for ${memberName}: ${memberOutput}/(${targetPoints}*${effectiveWorkingDays}/${workingDays}) = ${efficiency.toFixed(1)}%`);
                     }
                 } else if (this.currentTeam === 'product') {
-                    // Product team: story points based
-                    const targetPoints = parseFloat(entry.target_points) || 0;
-                    if (targetPoints > 0) {
-                        efficiency = targetPoints > 0 ? (memberOutput / targetPoints) * 100 : 0;
-                        console.log(`🎯 Product efficiency for ${memberName}: ${memberOutput}/${targetPoints} = ${efficiency.toFixed(1)}%`);
+                    // Product team: 1 story point per working day (no target_points storage)
+                    const expectedStoryPoints = effectiveWorkingDays * 1; // 1 SP per working day
+                    if (expectedStoryPoints > 0) {
+                        efficiency = (memberOutput / expectedStoryPoints) * 100;
+                        console.log(`🎯 Product efficiency for ${memberName}: ${memberOutput}/${expectedStoryPoints} (${effectiveWorkingDays} working days) = ${efficiency.toFixed(1)}%`);
                     }
                 } else {
                     // Other teams: days equivalent based
