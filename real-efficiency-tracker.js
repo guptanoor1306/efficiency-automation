@@ -6798,7 +6798,8 @@ class RealEfficiencyTracker {
         console.log('📊 Generating summary from Supabase data...');
         
         // Get team members and calculate from input values
-        this.teamMembers.forEach(memberName => {
+        this.teamMembers.forEach(member => {
+            const memberName = member.name || member; // Handle both object and string formats
             let memberOutput = 0;
             let memberRating = 0;
             let memberWorkingDays = 5; // default
