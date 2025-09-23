@@ -10292,25 +10292,25 @@ class RealEfficiencyTracker {
                     
                     // IMPORTANT: Don't use stored efficiency as it might be calculated with old formula
                     // Instead, recalculate efficiency based on current team type
-                    let correctEfficiency = memberWeekData.efficiency || 0;
+                    let correctEfficiency = 0;
                     
-                    if (this.currentTeam === 'tech') {
-                        // For Tech team, recalculate efficiency from fresh Supabase data
-                        console.log(`🔄 Recalculating Tech efficiency for ${memberName} in ${weekId}`);
-                        try {
-                            // Get fresh data from Supabase for this member and week
-                            const supabaseData = await this.supabaseAPI.loadWeekData('tech', weekId);
-                            const memberEntry = supabaseData?.find(entry => entry.member_name === memberName);
+                    // Always recalculate efficiency from fresh Supabase data for all teams
+                    try {
+                        // Get fresh data from Supabase for this member and week
+                        const supabaseData = await this.supabaseAPI.loadWeekData(this.currentTeam, weekId);
+                        const memberEntry = supabaseData?.find(entry => entry.member_name === memberName);
+                        
+                        if (memberEntry) {
+                            const memberOutput = parseFloat(memberEntry.week_total) || 0;
+                            const workingDays = parseFloat(memberEntry.working_days) || 5;
+                            const leaveDays = parseFloat(memberEntry.leave_days) || 0;
+                            const effectiveWorkingDays = workingDays - leaveDays;
                             
-                            if (memberEntry) {
-                                const memberOutput = parseFloat(memberEntry.week_total) || 0;
-                                const workingDays = parseFloat(memberEntry.working_days) || 5;
-                                const leaveDays = parseFloat(memberEntry.leave_days) || 0;
+                            if (this.currentTeam === 'tech') {
                                 const targetPoints = parseFloat(memberEntry.target_points) || 0;
-                                const effectiveWorkingDays = workingDays - leaveDays;
                                 
                                 if (targetPoints > 0) {
-                                    // Person View: Use leave-adjusted formula like finalization
+                                    // Tech team: Use leave-adjusted formula like finalization
                                     const adjustedTarget = targetPoints * (effectiveWorkingDays / workingDays);
                                     correctEfficiency = adjustedTarget > 0 ? (memberOutput / adjustedTarget) * 100 : 0;
                                     
@@ -10318,49 +10318,21 @@ class RealEfficiencyTracker {
                                 } else {
                                     console.warn(`⚠️ Person View: No target_points for ${memberName} in ${weekId} (found: ${memberEntry.target_points})`);
                                 }
+                            } else if (this.currentTeam === 'product') {
+                                // Product team: 1 story point per working day
+                                const expectedStoryPoints = effectiveWorkingDays * 1; // 1 SP per working day
+                                correctEfficiency = expectedStoryPoints > 0 ? (memberOutput / expectedStoryPoints) * 100 : 0;
+                                
+                                console.log(`✅ Person View Product: ${memberOutput}/${expectedStoryPoints} (${effectiveWorkingDays} working days) = ${correctEfficiency.toFixed(1)}%`);
+                            } else {
+                                // All other teams (including Social): week_total / effective_working_days * 100
+                                correctEfficiency = effectiveWorkingDays > 0 ? (memberOutput / effectiveWorkingDays) * 100 : 0;
+                                
+                                console.log(`✅ Person View ${this.currentTeam}: ${memberOutput}/${effectiveWorkingDays} working days = ${correctEfficiency.toFixed(1)}%`);
                             }
-                        } catch (error) {
-                            console.error(`❌ Error recalculating efficiency for ${memberName}:`, error);
                         }
-                    } else if (this.currentTeam === 'preproduction' || this.currentTeam === 'content') {
-                        // For Pre-production and Content teams, recalculate efficiency from fresh Supabase data
-                        console.log(`🔄 Recalculating ${this.currentTeam} efficiency for ${memberName} in ${weekId}`);
-                        try {
-                            // Get fresh data from Supabase for this member and week
-                            const supabaseData = await this.supabaseAPI.loadWeekData(this.currentTeam, weekId);
-                            const memberEntry = supabaseData?.find(entry => entry.member_name === memberName);
-                            
-                            if (memberEntry && memberEntry.work_type_data) {
-                                const workingDays = parseFloat(memberEntry.working_days) || 5;
-                                const leaveDays = parseFloat(memberEntry.leave_days) || 0;
-                                const effectiveWorkingDays = workingDays - leaveDays;
-                                
-                                // Calculate total days equivalent from work type data
-                                let totalDaysEquivalent = 0;
-                                const teamWorkTypes = this.currentTeam === 'preproduction' ? this.preproductionWorkTypes : this.contentWorkTypes;
-                                
-                                Object.keys(memberEntry.work_type_data).forEach(workType => {
-                                    const dailyData = memberEntry.work_type_data[workType];
-                                    if (dailyData && typeof dailyData === 'object') {
-                                        // Sum up all daily values to get total work done
-                                        const totalWork = Object.values(dailyData).reduce((sum, val) => sum + (parseFloat(val) || 0), 0);
-                                        
-                                        // Convert to days equivalent using perDay rate
-                                        const perDay = teamWorkTypes[workType]?.perDay || 1;
-                                        if (perDay > 0) {
-                                            totalDaysEquivalent += totalWork / perDay;
-                                        }
-                                    }
-                                });
-                                
-                                // Calculate correct efficiency: (total_days_equivalent / effective_working_days) * 100
-                                correctEfficiency = effectiveWorkingDays > 0 ? (totalDaysEquivalent / effectiveWorkingDays) * 100 : 0;
-                                
-                                console.log(`✅ Person View ${this.currentTeam}: ${memberName} = ${totalDaysEquivalent.toFixed(2)} days / ${effectiveWorkingDays} days = ${correctEfficiency.toFixed(1)}%`);
-                            }
-                        } catch (error) {
-                            console.error(`❌ Error recalculating efficiency for ${memberName}:`, error);
-                        }
+                    } catch (error) {
+                        console.error(`❌ Error recalculating efficiency for ${memberName}:`, error);
                     }
                     
                     weeklyData.push({
