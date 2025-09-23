@@ -43,11 +43,17 @@ export default async function handler(req, res) {
         
         // Add image attachment if provided
         if (imageUrl) {
-            // For image URLs (like Imgur links)
+            // Add inline image for desktop users
             slackPayload.attachments = [{
                 "image_url": imageUrl,
-                "fallback": "Performance Report Chart"
+                "fallback": "Performance Report Chart",
+                "title": "📊 Performance Report Chart",
+                "title_link": imageUrl,
+                "color": "#36a64f"
             }];
+            
+            // Also add clickable link for mobile users
+            slackPayload.text += `\n\n📊 Chart: ${imageUrl}`;
         } else if (imageData) {
             // For base64 image data, try uploading to temporary image host
             try {
@@ -70,7 +76,7 @@ export default async function handler(req, res) {
                     if (uploadResult.status_code === 200 && uploadResult.image && uploadResult.image.url) {
                         console.log('✅ Image uploaded to freeimage.host successfully:', uploadResult.image.url);
                         
-                        // Use multiple attachment formats for better mobile compatibility
+                        // Add inline image for desktop users
                         slackPayload.attachments = [{
                             "image_url": uploadResult.image.url,
                             "fallback": "Performance Report Chart",
@@ -79,7 +85,7 @@ export default async function handler(req, res) {
                             "color": "#36a64f"
                         }];
                         
-                        // Also add the image URL as a fallback in the text
+                        // Also add clickable link for mobile users
                         slackPayload.text += `\n\n📊 Chart: ${uploadResult.image.url}`;
                     } else {
                         console.log('⚠️ freeimage.host upload failed. Response:', uploadResult);
