@@ -6144,10 +6144,10 @@ class RealEfficiencyTracker {
                         this.populateUIFromSupabaseData(supabaseData);
                     }, 100);
                     
-                    // Wait a moment for UI to update, then generate summary
+                    // Wait a moment for UI to update, then generate summary using Supabase data directly
                     setTimeout(() => {
-                        console.log('🔄 Generating summary from populated data...');
-                        let currentSummary = this.generateWeekSummaryFromSupabaseData() || this.generateWeekSummaryFromUI();
+                        console.log('🔄 Generating summary from Supabase data...');
+                        let currentSummary = this.generateWeekSummaryFromSupabaseDataDirect(supabaseData) || this.generateWeekSummaryFromUI();
                         this.showInlineSummaryView(currentSummary);
                     }, 100);
                 } else {
@@ -6159,7 +6159,7 @@ class RealEfficiencyTracker {
         } catch (error) {
             console.error('❌ Error loading finalized week summary:', error);
             // Fallback to generating from current UI
-            let currentSummary = this.generateWeekSummaryFromSupabaseData() || this.generateWeekSummaryFromUI();
+            let currentSummary = this.generateWeekSummaryFromUI();
             this.showInlineSummaryView(currentSummary);
         }
     }
@@ -6916,6 +6916,94 @@ class RealEfficiencyTracker {
         const avgOutput = totalOutput / memberCount;
         const avgRating = totalRating / memberCount;
         const avgEfficiency = totalEfficiency / memberCount;
+        
+        return {
+            weekName: this.currentWeek.label,
+            dateRange: this.currentWeek.dateRange,
+            memberSummaries: memberSummaries,
+            avgOutput: avgOutput,
+            avgRating: avgRating,
+            avgEfficiency: avgEfficiency,
+            finalizedAt: new Date().toISOString()
+        };
+    }
+
+    generateWeekSummaryFromSupabaseDataDirect(supabaseData) {
+        if (!this.currentWeek || !supabaseData || supabaseData.length === 0) {
+            console.log('❌ No current week or Supabase data for direct summary generation');
+            return null;
+        }
+        
+        console.log('📊 Generating summary directly from Supabase data:', supabaseData);
+        
+        const memberSummaries = [];
+        let totalOutput = 0;
+        let totalRating = 0;
+        let totalEfficiency = 0;
+        let memberCount = 0;
+        
+        // Process each entry from Supabase data
+        supabaseData.forEach(entry => {
+            const memberName = entry.member_name;
+            const memberOutput = parseFloat(entry.week_total) || 0;
+            const workingDays = parseFloat(entry.working_days) || 5;
+            const leaveDays = parseFloat(entry.leave_days) || 0;
+            const rating = parseFloat(entry.weekly_rating) || 0;
+            const effectiveWorkingDays = workingDays - leaveDays;
+            
+            // Use stored efficiency if available, otherwise calculate
+            let efficiency = parseFloat(entry.efficiency) || 0;
+            
+            if (efficiency === 0) {
+                // Calculate efficiency based on team type
+                if (this.currentTeam === 'tech') {
+                    // Tech team: story points based with target points
+                    const targetPoints = parseFloat(entry.target_points) || 0;
+                    if (targetPoints > 0) {
+                        const adjustedTarget = targetPoints * (effectiveWorkingDays / workingDays);
+                        efficiency = adjustedTarget > 0 ? (memberOutput / adjustedTarget) * 100 : 0;
+                        console.log(`🎯 Tech efficiency for ${memberName}: ${memberOutput}/(${targetPoints}*${effectiveWorkingDays}/${workingDays}) = ${efficiency.toFixed(1)}%`);
+                    }
+                } else if (this.currentTeam === 'product') {
+                    // Product team: story points based
+                    const targetPoints = parseFloat(entry.target_points) || 0;
+                    if (targetPoints > 0) {
+                        efficiency = targetPoints > 0 ? (memberOutput / targetPoints) * 100 : 0;
+                        console.log(`🎯 Product efficiency for ${memberName}: ${memberOutput}/${targetPoints} = ${efficiency.toFixed(1)}%`);
+                    }
+                } else {
+                    // Other teams: days equivalent based
+                    efficiency = effectiveWorkingDays > 0 ? (memberOutput / effectiveWorkingDays) * 100 : 0;
+                    console.log(`✅ Standard efficiency for ${memberName}: ${memberOutput}/${effectiveWorkingDays} = ${efficiency.toFixed(1)}%`);
+                }
+            } else {
+                console.log(`✅ Using stored efficiency for ${memberName}: ${efficiency.toFixed(1)}%`);
+            }
+            
+            memberSummaries.push({
+                name: memberName,
+                output: memberOutput,
+                rating: rating,
+                efficiency: efficiency,
+                workingDays: effectiveWorkingDays
+            });
+            
+            totalOutput += memberOutput;
+            totalRating += rating;
+            totalEfficiency += efficiency;
+            memberCount++;
+        });
+        
+        if (memberCount === 0) {
+            console.log('❌ No valid member data found in Supabase data');
+            return null;
+        }
+        
+        const avgOutput = totalOutput / memberCount;
+        const avgRating = totalRating / memberCount;
+        const avgEfficiency = totalEfficiency / memberCount;
+        
+        console.log(`📊 Summary calculated - Members: ${memberCount}, Avg Output: ${avgOutput.toFixed(2)}, Avg Efficiency: ${avgEfficiency.toFixed(1)}%`);
         
         return {
             weekName: this.currentWeek.label,
