@@ -5665,9 +5665,11 @@ class RealEfficiencyTracker {
                 const efficiency = target > 0 ? ((totalOutput / target) * 100).toFixed(1) : 0;
             
             // Skip members with no work data (unless it's a finalized week)
+            // IMPORTANT: Always include members with 0% efficiency in finalized reports
+            // 0% can be valid (inefficient work) or expected (full week leave)
             const isFinalized = this.isWeekFinalized();
             if (totalOutput === 0 && !isFinalized) {
-                return; // Skip this member
+                return; // Skip this member only if week is not finalized
             }
                 
                 // Get work type values based on current team
@@ -6889,21 +6891,20 @@ class RealEfficiencyTracker {
             
             console.log(`📊 ${memberName}: Output=${memberOutput}, Rating=${memberRating}, Days=${effectiveWorkingDays}, Efficiency=${memberEfficiency.toFixed(1)}%`);
             
-            // Only include members with actual data
-            if (memberOutput > 0 || memberRating > 0 || memberWorkingDays !== 5 || memberLeaveDays > 0) {
-                memberSummaries.push({
-                    name: memberName,
-                    output: memberOutput,
-                    rating: memberRating,
-                    efficiency: memberEfficiency,
-                    workingDays: effectiveWorkingDays
-                });
-                
-                totalOutput += memberOutput;
-                totalRating += memberRating;
-                totalEfficiency += memberEfficiency;
-                memberCount++;
-            }
+            // Include ALL team members in finalized reports
+            // 0% efficiency is valid data (inefficient work or full week leave)
+            memberSummaries.push({
+                name: memberName,
+                output: memberOutput,
+                rating: memberRating,
+                efficiency: memberEfficiency,
+                workingDays: effectiveWorkingDays
+            });
+            
+            totalOutput += memberOutput;
+            totalRating += memberRating;
+            totalEfficiency += memberEfficiency;
+            memberCount++;
         });
         
         if (memberCount === 0) {
