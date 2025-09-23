@@ -3488,6 +3488,69 @@ class RealEfficiencyTracker {
         }
     }
 
+    // Debug function to check Social team Week 1 finalization issue
+    async debugSocialWeek1() {
+        console.log('🔍 DEBUGGING Social team Week 1 issue...');
+        
+        // Check local finalized reports
+        console.log('📋 Local finalizedReports for social:', this.finalizedReports?.social);
+        
+        // Check Supabase data for Social team Week 1
+        const week1Id = '2025-09-01';
+        console.log(`🗄️ Checking Supabase for social team, week ${week1Id}...`);
+        
+        try {
+            const supabaseData = await this.supabaseAPI.loadWeekData('social', week1Id);
+            console.log(`📊 Supabase entries for social ${week1Id}:`, supabaseData);
+            console.log(`📊 Number of entries found: ${supabaseData?.length || 0}`);
+            
+            if (supabaseData && supabaseData.length > 0) {
+                console.log('📝 Member entries found:');
+                supabaseData.forEach((entry, index) => {
+                    console.log(`  ${index + 1}. ${entry.member_name} - Total: ${entry.week_total}, Working Days: ${entry.working_days}`);
+                });
+            } else {
+                console.log('❌ No Supabase entries found for social week 1');
+            }
+            
+            // Check if week shows as finalized
+            const oldTeam = this.currentTeam;
+            this.currentTeam = 'social';
+            const isFinalized = this.isWeekFinalized();
+            this.currentTeam = oldTeam;
+            
+            console.log(`🔍 Week finalization status: ${isFinalized}`);
+            
+            // Suggest fix
+            if (isFinalized && (!supabaseData || supabaseData.length === 0)) {
+                console.log('🛠️ ISSUE IDENTIFIED: Week shows as finalized but no Supabase data exists');
+                console.log('💡 SOLUTION: Run tracker.clearSocialWeek1Finalization() to fix this');
+            }
+            
+        } catch (error) {
+            console.error('❌ Error checking Supabase:', error);
+        }
+    }
+
+    // Fix function to clear Social team Week 1 false finalization
+    clearSocialWeek1Finalization() {
+        console.log('🛠️ Clearing Social team Week 1 false finalization...');
+        
+        const week1Id = '2025-09-01';
+        
+        // Clear from finalizedReports
+        if (this.finalizedReports?.social?.[week1Id]) {
+            delete this.finalizedReports.social[week1Id];
+            console.log('✅ Removed Week 1 from local finalizedReports');
+        }
+        
+        // Save the updated data
+        this.saveTeamSpecificData();
+        
+        console.log('✅ Social team Week 1 is now available for data entry');
+        console.log('🔄 Please refresh the page and try adding data again');
+    }
+
     // Function to fix existing Graphics team data by adding missing 0% efficiency members
     async fixExistingGraphicsData() {
         if (this.currentTeam !== 'graphics') {
