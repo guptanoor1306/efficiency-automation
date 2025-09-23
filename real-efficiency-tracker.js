@@ -8914,10 +8914,27 @@ class RealEfficiencyTracker {
                 // Collect data from stored weekEntries for the specific week
                 teamMembers.forEach(member => {
                     const entryKey = `${weekIdToUse}_${member.name}`;
-                    const storedEntry = this.weekEntries[entryKey];
+                    let storedEntry = this.weekEntries[entryKey];
                     console.log(`🔍 Looking for stored entry ${entryKey}:`, storedEntry);
                     
-                    if (storedEntry && storedEntry.workTypes && Object.keys(storedEntry.workTypes).length > 0) {
+                    // Always include team members for finalized weeks to ensure 0% efficiency transparency
+                    // Create entry if it doesn't exist to capture default attendance data
+                    if (!storedEntry) {
+                        // Create a default entry for members with no data
+                        storedEntry = {
+                            weekId: weekIdToUse,
+                            memberName: member.name,
+                            workTypes: {},
+                            workingDays: 5,
+                            leaveDays: 0,
+                            weeklyRating: 0,
+                            totalOutput: 0,
+                            targetPoints: null
+                        };
+                        console.log(`📝 Created default entry for ${member.name} to ensure visibility`);
+                    }
+                    
+                    if (storedEntry) {
                         // Convert stored entry to Supabase format
                         const memberData = {
                             weekId: storedEntry.weekId,
