@@ -30,7 +30,8 @@ UPDATE teams SET work_types = '{
   "subtitles_qc_fix": {"level": "All", "name": "Subtitles QC/Fix", "perDay": 42},
   "strategy_presentations": {"level": "All", "name": "Strategy (Presentations)", "perDay": 7},
   "shoot": {"level": "All", "name": "Shoot", "perDay": 7},
-  "retro": {"level": "All", "name": "Retro", "perDay": 98}
+  "retro": {"level": "All", "name": "Retro", "perDay": 98},
+  "rejection_meeting": {"level": "All", "name": "Rejection Meeting", "perDay": 3}
 }' 
 WHERE id = 'social';
 
@@ -44,3 +45,4 @@ SELECT id, name, work_types FROM teams WHERE id = 'social';
 -- - Weekly input starts from September 2025 onwards
 -- - 9 different level categories with varying per-day capacities
 -- - Work types range from high-volume tasks (84 per day) to specialized tasks (0.14 per day)
+-- - Total: 28 work types including Rejection Meeting (3 per day) under All level

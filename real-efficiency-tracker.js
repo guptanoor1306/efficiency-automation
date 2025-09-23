@@ -348,7 +348,8 @@ class RealEfficiencyTracker {
             'subtitles_qc_fix': { level: 'All', name: 'Subtitles QC/Fix', perDay: 42 },
             'strategy_presentations': { level: 'All', name: 'Strategy (Presentations)', perDay: 7 },
             'shoot': { level: 'All', name: 'Shoot', perDay: 7 },
-            'retro': { level: 'All', name: 'Retro', perDay: 98 }
+            'retro': { level: 'All', name: 'Retro', perDay: 98 },
+            'rejection_meeting': { level: 'All', name: 'Rejection Meeting', perDay: 3 }
         };
 
         // Social team level mapping (category-based)
@@ -361,7 +362,7 @@ class RealEfficiencyTracker {
             'Design L1': ['statics_design', 'story_reel_covers', 'carousel_design_l1'],
             'Design L1.5': ['carousel_design_l1_5'],
             'Design L2': ['carousel_design_l2'],
-            'All': ['research_toolkit', 'review_changes', 'storyboard_qc', 'subtitles_qc_fix', 'strategy_presentations', 'shoot', 'retro']
+            'All': ['research_toolkit', 'review_changes', 'storyboard_qc', 'subtitles_qc_fix', 'strategy_presentations', 'shoot', 'retro', 'rejection_meeting']
         };
         
         // Current team selection
