@@ -41,18 +41,8 @@ export default async function handler(req, res) {
         // Prepare Slack payload with image support
         let slackPayload = { ...messageData };
         
-        // Add image attachment if provided
+        // Add image URL - Slack will automatically show link preview
         if (imageUrl) {
-            // Add inline image for desktop users
-            slackPayload.attachments = [{
-                "image_url": imageUrl,
-                "fallback": "Performance Report Chart",
-                "title": "📊 Performance Report Chart",
-                "title_link": imageUrl,
-                "color": "#36a64f"
-            }];
-            
-            // Also add clickable link for mobile users
             slackPayload.text += `\n\n📊 Chart: ${imageUrl}`;
         } else if (imageData) {
             // For base64 image data, try uploading to temporary image host
@@ -76,16 +66,7 @@ export default async function handler(req, res) {
                     if (uploadResult.status_code === 200 && uploadResult.image && uploadResult.image.url) {
                         console.log('✅ Image uploaded to freeimage.host successfully:', uploadResult.image.url);
                         
-                        // Add inline image for desktop users
-                        slackPayload.attachments = [{
-                            "image_url": uploadResult.image.url,
-                            "fallback": "Performance Report Chart",
-                            "title": "📊 Performance Report Chart",
-                            "title_link": uploadResult.image.url,
-                            "color": "#36a64f"
-                        }];
-                        
-                        // Also add clickable link for mobile users
+                        // Add image URL - Slack will automatically show link preview
                         slackPayload.text += `\n\n📊 Chart: ${uploadResult.image.url}`;
                     } else {
                         console.log('⚠️ freeimage.host upload failed. Response:', uploadResult);
