@@ -3434,6 +3434,76 @@ class RealEfficiencyTracker {
         }
     }
 
+    // Function to fix existing Graphics team data by adding missing 0% efficiency members
+    async fixExistingGraphicsData() {
+        if (this.currentTeam !== 'graphics') {
+            console.log('⚠️ fixExistingGraphicsData: Not on Graphics team');
+            return;
+        }
+
+        try {
+            console.log('🔧 Starting Graphics data recovery...');
+            
+            // Get all Graphics team members
+            const expectedMembers = this.teamConfigs.graphics?.members?.map(m => m.name) || [];
+            console.log('🎨 Expected Graphics members:', expectedMembers);
+            
+            // Get all weeks that have been finalized for Graphics
+            const finalizedWeeks = Object.keys(this.finalizedReports?.graphics || {});
+            console.log('🎨 Finalized Graphics weeks:', finalizedWeeks);
+            
+            for (const weekId of finalizedWeeks) {
+                console.log(`🔧 Checking Graphics week ${weekId}...`);
+                
+                // Get current Supabase data for this week
+                const supabaseData = await this.supabaseAPI.loadWeekData('graphics', weekId);
+                const foundMembers = supabaseData?.map(entry => entry.member_name) || [];
+                const missingMembers = expectedMembers.filter(name => !foundMembers.includes(name));
+                
+                console.log(`🎨 Week ${weekId} - Found: ${foundMembers.length}, Missing: ${missingMembers.length}`);
+                console.log(`🎨 Missing members: ${missingMembers.join(', ')}`);
+                
+                if (missingMembers.length > 0) {
+                    console.log(`🔧 Adding ${missingMembers.length} missing members to week ${weekId}...`);
+                    
+                    // Add missing members with default 0% efficiency data
+                    for (const memberName of missingMembers) {
+                        const defaultData = {
+                            team: 'graphics',
+                            week_id: weekId,
+                            member_name: memberName,
+                            work_type_data: {},
+                            week_total: 0,
+                            working_days: 5,
+                            leave_days: 0,
+                            weekly_rating: 0,
+                            efficiency: 0,
+                            created_at: new Date().toISOString(),
+                            updated_at: new Date().toISOString()
+                        };
+                        
+                        try {
+                            await this.supabaseAPI.saveWeekData(defaultData);
+                            console.log(`✅ Added ${memberName} to week ${weekId}`);
+                        } catch (error) {
+                            console.error(`❌ Failed to add ${memberName} to week ${weekId}:`, error);
+                        }
+                    }
+                }
+            }
+            
+            // Reload data after fixes
+            console.log('🔄 Reloading Graphics data after fixes...');
+            await this.loadAllFinalizedWeeksFromSupabase();
+            
+            this.showMessage('✅ Graphics team data recovery completed! Missing 0% efficiency members have been added.', 'success');
+            
+        } catch (error) {
+            console.error('❌ Graphics data recovery failed:', error);
+            this.showMessage('❌ Graphics data recovery failed. Check console for details.', 'error');
+        }
+    }
+
     // Load ALL finalized weeks from Supabase for all teams to correctly determine current week
     async loadAllFinalizedWeeksFromSupabase() {
         try {
@@ -3473,16 +3543,31 @@ class RealEfficiencyTracker {
                     // Special debugging for Graphics team
                     if (team === 'graphics') {
                         console.log('🎨 GRAPHICS DEBUG: Raw team week data:', teamWeekData);
+                        console.log('🎨 GRAPHICS DEBUG: Expected team members:', this.teamConfigs.graphics?.members?.map(m => m.name) || 'No config found');
+                        
                         if (teamWeekData && teamWeekData.length > 0) {
+                            console.log(`🎨 GRAPHICS DEBUG: Found ${teamWeekData.length} entries in Supabase`);
+                            const foundMembers = teamWeekData.map(entry => entry.member_name);
+                            const expectedMembers = this.teamConfigs.graphics?.members?.map(m => m.name) || [];
+                            const missingMembers = expectedMembers.filter(name => !foundMembers.includes(name));
+                            
+                            console.log('🎨 GRAPHICS Members in Supabase:', foundMembers);
+                            console.log('🎨 GRAPHICS Expected members:', expectedMembers);
+                            console.log('🎨 GRAPHICS Missing members:', missingMembers);
+                            
                             teamWeekData.forEach((entry, index) => {
                                 console.log(`🎨 GRAPHICS Entry ${index}:`, {
                                     week_id: entry.week_id,
                                     member_name: entry.member_name,
                                     week_total: entry.week_total,
                                     efficiency: entry.efficiency,
+                                    working_days: entry.working_days,
+                                    leave_days: entry.leave_days,
                                     created_at: entry.created_at
                                 });
                             });
+                        } else {
+                            console.log('🎨 GRAPHICS DEBUG: No entries found in Supabase');
                         }
                     }
                     
