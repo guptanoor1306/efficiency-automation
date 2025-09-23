@@ -301,14 +301,67 @@ class RealEfficiencyTracker {
             'Long-form': ['lf_topic_research', 'lf_wordcloud_pov', 'lf_pov_v2', 'lf_script_outline', 'lf_script_writing', 'lf_script_writing_v2', 'lf_visual_direction', 'lf_shoot', 'lf_storyboarding', 'lf_video_review_changes', 'lf_launch_doc', 'lf_comments_comm_post', 'lf_retro', 'lf_interview_ass_rev']
         };
 
-        // Social team work types (placeholder - to be defined later)
+        // Social team work types with detailed levels and per-day capacities
         this.socialWorkTypes = {
-            // Work types will be added when levels are provided
+            // Writing/Posting L1
+            'basic_story': { level: 'Writing/Posting L1', name: 'Basic Story', perDay: 84 },
+            'ig_caption': { level: 'Writing/Posting L1', name: 'IG Caption', perDay: 42 },
+            'curation_schedule_post': { level: 'Writing/Posting L1', name: 'Curation + Schedule + Post', perDay: 28 },
+            'statics': { level: 'Writing/Posting L1', name: 'Statics', perDay: 21 },
+            'carousels_copy_l1': { level: 'Writing/Posting L1', name: 'Carousels/Copy', perDay: 7 },
+            'reel_script_l1': { level: 'Writing/Posting L1', name: 'Reel Script', perDay: 7 },
+            'linkedin_caption': { level: 'Writing/Posting L1', name: 'Linkedin Caption (PS)', perDay: 7 },
+            
+            // Writing/Posting L2
+            'carousels_copy_l2': { level: 'Writing/Posting L2', name: 'Carousels/Copy', perDay: 3.5 },
+            'reel_script_edit': { level: 'Writing/Posting L2', name: 'Reel Script/Edit', perDay: 2.8 },
+            'research_khushi': { level: 'Writing/Posting L2', name: 'Research (Khushi)', perDay: 3 },
+            
+            // Editing L1
+            'reel_l1': { level: 'Editing L1', name: 'Reel L1', perDay: 2 },
+            'repackaging': { level: 'Editing L1', name: 'Repackaging', perDay: 7 },
+            'typography': { level: 'Editing L1', name: 'Typography', perDay: 9.3 },
+            'broll_sound_library': { level: 'Editing L1', name: 'B Roll + Sound Library', perDay: 7 },
+            'zero1_teaser': { level: 'Editing L1', name: 'Zero1 Teaser', perDay: 4.7 },
+            
+            // Editing L1.5
+            'reel_l1_5': { level: 'Editing L1.5', name: 'Reel L1.5', perDay: 1.4 },
+            
+            // Editing L2
+            'podcast': { level: 'Editing L2', name: 'Podcast', perDay: 0.14 },
+            
+            // Design L1
+            'statics_design': { level: 'Design L1', name: 'Statics', perDay: 28 },
+            'story_reel_covers': { level: 'Design L1', name: 'Story/Reel covers', perDay: 14 },
+            'carousel_design_l1': { level: 'Design L1', name: 'Carousel', perDay: 7 },
+            
+            // Design L1.5
+            'carousel_design_l1_5': { level: 'Design L1.5', name: 'Carousel', perDay: 3.5 },
+            
+            // Design L2
+            'carousel_design_l2': { level: 'Design L2', name: 'Carousel', perDay: 1 },
+            
+            // All
+            'research_toolkit': { level: 'All', name: 'Research + Toolkit', perDay: 7 },
+            'review_changes': { level: 'All', name: 'Review/Changes', perDay: 42 },
+            'storyboard_qc': { level: 'All', name: 'Storyboard +QC', perDay: 3 },
+            'subtitles_qc_fix': { level: 'All', name: 'Subtitles QC/Fix', perDay: 42 },
+            'strategy_presentations': { level: 'All', name: 'Strategy (Presentations)', perDay: 7 },
+            'shoot': { level: 'All', name: 'Shoot', perDay: 7 },
+            'retro': { level: 'All', name: 'Retro', perDay: 98 }
         };
 
-        // Social team level mapping (placeholder - to be defined later)
+        // Social team level mapping (category-based)
         this.socialLevelMapping = {
-            // Level mapping will be added when levels are provided
+            'Writing/Posting L1': ['basic_story', 'ig_caption', 'curation_schedule_post', 'statics', 'carousels_copy_l1', 'reel_script_l1', 'linkedin_caption'],
+            'Writing/Posting L2': ['carousels_copy_l2', 'reel_script_edit', 'research_khushi'],
+            'Editing L1': ['reel_l1', 'repackaging', 'typography', 'broll_sound_library', 'zero1_teaser'],
+            'Editing L1.5': ['reel_l1_5'],
+            'Editing L2': ['podcast'],
+            'Design L1': ['statics_design', 'story_reel_covers', 'carousel_design_l1'],
+            'Design L1.5': ['carousel_design_l1_5'],
+            'Design L2': ['carousel_design_l2'],
+            'All': ['research_toolkit', 'review_changes', 'storyboard_qc', 'subtitles_qc_fix', 'strategy_presentations', 'shoot', 'retro']
         };
         
         // Current team selection
@@ -4829,8 +4882,8 @@ class RealEfficiencyTracker {
             `<th>${workTypes[workTypeKey].name}</th>`
         ).join('');
         
-        // Hide rating column for Tech, Product, and Content teams
-        const ratingColumn = (this.currentTeam === 'tech' || this.currentTeam === 'product' || this.currentTeam === 'content') ? '' : '<th rowspan="2">Weekly Rating</th>';
+        // Hide rating column for Tech, Product, Content, and Social teams
+        const ratingColumn = (this.currentTeam === 'tech' || this.currentTeam === 'product' || this.currentTeam === 'content' || this.currentTeam === 'social') ? '' : '<th rowspan="2">Weekly Rating</th>';
         // Add Target Points column for Tech team only
         const targetPointsColumn = (this.currentTeam === 'tech') ? '<th rowspan="2">Target Points</th>' : '';
         
@@ -4907,8 +4960,8 @@ class RealEfficiencyTracker {
                 `<td><input type="number" class="level-input" data-member="${memberName}" data-work="${workTypeKey}" step="0.1" min="0"></td>`
             ).join('');
             
-            // Hide rating column for Tech, Product, and Content teams
-            const ratingCell = (this.currentTeam === 'tech' || this.currentTeam === 'product' || this.currentTeam === 'content') ? '' : `
+            // Hide rating column for Tech, Product, Content, and Social teams
+            const ratingCell = (this.currentTeam === 'tech' || this.currentTeam === 'product' || this.currentTeam === 'content' || this.currentTeam === 'social') ? '' : `
                 <td>
                     <select class="weekly-rating-input" data-member="${memberName}" 
                             style="width: 80px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; text-align: center;">
