@@ -10,20 +10,29 @@ export default async function handler(req, res) {
     }
 
     try {
-        // Get the Slack webhook URL and message data from the request
-        const { webhookUrl, messageData, imageUrl, imageData } = req.body;
+        // Get the Slack webhook URL from environment variables (more secure)
+        const webhookUrl = process.env.SLACK_WEBHOOK_URL;
+        
+        // Get message data from the request
+        const { messageData, imageUrl, imageData } = req.body;
 
         // Validate required fields
-        if (!webhookUrl || !messageData) {
+        if (!webhookUrl) {
+            return res.status(500).json({ 
+                error: 'Server configuration error: SLACK_WEBHOOK_URL not configured' 
+            });
+        }
+        
+        if (!messageData) {
             return res.status(400).json({ 
-                error: 'Missing required fields: webhookUrl and messageData' 
+                error: 'Missing required field: messageData' 
             });
         }
 
         // Validate webhook URL format
         if (!webhookUrl.startsWith('https://hooks.slack.com/services/')) {
-            return res.status(400).json({ 
-                error: 'Invalid Slack webhook URL format' 
+            return res.status(500).json({ 
+                error: 'Invalid Slack webhook URL configuration' 
             });
         }
 

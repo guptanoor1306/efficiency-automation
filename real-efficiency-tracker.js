@@ -3468,19 +3468,18 @@ class RealEfficiencyTracker {
                     
                     // Add missing members with default 0% efficiency data
                     for (const memberName of missingMembers) {
-                        const defaultData = {
-                            team: 'graphics',
-                            week_id: weekId,
-                            member_name: memberName,
-                            work_type_data: {},
-                            week_total: 0,
-                            working_days: 5,
-                            leave_days: 0,
-                            weekly_rating: 0,
-                            efficiency: 0,
-                            created_at: new Date().toISOString(),
-                            updated_at: new Date().toISOString()
-                        };
+                           const defaultData = {
+                               team: 'graphics',
+                               week_id: weekId,
+                               member_name: memberName,
+                               workTypes: {},  // This is what saveWeekData expects
+                               totalOutput: 0,
+                               workingDays: 5,
+                               leaveDays: 0,
+                               weeklyRating: 0,
+                               efficiency: 0,
+                               createdAt: new Date().toISOString()
+                           };
                         
                         try {
                             await this.supabaseAPI.saveWeekData(defaultData);
@@ -11585,7 +11584,6 @@ class RealEfficiencyTracker {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    webhookUrl: this.slackWebhookUrl,
                     messageData: payload,
                     imageData: isBase64 ? imageData : null, // Pass base64 data if available
                     imageUrl: !isBase64 ? imageData : null  // Pass image URL if not base64
@@ -11642,16 +11640,7 @@ class RealEfficiencyTracker {
     }
 
     async sendCompanyReportToSlack() {
-        if (!this.slackWebhookUrl) {
-            this.promptForSlackWebhook();
-            return;
-        }
-
-        // Double-check that we have a valid webhook URL after prompt
-        if (!this.slackWebhookUrl) {
-            this.showMessage('❌ Slack webhook URL is required to send reports', 'error');
-            return;
-        }
+        // Webhook URL is now configured server-side via environment variables
 
         // Check if company data is loaded
         const periodType = document.getElementById('company-period-type').value;
