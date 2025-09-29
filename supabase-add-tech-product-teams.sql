@@ -12,7 +12,7 @@ INSERT INTO teams (id, name, members, work_types) VALUES
 
 -- Product Team (story points based - 1 point per working day)
 ('product', 'Product Team',
- '["Akshay", "Ankush", "Noor"]',
+ '["Akshay", "Ankush", "Noor", "Vaishnavi"]',
  '{
    "story_points": {"level": "SP", "name": "Story Points", "perDay": 1}
  }')

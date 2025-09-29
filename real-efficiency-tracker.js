@@ -545,12 +545,14 @@ class RealEfficiencyTracker {
                 members: [
                     { name: 'Akshay' },
                     { name: 'Ankush' },
-                    { name: 'Noor' }
+                    { name: 'Noor' },
+                    { name: 'Vaishnavi' }
                 ],
                 historicalMembers: [
                     { name: 'Akshay' },
                     { name: 'Ankush' },
-                    { name: 'Noor' }
+                    { name: 'Noor' },
+                    { name: 'Vaishnavi' }
                 ],
                 workLevels: this.productLevelMapping,
                 sheetRange: 'Product - 2025!A1:BT1000'
@@ -8553,7 +8555,7 @@ class RealEfficiencyTracker {
             this.historicalData.product = {};
         }
         
-        // Add August 2025 historical data
+        // Add historical data
         this.historicalData.product = {
             'August 2025': {
                 isComplete: true,
@@ -8592,6 +8594,27 @@ class RealEfficiencyTracker {
                     totalOutput: 61.15, // Sum of all totalOutput
                     totalWorkingDays: 58.5, // Sum of all workingDays 
                     avgEfficiency: 104.13 // Average of all efficiency values
+                }
+            },
+            'September 2025': {
+                isComplete: false, // Only weeks 1-3 complete for Vaishnavi
+                monthlyData: {
+                    'Vaishnavi': { 
+                        weeks: [4.5, 4.5, 4.5, 0], // 90% efficiency for weeks 1-3, week 4 pending user input
+                        weeklyQualityRatings: [0, 0, 0, 0], // No ratings for Product team
+                        monthlyRating: 0, // No ratings for Product team
+                        target: 20, // 5+5+5+5 expected story points (1 SP per working day)
+                        totalOutput: 13.5, // 4.5+4.5+4.5+0 (week 4 pending)
+                        workingDays: 20, // 5 working days per week × 4 weeks
+                        efficiency: 90.0 // 90% efficiency for completed weeks
+                    }
+                },
+                teamSummary: { 
+                    totalMembers: 1, // Only Vaishnavi has data for September
+                    avgRating: 0, // No ratings for Product team
+                    totalOutput: 13.5, // Only Vaishnavi's output
+                    totalWorkingDays: 20, // Only Vaishnavi's working days
+                    avgEfficiency: 90.0 // Vaishnavi's efficiency
                 }
             }
         };
