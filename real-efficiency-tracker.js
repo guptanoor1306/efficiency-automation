@@ -5045,17 +5045,23 @@ class RealEfficiencyTracker {
                 </td>
             `;
             
+            // Get the actual working days for the current week
+            const actualWorkingDays = this.currentWeek ? this.currentWeek.workingDays : 5;
+            
+            // Generate working days options with the correct default
+            const workingDaysOptions = [];
+            for (let i = 8; i >= 1; i--) {
+                const selected = i === actualWorkingDays ? 'selected' : '';
+                workingDaysOptions.push(`<option value="${i}" ${selected}>${i} day${i === 1 ? '' : 's'}</option>`);
+            }
+            
             row.innerHTML = `
                 <td class="work-type-header">${memberName}</td>
                 ${workTypeInputs}
                 <td class="week-total-display" id="week-total-${memberName}">0.00</td>
                 <td>
                     <select class="working-days-select" data-member="${memberName}">
-                        <option value="5">5 days</option>
-                        <option value="4">4 days</option>
-                        <option value="3">3 days</option>
-                        <option value="2">2 days</option>
-                        <option value="1">1 day</option>
+                        ${workingDaysOptions.join('')}
                     </select>
                 </td>
                 <td>
@@ -5075,7 +5081,7 @@ class RealEfficiencyTracker {
                 </td>
                 ${ratingCell}
                 ${this.currentTeam === 'tech' ? `<td><input type="number" class="target-points-input" data-member="${memberName}" min="0" step="0.5" placeholder="Target" style="width: 60px; text-align: center;"></td>` : ''}
-                <td class="member-target" id="target-${memberName}">20</td>
+                <td class="member-target" id="target-${memberName}">${actualWorkingDays}</td>
                 <td class="efficiency-display" id="efficiency-${memberName}">0.00%</td>
             `;
             tbody.appendChild(row);
