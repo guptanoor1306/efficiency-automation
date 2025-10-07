@@ -11277,8 +11277,8 @@ class RealEfficiencyTracker {
                                     if (isMonthLocked) {
                                         console.log(`🔒 NOT adding locked month week ${weekId} (${monthYear}) to allWeeks`);
                                     } else {
-                                        allWeeks.add(weekId);
-                                        console.log(`✅ Added week ${weekId} to allWeeks`);
+                                allWeeks.add(weekId);
+                                console.log(`✅ Added week ${weekId} to allWeeks`);
                                     }
                                 } else {
                                     allWeeks.add(weekId);
@@ -11895,7 +11895,6 @@ class RealEfficiencyTracker {
                 // Get working days from week system for accurate calculation
                 const week = this.weekSystem.getWeeksForSelector().find(w => w.id === weekId);
                 const weekWorkingDays = week ? week.workingDays : 5;
-                console.log(`🔍 Company View working days debug: weekId=${weekId}, week found=${!!week}, weekWorkingDays=${weekWorkingDays}`);
                 
                 supabaseData.forEach(entry => {
                     const memberOutput = parseFloat(entry.week_total) || 0;
@@ -11904,7 +11903,6 @@ class RealEfficiencyTracker {
                     const leaveDays = parseFloat(entry.leave_days) || 0;
                     const rating = parseFloat(entry.weekly_rating) || 0;
                     const effectiveWorkingDays = workingDays - leaveDays;
-                    console.log(`🔍 ${entry.member_name} calculation debug: workingDays=${workingDays}, leaveDays=${leaveDays}, effectiveWorkingDays=${effectiveWorkingDays}`);
                     
                     let efficiency = 0;
                     if (teamId === 'tech') {

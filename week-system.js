@@ -158,6 +158,7 @@ class WeekSystem {
             id: week.id,
             label: week.label || `Week ${week.weekNumber} (${week.dateRange})`,
             monthYear: `${week.monthName} ${week.year}`,
+            workingDays: week.workingDays,
             isPast: week.isPast,
             isCurrent: week.isCurrent,
             isFuture: week.isFuture
