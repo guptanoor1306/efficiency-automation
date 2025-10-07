@@ -8819,12 +8819,21 @@ class RealEfficiencyTracker {
                 // Load data for each week
                 for (const week of septemberWeeks) {
                     try {
-                        const weekData = await this.supabaseAPI.loadWeekData(this.currentTeam, week.id, memberName);
-                        if (weekData) {
-                            memberTotalOutput += weekData.week_total || 0;
-                            memberTotalWorkingDays += weekData.working_days || 5;
-                            memberWeeks.push(weekData.week_total || 0);
+                        // Load all data for this week (not just for one member)
+                        const weekDataArray = await this.supabaseAPI.loadWeekData(this.currentTeam, week.id);
+                        const memberWeekData = weekDataArray?.find(entry => entry.member_name === memberName);
+                        
+                        if (memberWeekData) {
+                            const weekTotal = memberWeekData.week_total || 0;
+                            const workingDays = memberWeekData.working_days || 5;
+                            
+                            console.log(`📊 ${memberName} week ${week.id}: total=${weekTotal}, workingDays=${workingDays}`);
+                            
+                            memberTotalOutput += weekTotal;
+                            memberTotalWorkingDays += workingDays;
+                            memberWeeks.push(weekTotal);
                         } else {
+                            console.log(`❌ No data found for ${memberName} week ${week.id}`);
                             memberWeeks.push(0);
                         }
                     } catch (error) {
@@ -8833,14 +8842,18 @@ class RealEfficiencyTracker {
                     }
                 }
                 
-                // Calculate member efficiency
+                // Calculate member efficiency - use simple calculation for now
+                // For B2B team, efficiency should be based on actual output vs working days
                 const memberEfficiency = memberTotalWorkingDays > 0 ? (memberTotalOutput / memberTotalWorkingDays) * 100 : 0;
+                const memberTarget = memberTotalWorkingDays;
+                
+                console.log(`📈 ${memberName} totals: output=${memberTotalOutput}, workingDays=${memberTotalWorkingDays}, efficiency=${memberEfficiency.toFixed(2)}%`);
                 
                 monthlyData[memberName] = {
                     weeks: memberWeeks,
                     weeklyQualityRatings: [0, 0, 0, 0], // No ratings for new teams
                     monthlyRating: 0,
-                    target: memberTotalWorkingDays,
+                    target: memberTarget,
                     totalOutput: memberTotalOutput,
                     workingDays: memberTotalWorkingDays,
                     efficiency: memberEfficiency
