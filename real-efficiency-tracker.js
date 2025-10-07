@@ -11244,13 +11244,21 @@ class RealEfficiencyTracker {
                             console.log(`🔍 Found weekId: ${weekId}`);
                             // Only add valid week IDs (YYYY-MM-DD format), not metadata properties
                             if (weekId.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                                // Check if this week is from September 2025 before adding
+                                // Check if this week is from a locked month before adding
                                 const week = this.weekSystem.getWeeksForSelector().find(w => w.id === weekId);
-                                if (week && `${week.monthName} ${week.year}` === 'September 2025') {
-                                    console.log(`🔒 NOT adding September 2025 week ${weekId} to allWeeks`);
+                                if (week) {
+                                    const monthYear = `${week.monthName} ${week.year}`;
+                                    const isMonthLocked = this.isMonthLockedForCompany(monthYear);
+                                    
+                                    if (isMonthLocked) {
+                                        console.log(`🔒 NOT adding locked month week ${weekId} (${monthYear}) to allWeeks`);
+                                    } else {
+                                        allWeeks.add(weekId);
+                                        console.log(`✅ Added week ${weekId} to allWeeks`);
+                                    }
                                 } else {
                                     allWeeks.add(weekId);
-                                    console.log(`✅ Added week ${weekId} to allWeeks`);
+                                    console.log(`✅ Added week ${weekId} to allWeeks (no month info)`);
                                 }
                             }
                         });
@@ -11265,25 +11273,9 @@ class RealEfficiencyTracker {
                         if (week) {
                             const monthYear = `${week.monthName} ${week.year}`;
                             
-                            // EXPLICIT CHECK: Skip September 2025 weeks completely
-                            if (monthYear === 'September 2025') {
-                                console.log(`🔒 EXPLICITLY skipping September 2025 week ${weekId}`);
-                                return;
-                            }
-                            
-                            // Check multiple ways to determine if month is locked
-                            const isInAvailableMonths = this.getAvailableCompanyMonths().includes(monthYear);
-                            
-                            // Also check if any team has this month locked
-                            const isAnyTeamLocked = Object.keys(this.lockedMonths || {}).some(teamId => {
-                                return this.lockedMonths[teamId]?.includes(monthYear);
-                            });
-                            
-                            console.log(`🔍 Week ${weekId} (${monthYear}): inAvailable=${isInAvailableMonths}, anyTeamLocked=${isAnyTeamLocked}`);
-                            
-                            // Skip weeks from locked months
-                            if (isInAvailableMonths || isAnyTeamLocked) {
-                                console.log(`🔒 Skipping week ${weekId} from locked month ${monthYear}`);
+                            // Dynamic check: Skip any locked month weeks
+                            if (this.isMonthLockedForCompany(monthYear)) {
+                                console.log(`🔒 EXPLICITLY skipping locked month week ${weekId} (${monthYear})`);
                                 return;
                             }
                         }
@@ -11422,6 +11414,22 @@ class RealEfficiencyTracker {
         document.getElementById('company-stats').style.display = 'none';
         document.getElementById('team-summary').style.display = 'none';
         document.getElementById('member-chart-section').style.display = 'none';
+    }
+
+    // Check if a month is locked for Company View (any team has it locked or it's in monthly view)
+    isMonthLockedForCompany(monthYear) {
+        // Check if month is available in monthly view (means it's locked)
+        const isInAvailableMonths = this.getAvailableCompanyMonths().includes(monthYear);
+        
+        // Also check if any team has this month locked
+        const isAnyTeamLocked = Object.keys(this.lockedMonths || {}).some(teamId => {
+            return this.lockedMonths[teamId]?.includes(monthYear);
+        });
+        
+        const isLocked = isInAvailableMonths || isAnyTeamLocked;
+        console.log(`🔍 Month ${monthYear} lock status: inAvailable=${isInAvailableMonths}, anyTeamLocked=${isAnyTeamLocked}, isLocked=${isLocked}`);
+        
+        return isLocked;
     }
 
     // Auto-detect available months across all teams for Company View
