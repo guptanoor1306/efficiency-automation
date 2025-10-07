@@ -4533,11 +4533,26 @@ class RealEfficiencyTracker {
             const isCompleteMonth = this.historicalData[this.currentTeam]?.[monthYear]?.isComplete;
             const isHistoricalMonth = availableHistoricalMonths.includes(monthYear);
             
+            // Debug logging for September
+            if (monthYear === 'September 2025') {
+                console.log(`🔍 September 2025 dropdown check for ${this.currentTeam}:`);
+                console.log(`  - isCompleteMonth: ${isCompleteMonth}`);
+                console.log(`  - isHistoricalMonth: ${isHistoricalMonth}`);
+                console.log(`  - availableHistoricalMonths:`, availableHistoricalMonths);
+                console.log(`  - historicalData exists:`, !!this.historicalData[this.currentTeam]?.['September 2025']);
+                console.log(`  - currentView: ${currentView}`);
+            }
+            
             // Filter options based on current view
             if (currentView === 'monthly') {
                 // In monthly view, show months that are either complete OR in the historical months list
                 if (isCompleteMonth || isHistoricalMonth) {
                     optionsHTML += `<option value="MONTH_${monthYear}">📊 ${monthYear} (Monthly Summary)</option>`;
+                    if (monthYear === 'September 2025') {
+                        console.log(`✅ Added September 2025 to monthly dropdown for ${this.currentTeam}`);
+                    }
+                } else if (monthYear === 'September 2025') {
+                    console.log(`❌ September 2025 NOT added to monthly dropdown for ${this.currentTeam}`);
                 }
             } else if (currentView === 'weekly') {
                 // In weekly view, only show weekly options (not completed months)
@@ -6153,11 +6168,13 @@ class RealEfficiencyTracker {
         
         let monthData = this.historicalData[this.currentTeam]?.[monthYear];
         
-        // If it's September 2025 and we have placeholder data, load real data from Supabase
-        if (monthYear === 'September 2025' && monthData && monthData.monthlyData.placeholder) {
+        // If it's September 2025, always load real data from Supabase (regardless of placeholder structure)
+        if (monthYear === 'September 2025') {
             console.log('📊 Loading September 2025 data from Supabase for monthly view...');
+            console.log('📊 Current monthData structure:', monthData);
             try {
                 monthData = await this.loadSeptemberDataFromSupabase();
+                console.log('📊 Loaded September data from Supabase:', monthData);
             } catch (error) {
                 console.error('Error loading September data:', error);
                 this.showMessage('Error loading September data from database', 'error');
@@ -8708,9 +8725,12 @@ class RealEfficiencyTracker {
                     avgEfficiency: 0
                 }
             };
+            
+            console.log(`✅ Added September 2025 for ${teamId} team - isComplete: ${this.historicalData[teamId]['September 2025'].isComplete}`);
         });
         
         console.log('✅ September 2025 marked as completed for all teams');
+        console.log('🔍 Final historicalData structure:', Object.keys(this.historicalData));
     }
 
     // Function to lock a month and move it from weekly to monthly view
@@ -8801,6 +8821,10 @@ class RealEfficiencyTracker {
             // Get all September weeks for the current team
             const septemberWeeks = this.weekSystem.getWeeksByMonthName('September', 2025);
             const teamMembers = this.getActiveTeamMembers(this.currentTeam);
+            
+            console.log(`📊 Loading September data for team: ${this.currentTeam}`);
+            console.log(`📊 September weeks found: ${septemberWeeks.length}`, septemberWeeks.map(w => w.id));
+            console.log(`📊 Team members: ${teamMembers.length}`, teamMembers.map(m => m.name || m));
             
             let totalTeamOutput = 0;
             let totalTeamWorkingDays = 0;
