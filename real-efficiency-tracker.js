@@ -11226,7 +11226,7 @@ class RealEfficiencyTracker {
                 option.textContent = month;
                 periodSelectElement.appendChild(option);
             });
-            console.log('✅ Added', historicalMonths.length, 'historical months');
+            console.log('✅ Added', availableMonths.length, 'available months');
             
             // Add current month if it has finalized data
             if (Object.keys(this.finalizedReports || {}).length > 0) {
