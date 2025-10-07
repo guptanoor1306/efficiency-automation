@@ -11234,6 +11234,9 @@ class RealEfficiencyTracker {
             console.log('🔍 Current lockedMonths:', this.lockedMonths);
             console.log('🔍 Available company months:', this.getAvailableCompanyMonths());
             
+            // Test September 2025 specifically
+            console.log('🔍 Testing September 2025 lock status:', this.isMonthLockedForCompany('September 2025'));
+            
             if (this.finalizedReports) {
                 console.log('🔍 finalizedReports structure:', this.finalizedReports);
                 const allWeeks = new Set();
@@ -11418,6 +11421,12 @@ class RealEfficiencyTracker {
 
     // Check if a month is locked for Company View (any team has it locked or it's in monthly view)
     isMonthLockedForCompany(monthYear) {
+        // EXPLICIT CHECK: September 2025 should always be considered locked
+        if (monthYear === 'September 2025') {
+            console.log(`🔒 September 2025 is EXPLICITLY locked`);
+            return true;
+        }
+        
         // Check if month is available in monthly view (means it's locked)
         const isInAvailableMonths = this.getAvailableCompanyMonths().includes(monthYear);
         
@@ -11942,6 +11951,7 @@ class RealEfficiencyTracker {
         if (periodType === 'week') {
             const week = this.weekSystem.getWeeksForSelector().find(w => w.id === selectedPeriod);
             console.log(`🔍 Company View week check: selectedPeriod=${selectedPeriod}, week found:`, week);
+            console.log(`🔍 All available weeks:`, this.weekSystem.getWeeksForSelector().map(w => `${w.id} (${w.monthName} ${w.year}, Week ${w.weekNumber})`));
             
             if (week && week.weekNumber === 4) {
                 const monthYear = `${week.monthName} ${week.year}`;
