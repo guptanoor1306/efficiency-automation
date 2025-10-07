@@ -646,6 +646,12 @@ class RealEfficiencyTracker {
         // Month locking system - tracks which months are locked for each team
         this.lockedMonths = {
             // September 2025 should be locked for all teams since all weeks are complete
+            'b2b': ['September 2025'],
+            'varsity': ['September 2025'],
+            'zero1': ['September 2025'],
+            'harish': ['September 2025'],
+            'audio': ['September 2025'],
+            'shorts': ['September 2025'],
             'graphics': ['September 2025'],
             'tech': ['September 2025'],
             'product': ['September 2025'],
@@ -4489,18 +4495,18 @@ class RealEfficiencyTracker {
         // Get available historical months for current team
         const getHistoricalMonths = (teamId) => {
             const monthMap = {
-                'b2b': ['January 2025', 'February 2025', 'March 2025', 'April 2025', 'May 2025', 'June 2025', 'July 2025', 'August 2025'],
-                'varsity': ['January 2025', 'February 2025', 'March 2025', 'April 2025', 'May 2025', 'June 2025', 'July 2025', 'August 2025'],
-                'zero1_bratish': ['January 2025', 'February 2025', 'March 2025', 'April 2025', 'May 2025', 'June 2025', 'July 2025', 'August 2025'],
-                'zero1_harish': ['January 2025', 'February 2025', 'March 2025', 'April 2025', 'May 2025', 'June 2025', 'July 2025', 'August 2025'],
-                'audio': ['January 2025', 'February 2025', 'March 2025', 'April 2025', 'May 2025', 'June 2025', 'July 2025', 'August 2025'],
-                'shorts': ['February 2025', 'March 2025', 'April 2025', 'May 2025', 'June 2025', 'July 2025', 'August 2025'],
-                'graphics': ['June 2025', 'July 2025', 'August 2025'],
-                'tech': ['August 2025'],
-                'product': ['August 2025'],
-                'preproduction': ['August 2025'],
-                'content': ['August 2025'],
-                'social': ['July 2025', 'August 2025']
+                'b2b': ['January 2025', 'February 2025', 'March 2025', 'April 2025', 'May 2025', 'June 2025', 'July 2025', 'August 2025', 'September 2025'],
+                'varsity': ['January 2025', 'February 2025', 'March 2025', 'April 2025', 'May 2025', 'June 2025', 'July 2025', 'August 2025', 'September 2025'],
+                'zero1': ['January 2025', 'February 2025', 'March 2025', 'April 2025', 'May 2025', 'June 2025', 'July 2025', 'August 2025', 'September 2025'],
+                'harish': ['January 2025', 'February 2025', 'March 2025', 'April 2025', 'May 2025', 'June 2025', 'July 2025', 'August 2025', 'September 2025'],
+                'audio': ['January 2025', 'February 2025', 'March 2025', 'April 2025', 'May 2025', 'June 2025', 'July 2025', 'August 2025', 'September 2025'],
+                'shorts': ['February 2025', 'March 2025', 'April 2025', 'May 2025', 'June 2025', 'July 2025', 'August 2025', 'September 2025'],
+                'graphics': ['June 2025', 'July 2025', 'August 2025', 'September 2025'],
+                'tech': ['August 2025', 'September 2025'],
+                'product': ['August 2025', 'September 2025'],
+                'preproduction': ['August 2025', 'September 2025'],
+                'content': ['August 2025', 'September 2025'],
+                'social': ['July 2025', 'August 2025', 'September 2025']
             };
             return monthMap[teamId] || [];
         };
@@ -8672,7 +8678,7 @@ class RealEfficiencyTracker {
         console.log('🔒 Marking September 2025 as completed for all teams...');
         
         // Add September 2025 as completed month for all teams that have it locked
-        const teamsWithSeptemberData = ['graphics', 'tech', 'product', 'preproduction', 'content', 'social'];
+        const teamsWithSeptemberData = ['b2b', 'varsity', 'zero1', 'harish', 'audio', 'shorts', 'graphics', 'tech', 'product', 'preproduction', 'content', 'social'];
         
         teamsWithSeptemberData.forEach(teamId => {
             if (!this.historicalData[teamId]) {
