@@ -11244,8 +11244,14 @@ class RealEfficiencyTracker {
                             console.log(`🔍 Found weekId: ${weekId}`);
                             // Only add valid week IDs (YYYY-MM-DD format), not metadata properties
                             if (weekId.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                                allWeeks.add(weekId);
-                                console.log(`✅ Added week ${weekId} to allWeeks`);
+                                // Check if this week is from September 2025 before adding
+                                const week = this.weekSystem.getWeeksForSelector().find(w => w.id === weekId);
+                                if (week && `${week.monthName} ${week.year}` === 'September 2025') {
+                                    console.log(`🔒 NOT adding September 2025 week ${weekId} to allWeeks`);
+                                } else {
+                                    allWeeks.add(weekId);
+                                    console.log(`✅ Added week ${weekId} to allWeeks`);
+                                }
                             }
                         });
                     }
@@ -11258,6 +11264,12 @@ class RealEfficiencyTracker {
                         const week = this.weekSystem.getWeeksForSelector().find(w => w.id === weekId);
                         if (week) {
                             const monthYear = `${week.monthName} ${week.year}`;
+                            
+                            // EXPLICIT CHECK: Skip September 2025 weeks completely
+                            if (monthYear === 'September 2025') {
+                                console.log(`🔒 EXPLICITLY skipping September 2025 week ${weekId}`);
+                                return;
+                            }
                             
                             // Check multiple ways to determine if month is locked
                             const isInAvailableMonths = this.getAvailableCompanyMonths().includes(monthYear);
