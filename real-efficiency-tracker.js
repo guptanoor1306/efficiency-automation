@@ -5266,7 +5266,7 @@ class RealEfficiencyTracker {
         let efficiency = 0;
         let adjustedTarget = 0;
 
-        // Special handling for Tech team using story points
+        // Special handling for Tech team using manual story points targets
         if (this.currentTeam === 'tech') {
             // Get target points input for this member
             const targetPointsInput = document.querySelector(`[data-member="${memberName}"].target-points-input`);
@@ -5285,6 +5285,18 @@ class RealEfficiencyTracker {
                 adjustedTarget = targetPoints * (effectiveWorkingDays / workingDays);
                 efficiency = (weekTotal / adjustedTarget) * 100;
             }
+        } else if (this.currentTeam === 'product') {
+            // Product team: 1 story point per effective working day (automatic calculation)
+            // Get completed story points (direct input)
+            Object.keys(this.productWorkTypes).forEach(workType => {
+                const input = document.querySelector(`[data-member="${memberName}"][data-work="${workType}"]`);
+                const workDone = parseFloat(input?.value) || 0;
+                weekTotal += workDone; // For Product team, weekTotal = completed story points
+            });
+            
+            // Calculate target: 1 SP per effective working day
+            adjustedTarget = effectiveWorkingDays * 1; // 1 SP per effective working day
+            efficiency = adjustedTarget > 0 ? (weekTotal / adjustedTarget) * 100 : 0;
             
             // Update displays
             const weekTotalDisplay = document.getElementById(`week-total-${memberName}`);
@@ -5296,7 +5308,7 @@ class RealEfficiencyTracker {
             }
             
             if (targetDisplay) {
-                targetDisplay.textContent = adjustedTarget.toFixed(1); // Adjusted target points
+                targetDisplay.textContent = adjustedTarget.toFixed(1); // Expected story points
             }
             
             if (efficiencyDisplay) {
@@ -5311,12 +5323,12 @@ class RealEfficiencyTracker {
                 }
             }
             
-            console.log(`${memberName} Tech calculation:`, {
+            console.log(`${memberName} Product calculation:`, {
                 'Completed Points': weekTotal.toFixed(1),
-                'Target Points': targetPoints,
                 'Working Days': workingDays,
                 'Leave Days': leaveDays,
-                'Adjusted Target': adjustedTarget.toFixed(1),
+                'Effective Working Days': effectiveWorkingDays,
+                'Expected Points (1 SP/day)': adjustedTarget.toFixed(1),
                 'Efficiency': efficiency.toFixed(1) + '%'
             });
             
