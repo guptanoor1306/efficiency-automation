@@ -8857,7 +8857,8 @@ class RealEfficiencyTracker {
                         
                         if (memberWeekData) {
                             const weekTotal = memberWeekData.week_total || 0;
-                            const workingDays = memberWeekData.working_days || 5;
+                            // Calculate working days dynamically from week system instead of using stored value
+                            const workingDays = week.workingDays || memberWeekData.working_days || 5;
                             const leaveDays = memberWeekData.leave_days || 0;
                             const weeklyRating = memberWeekData.weekly_rating || 0;
                             const targetPoints = memberWeekData.target_points || 0;
@@ -11874,9 +11875,14 @@ class RealEfficiencyTracker {
             const supabaseData = await this.supabaseAPI.loadWeekData(reportKey, weekId);
             
             if (supabaseData && supabaseData.length > 0) {
+                // Get working days from week system for accurate calculation
+                const week = this.weekSystem.getWeeksForSelector().find(w => w.id === weekId);
+                const weekWorkingDays = week ? week.workingDays : 5;
+                
                 supabaseData.forEach(entry => {
                     const memberOutput = parseFloat(entry.week_total) || 0;
-                    const workingDays = parseFloat(entry.working_days) || 5;
+                    // Use dynamic working days from week system instead of stored value
+                    const workingDays = weekWorkingDays;
                     const leaveDays = parseFloat(entry.leave_days) || 0;
                     const rating = parseFloat(entry.weekly_rating) || 0;
                     const effectiveWorkingDays = workingDays - leaveDays;
