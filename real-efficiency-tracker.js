@@ -8840,6 +8840,7 @@ class RealEfficiencyTracker {
                 const memberName = member.name || member;
                 let memberTotalOutput = 0;
                 let memberTotalWorkingDays = 0;
+                let memberTotalEffectiveWorkingDays = 0; // Working days minus leave days
                 let memberTotalTargetPoints = 0; // For Tech team
                 const memberWeeks = [];
                 
@@ -8861,10 +8862,14 @@ class RealEfficiencyTracker {
                             const weeklyRating = memberWeekData.weekly_rating || 0;
                             const targetPoints = memberWeekData.target_points || 0;
                             
-                            console.log(`📊 ${memberName} week ${week.id}: total=${weekTotal}, workingDays=${workingDays}, leaveDays=${leaveDays}, rating=${weeklyRating}, targetPoints=${targetPoints}`);
+                            // Calculate effective working days for this week (working days - leave days)
+                            const effectiveWorkingDays = workingDays - leaveDays;
+                            
+                            console.log(`📊 ${memberName} week ${week.id}: total=${weekTotal}, workingDays=${workingDays}, leaveDays=${leaveDays}, effectiveWorkingDays=${effectiveWorkingDays}, rating=${weeklyRating}, targetPoints=${targetPoints}`);
                             
                             memberTotalOutput += weekTotal;
                             memberTotalWorkingDays += workingDays;
+                            memberTotalEffectiveWorkingDays += effectiveWorkingDays;
                             memberWeeks.push(weekTotal);
                             weeklyRatings.push(weeklyRating);
                             
@@ -8900,10 +8905,10 @@ class RealEfficiencyTracker {
                     memberEfficiency = memberTotalTargetPoints > 0 ? (memberTotalOutput / memberTotalTargetPoints) * 100 : 0;
                     console.log(`📈 Tech ${memberName} totals: output=${memberTotalOutput}, targetPoints=${memberTotalTargetPoints}, efficiency=${memberEfficiency.toFixed(2)}%, monthlyRating=${monthlyRating.toFixed(2)}`);
                 } else if (this.currentTeam === 'product') {
-                    // Product team: 1 story point per working day
-                    memberTarget = memberTotalWorkingDays * 1; // 1 SP per working day
+                    // Product team: 1 story point per effective working day (working days - leave days)
+                    memberTarget = memberTotalEffectiveWorkingDays * 1; // 1 SP per effective working day
                     memberEfficiency = memberTarget > 0 ? (memberTotalOutput / memberTarget) * 100 : 0;
-                    console.log(`📈 Product ${memberName} totals: output=${memberTotalOutput}, expectedSP=${memberTarget}, efficiency=${memberEfficiency.toFixed(2)}%, monthlyRating=${monthlyRating.toFixed(2)}`);
+                    console.log(`📈 Product ${memberName} totals: output=${memberTotalOutput}, effectiveWorkingDays=${memberTotalEffectiveWorkingDays}, expectedSP=${memberTarget}, efficiency=${memberEfficiency.toFixed(2)}%, monthlyRating=${monthlyRating.toFixed(2)}`);
                 } else {
                     // Other teams: Use working days
                     memberEfficiency = memberTotalWorkingDays > 0 ? (memberTotalOutput / memberTotalWorkingDays) * 100 : 0;
