@@ -10503,7 +10503,7 @@ class RealEfficiencyTracker {
         console.log('Finalized reports:', this.finalizedReports || {});
         
         // Generate monthly efficiency data
-        const monthlyData = this.getPersonMonthlyData(memberName);
+        const monthlyData = await this.getPersonMonthlyData(memberName);
         console.log('Monthly data for', memberName, ':', monthlyData);
         
         // Generate weekly data for current month
@@ -10516,13 +10516,44 @@ class RealEfficiencyTracker {
         this.createPersonStats(memberName, monthlyData, weeklyData);
     }
     
-    getPersonMonthlyData(memberName) {
+    async getPersonMonthlyData(memberName) {
         const monthlyData = [];
         
         console.log('Getting monthly data for:', memberName);
         console.log('Available historical months for', this.currentTeam, ':', Object.keys(this.historicalData[this.currentTeam] || {}));
+        console.log('Locked months for', this.currentTeam, ':', this.lockedMonths[this.currentTeam] || []);
         
-        // Go through historical data to find this person's efficiency
+        // First, check locked months that need to be loaded from Supabase
+        const lockedMonthsForTeam = this.lockedMonths[this.currentTeam] || [];
+        for (const lockedMonth of lockedMonthsForTeam) {
+            console.log(`🔄 Loading locked month ${lockedMonth} data from Supabase for ${memberName}...`);
+            
+            // Temporarily load the month data from Supabase
+            if (lockedMonth === 'September 2025') {
+                try {
+                    const monthData = await this.loadSeptemberDataFromSupabase();
+                    if (monthData && monthData.monthlyData && monthData.monthlyData[memberName]) {
+                        const memberData = monthData.monthlyData[memberName];
+                        console.log(`✅ Found ${memberName} data in ${lockedMonth} from Supabase:`, memberData);
+                        
+                        monthlyData.push({
+                            month: lockedMonth,
+                            efficiency: memberData.efficiency || 0,
+                            output: memberData.totalOutput || 0,
+                            rating: memberData.monthlyRating || 0,
+                            target: memberData.target || 0,
+                            workingDays: memberData.workingDays || 0
+                        });
+                    } else {
+                        console.log(`❌ No data found for ${memberName} in ${lockedMonth}`);
+                    }
+                } catch (error) {
+                    console.error(`Error loading ${lockedMonth} data for ${memberName}:`, error);
+                }
+            }
+        }
+        
+        // Then go through historical data to find this person's efficiency
         Object.keys(this.historicalData[this.currentTeam] || {}).forEach(monthYear => {
             const monthData = this.historicalData[this.currentTeam]?.[monthYear];
             console.log(`Checking month ${monthYear}:`, monthData);
