@@ -8805,6 +8805,8 @@ class RealEfficiencyTracker {
             let totalTeamOutput = 0;
             let totalTeamWorkingDays = 0;
             let totalEfficiency = 0;
+            let totalTeamRating = 0;
+            let ratingMemberCount = 0;
             let memberCount = 0;
             
             const monthlyData = {};
@@ -8816,7 +8818,11 @@ class RealEfficiencyTracker {
                 let memberTotalWorkingDays = 0;
                 const memberWeeks = [];
                 
-                // Load data for each week
+                // Load data for each week including ratings
+                const weeklyRatings = [];
+                let totalRating = 0;
+                let ratingCount = 0;
+                
                 for (const week of septemberWeeks) {
                     try {
                         // Load all data for this week (not just for one member)
@@ -8826,33 +8832,42 @@ class RealEfficiencyTracker {
                         if (memberWeekData) {
                             const weekTotal = memberWeekData.week_total || 0;
                             const workingDays = memberWeekData.working_days || 5;
+                            const weeklyRating = memberWeekData.weekly_rating || 0;
                             
-                            console.log(`📊 ${memberName} week ${week.id}: total=${weekTotal}, workingDays=${workingDays}`);
+                            console.log(`📊 ${memberName} week ${week.id}: total=${weekTotal}, workingDays=${workingDays}, rating=${weeklyRating}`);
                             
                             memberTotalOutput += weekTotal;
                             memberTotalWorkingDays += workingDays;
                             memberWeeks.push(weekTotal);
+                            weeklyRatings.push(weeklyRating);
+                            
+                            if (weeklyRating > 0) {
+                                totalRating += weeklyRating;
+                                ratingCount++;
+                            }
                         } else {
                             console.log(`❌ No data found for ${memberName} week ${week.id}`);
                             memberWeeks.push(0);
+                            weeklyRatings.push(0);
                         }
                     } catch (error) {
                         console.warn(`No data found for ${memberName} week ${week.id}`);
                         memberWeeks.push(0);
+                        weeklyRatings.push(0);
                     }
                 }
                 
-                // Calculate member efficiency - use simple calculation for now
-                // For B2B team, efficiency should be based on actual output vs working days
+                // Calculate member efficiency and monthly rating
                 const memberEfficiency = memberTotalWorkingDays > 0 ? (memberTotalOutput / memberTotalWorkingDays) * 100 : 0;
                 const memberTarget = memberTotalWorkingDays;
+                const monthlyRating = ratingCount > 0 ? totalRating / ratingCount : 0;
                 
-                console.log(`📈 ${memberName} totals: output=${memberTotalOutput}, workingDays=${memberTotalWorkingDays}, efficiency=${memberEfficiency.toFixed(2)}%`);
+                console.log(`📈 ${memberName} totals: output=${memberTotalOutput}, workingDays=${memberTotalWorkingDays}, efficiency=${memberEfficiency.toFixed(2)}%, monthlyRating=${monthlyRating.toFixed(2)}`);
                 
                 monthlyData[memberName] = {
                     weeks: memberWeeks,
-                    weeklyQualityRatings: [0, 0, 0, 0], // No ratings for new teams
-                    monthlyRating: 0,
+                    weeklyQualityRatings: weeklyRatings,
+                    monthlyRating: monthlyRating,
                     target: memberTarget,
                     totalOutput: memberTotalOutput,
                     workingDays: memberTotalWorkingDays,
@@ -8862,17 +8877,27 @@ class RealEfficiencyTracker {
                 totalTeamOutput += memberTotalOutput;
                 totalTeamWorkingDays += memberTotalWorkingDays;
                 totalEfficiency += memberEfficiency;
+                
+                // Add to team rating calculation
+                if (monthlyRating > 0) {
+                    totalTeamRating += monthlyRating;
+                    ratingMemberCount++;
+                }
+                
                 memberCount++;
             }
             
             const avgEfficiency = memberCount > 0 ? totalEfficiency / memberCount : 0;
+            const avgRating = ratingMemberCount > 0 ? totalTeamRating / ratingMemberCount : 0;
+            
+            console.log(`🏆 Team ${this.currentTeam} September summary: members=${memberCount}, avgRating=${avgRating.toFixed(2)}, avgEfficiency=${avgEfficiency.toFixed(2)}%`);
             
             return {
                 isComplete: true,
                 monthlyData: monthlyData,
                 teamSummary: {
                     totalMembers: memberCount,
-                    avgRating: 0, // No ratings for new teams
+                    avgRating: avgRating,
                     totalOutput: totalTeamOutput,
                     totalWorkingDays: totalTeamWorkingDays,
                     avgEfficiency: avgEfficiency
