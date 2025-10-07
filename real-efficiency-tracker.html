@@ -492,13 +492,13 @@
                 
                 <div class="view-navigation" id="team-view-navigation" style="margin-top: 20px;">
                     <h3 style="color: #2c3e50; margin-bottom: 10px; font-size: 14px;">Team Views</h3>
-                    <button class="btn view-btn active" data-view="weekly" onclick="tracker.showWeeklyView()" style="width: 100%; margin-bottom: 8px; font-size: 13px; padding: 8px;">
+                    <button class="btn view-btn active" data-view="weekly" onclick="if(window.tracker) window.tracker.showWeeklyView()" style="width: 100%; margin-bottom: 8px; font-size: 13px; padding: 8px;">
                         <i class="fas fa-calendar-week"></i> Weekly
                     </button>
-                    <button class="btn view-btn" data-view="monthly" onclick="tracker.showMonthlyView()" style="width: 100%; margin-bottom: 8px; font-size: 13px; padding: 8px; background: #3498db;">
+                    <button class="btn view-btn" data-view="monthly" onclick="if(window.tracker) window.tracker.showMonthlyView()" style="width: 100%; margin-bottom: 8px; font-size: 13px; padding: 8px; background: #3498db;">
                         <i class="fas fa-chart-bar"></i> Monthly
                     </button>
-                    <button class="btn view-btn" data-view="person" onclick="tracker.showPersonView()" style="width: 100%; margin-bottom: 8px; font-size: 13px; padding: 8px; background: #9b59b6;">
+                    <button class="btn view-btn" data-view="person" onclick="if(window.tracker) window.tracker.showPersonView()" style="width: 100%; margin-bottom: 8px; font-size: 13px; padding: 8px; background: #9b59b6;">
                         <i class="fas fa-user-chart"></i> Person View
                     </button>
                 </div>

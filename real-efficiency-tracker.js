@@ -5611,13 +5611,13 @@ class RealEfficiencyTracker {
     setupEventListeners() {
         
         // Week/Month selector change
-        document.getElementById('week-select').addEventListener('change', (e) => {
+        document.getElementById('week-select').addEventListener('change', async (e) => {
             const selectedValue = e.target.value;
             if (selectedValue) {
                 if (selectedValue.startsWith('MONTH_')) {
                     // Handle monthly view
                     const monthYear = selectedValue.replace('MONTH_', '');
-                    this.showMonthlyView(monthYear);
+                    await this.showMonthlyView(monthYear);
                 } else {
                     // Handle weekly view
                     this.currentWeek = this.weekSystem.getWeekById(selectedValue);
@@ -6116,7 +6116,7 @@ class RealEfficiencyTracker {
         this.showMessage('✅ Headers exported! Upload this CSV to your Google Sheet to set up the format.', 'success');
     }
     
-    showMonthlyView(monthYear) {
+    async showMonthlyView(monthYear) {
         // Update view button states
         this.updateViewButtonStates('monthly');
         
@@ -10808,7 +10808,7 @@ class RealEfficiencyTracker {
     // COMPANY DASHBOARD METHODS
     // =============================================
 
-    showTeamDashboard() {
+    async showTeamDashboard() {
         console.log('🏢 Switching to Team Dashboard');
         
         // Update navigation active states
@@ -10826,7 +10826,7 @@ class RealEfficiencyTracker {
         if (currentView === 'weekly') {
             this.showWeeklyView();
         } else if (currentView === 'monthly') {
-            this.showMonthlyView();
+            await this.showMonthlyView();
         } else if (currentView === 'person') {
             this.showPersonView();
         }
