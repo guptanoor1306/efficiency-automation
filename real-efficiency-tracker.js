@@ -8840,6 +8840,7 @@ class RealEfficiencyTracker {
                 const memberName = member.name || member;
                 let memberTotalOutput = 0;
                 let memberTotalWorkingDays = 0;
+                let memberTotalTargetPoints = 0; // For Tech team
                 const memberWeeks = [];
                 
                 // Load data for each week including ratings
@@ -8856,14 +8857,21 @@ class RealEfficiencyTracker {
                         if (memberWeekData) {
                             const weekTotal = memberWeekData.week_total || 0;
                             const workingDays = memberWeekData.working_days || 5;
+                            const leaveDays = memberWeekData.leave_days || 0;
                             const weeklyRating = memberWeekData.weekly_rating || 0;
+                            const targetPoints = memberWeekData.target_points || 0;
                             
-                            console.log(`📊 ${memberName} week ${week.id}: total=${weekTotal}, workingDays=${workingDays}, rating=${weeklyRating}`);
+                            console.log(`📊 ${memberName} week ${week.id}: total=${weekTotal}, workingDays=${workingDays}, leaveDays=${leaveDays}, rating=${weeklyRating}, targetPoints=${targetPoints}`);
                             
                             memberTotalOutput += weekTotal;
                             memberTotalWorkingDays += workingDays;
                             memberWeeks.push(weekTotal);
                             weeklyRatings.push(weeklyRating);
+                            
+                            // Store target points for Tech team
+                            if (this.currentTeam === 'tech' && targetPoints > 0) {
+                                memberTotalTargetPoints += targetPoints;
+                            }
                             
                             if (weeklyRating > 0) {
                                 totalRating += weeklyRating;
@@ -8881,12 +8889,26 @@ class RealEfficiencyTracker {
                     }
                 }
                 
-                // Calculate member efficiency and monthly rating
-                const memberEfficiency = memberTotalWorkingDays > 0 ? (memberTotalOutput / memberTotalWorkingDays) * 100 : 0;
-                const memberTarget = memberTotalWorkingDays;
+                // Calculate member efficiency and target based on team type
+                let memberEfficiency = 0;
+                let memberTarget = memberTotalWorkingDays;
                 const monthlyRating = ratingCount > 0 ? totalRating / ratingCount : 0;
                 
-                console.log(`📈 ${memberName} totals: output=${memberTotalOutput}, workingDays=${memberTotalWorkingDays}, efficiency=${memberEfficiency.toFixed(2)}%, monthlyRating=${monthlyRating.toFixed(2)}`);
+                if (this.currentTeam === 'tech') {
+                    // Tech team: Use target story points
+                    memberTarget = memberTotalTargetPoints;
+                    memberEfficiency = memberTotalTargetPoints > 0 ? (memberTotalOutput / memberTotalTargetPoints) * 100 : 0;
+                    console.log(`📈 Tech ${memberName} totals: output=${memberTotalOutput}, targetPoints=${memberTotalTargetPoints}, efficiency=${memberEfficiency.toFixed(2)}%, monthlyRating=${monthlyRating.toFixed(2)}`);
+                } else if (this.currentTeam === 'product') {
+                    // Product team: 1 story point per working day
+                    memberTarget = memberTotalWorkingDays * 1; // 1 SP per working day
+                    memberEfficiency = memberTarget > 0 ? (memberTotalOutput / memberTarget) * 100 : 0;
+                    console.log(`📈 Product ${memberName} totals: output=${memberTotalOutput}, expectedSP=${memberTarget}, efficiency=${memberEfficiency.toFixed(2)}%, monthlyRating=${monthlyRating.toFixed(2)}`);
+                } else {
+                    // Other teams: Use working days
+                    memberEfficiency = memberTotalWorkingDays > 0 ? (memberTotalOutput / memberTotalWorkingDays) * 100 : 0;
+                    console.log(`📈 ${memberName} totals: output=${memberTotalOutput}, workingDays=${memberTotalWorkingDays}, efficiency=${memberEfficiency.toFixed(2)}%, monthlyRating=${monthlyRating.toFixed(2)}`);
+                }
                 
                 monthlyData[memberName] = {
                     weeks: memberWeeks,
