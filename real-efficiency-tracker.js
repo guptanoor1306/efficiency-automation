@@ -11292,6 +11292,52 @@ class RealEfficiencyTracker {
         }
     }
 
+    // Lock a month for all teams (Company View)
+    async lockCompanyMonth(monthYear) {
+        console.log(`🔒 Locking ${monthYear} for all teams...`);
+        
+        try {
+            const allTeams = ['b2b', 'varsity', 'zero1_bratish', 'zero1_harish', 'audio', 'shorts', 'graphics', 'tech', 'product', 'preproduction', 'content', 'social'];
+            const lockedTeams = [];
+            
+            for (const teamId of allTeams) {
+                // Check if team has data for this month
+                const weeks = this.weekSystem.getWeeksForSelector().filter(week => 
+                    week.monthYear === monthYear
+                );
+                
+                if (weeks.length > 0) {
+                    // Temporarily switch to this team to lock the month
+                    const originalTeam = this.currentTeam;
+                    this.currentTeam = teamId;
+                    
+                    try {
+                        await this.lockMonth(monthYear);
+                        lockedTeams.push(teamId);
+                        console.log(`✅ Locked ${monthYear} for ${teamId} team`);
+                    } catch (error) {
+                        console.error(`❌ Failed to lock ${monthYear} for ${teamId} team:`, error);
+                    }
+                    
+                    // Restore original team
+                    this.currentTeam = originalTeam;
+                }
+            }
+            
+            console.log(`🎉 Successfully locked ${monthYear} for ${lockedTeams.length} teams:`, lockedTeams);
+            
+            // Refresh the Company View
+            this.updateCompanyData();
+            
+            // Show success message
+            alert(`Successfully locked ${monthYear} for all teams!\n\nLocked teams: ${lockedTeams.join(', ')}\n\nThe month has been moved to monthly view for all teams.`);
+            
+        } catch (error) {
+            console.error(`❌ Error locking ${monthYear} for all teams:`, error);
+            alert(`Error locking ${monthYear}: ${error.message}`);
+        }
+    }
+
     // Auto-detect available months across all teams for Company View
     getAvailableCompanyMonths() {
         const allMonths = new Set();
@@ -11772,9 +11818,37 @@ class RealEfficiencyTracker {
     displayCompanyData(companyData, periodType, selectedPeriod) {
         console.log('📊 Displaying company data:', companyData);
         
-        // Update period info
-        document.getElementById('company-period-info').textContent = 
-            `Showing ${periodType === 'month' ? 'monthly' : 'weekly'} data for ${selectedPeriod}`;
+        // Update period info with lock button for weekly last weeks
+        let periodInfoText = `Showing ${periodType === 'month' ? 'monthly' : 'weekly'} data for ${selectedPeriod}`;
+        
+        // Add lock button for weekly data if it's the last week of a month
+        if (periodType === 'week') {
+            const week = this.weekSystem.getWeeksForSelector().find(w => w.id === selectedPeriod);
+            if (week && week.weekNumber === 4) {
+                const monthYear = `${week.monthName} ${week.year}`;
+                const hasLockedData = this.getAvailableCompanyMonths().includes(monthYear);
+                
+                if (!hasLockedData) {
+                    periodInfoText += `
+                        <div style="margin-top: 15px;">
+                            <button onclick="if(window.tracker) window.tracker.lockCompanyMonth('${monthYear}')" 
+                                    style="background: #e74c3c; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600;">
+                                🔒 Lock ${week.monthName} ${week.year} for All Teams
+                            </button>
+                            <div style="margin-top: 8px; color: #666; font-size: 12px; font-style: italic;">
+                                This will move all teams' ${week.monthName} data from weekly to monthly view
+                            </div>
+                        </div>`;
+                } else {
+                    periodInfoText += `
+                        <div style="margin-top: 15px; color: #27ae60; font-weight: bold;">
+                            🔒 ${week.monthName} ${week.year} is locked for all teams (Monthly view only)
+                        </div>`;
+                }
+            }
+        }
+        
+        document.getElementById('company-period-info').innerHTML = periodInfoText;
         
         // Show all sections
         document.getElementById('company-stats').style.display = 'block';
