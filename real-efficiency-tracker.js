@@ -10655,12 +10655,13 @@ class RealEfficiencyTracker {
             const weekMonth = this.getWeekMonth(weekId);
             const belongsToCurrentMonth = weekMonth === currentWorkingMonth;
             
-            // Only show if it belongs to current working month AND not in historical data
+            // Only show if it belongs to current working month AND not in historical data AND not locked
             const isInHistoricalData = this.historicalData[this.currentTeam]?.[weekMonth]?.isComplete;
+            const isLockedMonth = this.lockedMonths[this.currentTeam]?.includes(weekMonth);
             
-            console.log(`Week ${weekId}: month=${weekMonth}, belongsToCurrent=${belongsToCurrentMonth}, inHistorical=${isInHistoricalData}`);
+            console.log(`Week ${weekId}: month=${weekMonth}, belongsToCurrent=${belongsToCurrentMonth}, inHistorical=${isInHistoricalData}, isLocked=${isLockedMonth}`);
             
-            if (belongsToCurrentMonth && !isInHistoricalData && weekData && weekData.memberSummaries) {
+            if (belongsToCurrentMonth && !isInHistoricalData && !isLockedMonth && weekData && weekData.memberSummaries) {
                 console.log(`📋 Available members in ${weekId}:`, weekData.memberSummaries.map(m => m.name || m.member || 'unknown'));
         console.log(`📋 Full week data for ${weekId}:`, weekData);
                 
