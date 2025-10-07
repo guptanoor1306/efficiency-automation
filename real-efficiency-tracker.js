@@ -4476,26 +4476,11 @@ class RealEfficiencyTracker {
         // Remember current selection
         const currentSelection = weekSelect.value;
         
-        let weeks = this.weekSystem.getWeeksForSelector();
+        // Use getFilteredWeeks() which includes both team filtering and month locking
+        let weeks = this.getFilteredWeeks();
         
-        // For Graphics, Tech, Product, Pre-production, Content, and Social teams, only show weeks from September 2025 onwards
-        if (this.currentTeam === 'graphics' || this.currentTeam === 'tech' || this.currentTeam === 'product' || this.currentTeam === 'preproduction' || this.currentTeam === 'content' || this.currentTeam === 'social') {
-            weeks = weeks.filter(week => {
-                // Parse monthYear string (e.g., "September 2025")
-                const [monthName, yearStr] = week.monthYear.split(' ');
-                const year = parseInt(yearStr);
-                
-                // Only show September 2025 onwards
-                if (year > 2025) return true;
-                if (year === 2025) {
-                    const monthIndex = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].indexOf(monthName);
-                    return monthIndex >= 8; // September is index 8
-                }
-                return false;
-            });
-            
-            console.log(`🔍 Filtered weeks for ${this.currentTeam}:`, weeks.length, 'weeks from September 2025 onwards');
-        }
+        console.log(`🔍 Filtered weeks for ${this.currentTeam}:`, weeks.length, 'weeks (after team and month locking filters)');
+        console.log(`🔒 Locked months for ${this.currentTeam}:`, this.lockedMonths[this.currentTeam] || []);
         
         // Determine current view mode
         const activeViewBtn = document.querySelector('.view-btn.active');
@@ -4827,8 +4812,33 @@ class RealEfficiencyTracker {
             `Week ${this.currentWeek.weekNumber} - ${this.currentWeek.monthName} ${this.currentWeek.year}`;
             }
             if (weekDates) {
-                weekDates.textContent = 
-            `${this.currentWeek.dateRange} (Monday to Friday)`;
+                let datesText = `${this.currentWeek.dateRange} (Monday to Friday)`;
+                
+                // Add lock month button for last week of the month
+                if (this.currentWeek.weekNumber === 4) {
+                    const monthYear = `${this.currentWeek.monthName} ${this.currentWeek.year}`;
+                    const isLocked = this.lockedMonths[this.currentTeam]?.includes(monthYear);
+                    
+                    if (!isLocked) {
+                        datesText += `
+                            <div style="margin-top: 10px;">
+                                <button onclick="if(window.tracker) window.tracker.lockMonth('${monthYear}')" 
+                                        style="background: #e74c3c; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                                    🔒 Lock ${this.currentWeek.monthName} ${this.currentWeek.year}
+                                </button>
+                                <small style="display: block; margin-top: 5px; color: #666; font-style: italic;">
+                                    Lock this month to move it from weekly to monthly view
+                                </small>
+                            </div>`;
+                    } else {
+                        datesText += `
+                            <div style="margin-top: 10px; color: #27ae60; font-weight: bold;">
+                                🔒 ${this.currentWeek.monthName} ${this.currentWeek.year} is locked (Monthly view only)
+                            </div>`;
+                    }
+                }
+                
+                weekDates.innerHTML = datesText;
             }
         } catch (error) {
             console.warn('Error updating week info:', error);
@@ -8695,6 +8705,86 @@ class RealEfficiencyTracker {
         });
         
         console.log('✅ September 2025 marked as completed for all teams');
+    }
+
+    // Function to lock a month and move it from weekly to monthly view
+    async lockMonth(monthYear) {
+        try {
+            console.log(`🔒 Locking ${monthYear} for ${this.currentTeam} team...`);
+            
+            // Confirm with user
+            const confirmed = confirm(`🔒 Lock ${monthYear} for ${this.teamConfigs[this.currentTeam]?.name || this.currentTeam}?\n\nThis will:\n• Move the month from weekly to monthly view\n• Make it read-only\n• Show it in company monthly summary\n\nThis action can be undone by refreshing the page.`);
+            
+            if (!confirmed) return;
+            
+            // Add month to locked months for current team
+            if (!this.lockedMonths[this.currentTeam]) {
+                this.lockedMonths[this.currentTeam] = [];
+            }
+            
+            if (!this.lockedMonths[this.currentTeam].includes(monthYear)) {
+                this.lockedMonths[this.currentTeam].push(monthYear);
+            }
+            
+            // Create historical data entry if it doesn't exist
+            if (!this.historicalData[this.currentTeam]) {
+                this.historicalData[this.currentTeam] = {};
+            }
+            
+            // Add the month as completed (placeholder data - real data comes from Supabase)
+            this.historicalData[this.currentTeam][monthYear] = {
+                isComplete: true,
+                monthlyData: {
+                    // Placeholder - actual data will be loaded from Supabase when viewing monthly
+                    'placeholder': {
+                        weeks: [0, 0, 0, 0],
+                        weeklyQualityRatings: [0, 0, 0, 0],
+                        monthlyRating: 0,
+                        target: 0,
+                        totalOutput: 0,
+                        workingDays: 0,
+                        efficiency: 0
+                    }
+                },
+                teamSummary: {
+                    totalMembers: 0,
+                    avgRating: 0,
+                    totalOutput: 0,
+                    totalWorkingDays: 0,
+                    avgEfficiency: 0
+                }
+            };
+            
+            console.log(`✅ Locked ${monthYear} for ${this.currentTeam} team`);
+            console.log(`🔒 Current locked months for ${this.currentTeam}:`, this.lockedMonths[this.currentTeam]);
+            
+            // Refresh the week selector to remove locked month weeks
+            this.populateWeekSelector();
+            
+            // Update week info to show locked status
+            this.updateWeekInfo();
+            
+            // If current week is from the locked month, switch to next available week
+            if (this.currentWeek && this.currentWeek.monthYear === monthYear) {
+                const availableWeeks = this.getFilteredWeeks();
+                if (availableWeeks.length > 0) {
+                    this.currentWeek = availableWeeks[0];
+                    const weekSelect = document.getElementById('week-select');
+                    if (weekSelect) {
+                        weekSelect.value = this.currentWeek.id;
+                    }
+                    this.updateWeekInfo();
+                    this.loadWeekData();
+                    this.generateTeamDataRows();
+                }
+            }
+            
+            this.showMessage(`🔒 ${monthYear} locked and moved to monthly view!`, 'success');
+            
+        } catch (error) {
+            console.error('Error locking month:', error);
+            this.showMessage('❌ Error locking month', 'error');
+        }
     }
 
     // Function to load September 2025 data from Supabase for monthly view
