@@ -11368,7 +11368,22 @@ class RealEfficiencyTracker {
         }
         
         // Sort by efficiency (highest first)
-        allMembers.sort((a, b) => (b.efficiency || 0) - (a.efficiency || 0));
+        console.log('🔄 Sorting company members by efficiency...');
+        allMembers.forEach(member => {
+            console.log(`📊 ${member.name} (${member.team}): efficiency=${member.efficiency}% (type: ${typeof member.efficiency})`);
+        });
+        
+        allMembers.sort((a, b) => {
+            const aEff = parseFloat(a.efficiency) || 0;
+            const bEff = parseFloat(b.efficiency) || 0;
+            console.log(`🔄 Comparing ${a.name} (${aEff}) vs ${b.name} (${bEff})`);
+            return bEff - aEff;
+        });
+        
+        console.log('✅ Sorted members:');
+        allMembers.forEach((member, index) => {
+            console.log(`${index + 1}. ${member.name} (${member.team}): ${member.efficiency}%`);
+        });
         
         return {
             members: allMembers,
@@ -11856,6 +11871,11 @@ class RealEfficiencyTracker {
             chartContainer.innerHTML = '<div style="text-align: center; color: #6c757d; padding: 20px;">No data available</div>';
             return;
         }
+        
+        console.log('📊 Updating member chart with data:');
+        companyData.members.forEach((member, index) => {
+            console.log(`${index + 1}. ${member.name} (${member.team}): ${member.efficiency}%`);
+        });
         
         // Create chart bars
         companyData.members.forEach((member, index) => {
