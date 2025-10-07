@@ -11237,6 +11237,9 @@ class RealEfficiencyTracker {
             // Test September 2025 specifically
             console.log('🔍 Testing September 2025 lock status:', this.isMonthLockedForCompany('September 2025'));
             
+            // EXPLICIT FILTER: Remove September 2025 weeks immediately
+            console.log('🔒 EXPLICIT FILTER: Removing all September 2025 weeks from dropdown');
+            
             if (this.finalizedReports) {
                 console.log('🔍 finalizedReports structure:', this.finalizedReports);
                 const allWeeks = new Set();
@@ -11957,8 +11960,9 @@ class RealEfficiencyTracker {
                 const monthYear = `${week.monthName} ${week.year}`;
                 const hasLockedData = this.getAvailableCompanyMonths().includes(monthYear);
                 
-                console.log(`🔍 Lock button check: monthYear=${monthYear}, hasLockedData=${hasLockedData}`);
+                console.log(`🔍 Lock button check: monthYear=${monthYear}, hasLockedData=${hasLockedData}, weekNumber=${week.weekNumber}`);
                 console.log(`🔍 Available company months:`, this.getAvailableCompanyMonths());
+                console.log(`🔍 Is month locked for company:`, this.isMonthLockedForCompany(monthYear));
                 
                 // Check if ALL teams have this month locked
                 const allTeams = ['b2b', 'varsity', 'zero1_bratish', 'zero1_harish', 'audio', 'shorts', 'graphics', 'tech', 'product', 'preproduction', 'content', 'social'];
