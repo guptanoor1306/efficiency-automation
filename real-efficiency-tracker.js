@@ -11413,22 +11413,16 @@ class RealEfficiencyTracker {
             }
         }
         
-        // Sort by efficiency (highest first)
-        console.log('🔄 Sorting company members by efficiency...');
-        allMembers.forEach(member => {
-            console.log(`📊 ${member.name} (${member.team}): efficiency=${member.efficiency}% (type: ${typeof member.efficiency})`);
-        });
-        
+        // Sort by efficiency (highest first) - ensure numeric comparison
         allMembers.sort((a, b) => {
             const aEff = parseFloat(a.efficiency) || 0;
             const bEff = parseFloat(b.efficiency) || 0;
-            console.log(`🔄 Comparing ${a.name} (${aEff}) vs ${b.name} (${bEff})`);
             return bEff - aEff;
         });
         
-        console.log('✅ Sorted members:');
-        allMembers.forEach((member, index) => {
-            console.log(`${index + 1}. ${member.name} (${member.team}): ${member.efficiency}%`);
+        console.log('✅ Company data sorted by efficiency (highest first):');
+        allMembers.slice(0, 5).forEach((member, index) => {
+            console.log(`${index + 1}. ${member.name} (${member.team}): ${member.efficiency.toFixed(1)}%`);
         });
         
         return {
@@ -11627,7 +11621,24 @@ class RealEfficiencyTracker {
                 
                 if (monthData && monthData.monthlyData) {
                     console.log(`✅ Loaded ${monthYear} data for ${teamId} from Supabase`);
-                    return monthData;
+                    
+                    // Transform the data to match weekly structure for Company View
+                    const members = [];
+                    Object.keys(monthData.monthlyData).forEach(memberName => {
+                        const memberData = monthData.monthlyData[memberName];
+                        members.push({
+                            name: memberName,
+                            efficiency: memberData.efficiency || 0,
+                            output: memberData.totalOutput || 0,
+                            rating: memberData.monthlyRating || 0
+                        });
+                    });
+                    
+                    return {
+                        team: teamId,
+                        period: monthYear,
+                        members: members
+                    };
                 } else {
                     console.log(`❌ No ${monthYear} data found for ${teamId} in Supabase`);
                     return null;
@@ -11946,10 +11957,7 @@ class RealEfficiencyTracker {
             return;
         }
         
-        console.log('📊 Updating member chart with data:');
-        companyData.members.forEach((member, index) => {
-            console.log(`${index + 1}. ${member.name} (${member.team}): ${member.efficiency}%`);
-        });
+        console.log(`📊 Updating member chart with ${companyData.members.length} members`);
         
         // Create chart bars
         companyData.members.forEach((member, index) => {
