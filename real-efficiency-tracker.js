@@ -11179,7 +11179,7 @@ class RealEfficiencyTracker {
             // Add historical months
             const historicalMonths = [
                 'January 2025', 'February 2025', 'March 2025', 'April 2025',
-                'May 2025', 'June 2025', 'July 2025', 'August 2025'
+                'May 2025', 'June 2025', 'July 2025', 'August 2025', 'September 2025'
             ];
             
             periodSelectElement.innerHTML = '<option value="">Select a month...</option>';
@@ -11461,7 +11461,33 @@ class RealEfficiencyTracker {
         
         const historicalKey = teamMapping[teamId] || teamId;
         
-        // Get historical data for the team and month
+        // Special handling for September 2025 - load from Supabase
+        if (monthYear === 'September 2025') {
+            console.log(`🔄 Loading September 2025 data from Supabase for team ${teamId} (Company View)`);
+            try {
+                // Temporarily switch to the team to load its September data
+                const originalTeam = this.currentTeam;
+                this.currentTeam = historicalKey;
+                
+                const septemberData = await this.loadSeptemberDataFromSupabase();
+                
+                // Restore original team
+                this.currentTeam = originalTeam;
+                
+                if (septemberData && septemberData.monthlyData) {
+                    console.log(`✅ Loaded September 2025 data for ${teamId} from Supabase`);
+                    return septemberData;
+                } else {
+                    console.log(`❌ No September 2025 data found for ${teamId} in Supabase`);
+                    return null;
+                }
+            } catch (error) {
+                console.error(`❌ Error loading September 2025 data for ${teamId}:`, error);
+                return null;
+            }
+        }
+        
+        // Get historical data for the team and month (for non-September months)
         const historicalData = this.historicalData[historicalKey];
         console.log(`🔍 Looking for ${monthYear} data for team ${teamId} (key: ${historicalKey})`);
         console.log(`🔍 Available months for ${historicalKey}:`, Object.keys(historicalData || {}));
