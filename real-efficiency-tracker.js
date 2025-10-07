@@ -11227,14 +11227,6 @@ class RealEfficiencyTracker {
                 periodSelectElement.appendChild(option);
             });
             console.log('✅ Added', availableMonths.length, 'available months');
-            
-            // Add current month if it has finalized data
-            if (Object.keys(this.finalizedReports || {}).length > 0) {
-                const option = document.createElement('option');
-                option.value = 'September 2025';
-                option.textContent = 'September 2025 (Current)';
-                periodSelectElement.appendChild(option);
-            }
         } else if (periodType === 'week') {
             // Add finalized weeks from current month
             periodSelectElement.innerHTML = '<option value="">Select a week...</option>';
@@ -11260,6 +11252,19 @@ class RealEfficiencyTracker {
                 
                 Array.from(allWeeks).sort().forEach(weekId => {
                     try {
+                        // Check if this week belongs to a locked month
+                        const week = this.weekSystem.getWeeksForSelector().find(w => w.id === weekId);
+                        if (week) {
+                            const monthYear = `${week.monthName} ${week.year}`;
+                            const isMonthLocked = this.getAvailableCompanyMonths().includes(monthYear);
+                            
+                            // Skip weeks from locked months
+                            if (isMonthLocked) {
+                                console.log(`🔒 Skipping week ${weekId} from locked month ${monthYear}`);
+                                return;
+                            }
+                        }
+                        
                         const weekNumber = this.getWeekNumberInMonth(weekId);
                         const option = document.createElement('option');
                         option.value = weekId;
@@ -11835,11 +11840,66 @@ class RealEfficiencyTracker {
         // Add lock button for weekly data if it's the last week of a month
         if (periodType === 'week') {
             const week = this.weekSystem.getWeeksForSelector().find(w => w.id === selectedPeriod);
+            console.log(`🔍 Company View week check: selectedPeriod=${selectedPeriod}, week found:`, week);
+            
             if (week && week.weekNumber === 4) {
                 const monthYear = `${week.monthName} ${week.year}`;
                 const hasLockedData = this.getAvailableCompanyMonths().includes(monthYear);
                 
-                if (!hasLockedData) {
+                console.log(`🔍 Lock button check: monthYear=${monthYear}, hasLockedData=${hasLockedData}`);
+                console.log(`🔍 Available company months:`, this.getAvailableCompanyMonths());
+                
+                // Check if ALL teams have this month locked
+                const allTeams = ['b2b', 'varsity', 'zero1_bratish', 'zero1_harish', 'audio', 'shorts', 'graphics', 'tech', 'product', 'preproduction', 'content', 'social'];
+                const teamsWithData = allTeams.filter(teamId => {
+                    return this.finalizedReports && this.finalizedReports[teamId] && Object.keys(this.finalizedReports[teamId]).some(weekId => {
+                        const w = this.weekSystem.getWeeksForSelector().find(week => week.id === weekId);
+                        return w && `${w.monthName} ${w.year}` === monthYear;
+                    });
+                });
+                
+                const teamsWithLockedMonth = allTeams.filter(teamId => {
+                    const teamMapping = {
+                        'zero1_bratish': 'zero1',
+                        'zero1_harish': 'harish',
+                        'varsity': 'varsity',
+                        'b2b': 'b2b',
+                        'audio': 'audio',
+                        'shorts': 'shorts',
+                        'graphics': 'graphics',
+                        'tech': 'tech',
+                        'product': 'product',
+                        'preproduction': 'preproduction',
+                        'content': 'content',
+                        'social': 'social'
+                    };
+                    const mappedTeamId = teamMapping[teamId] || teamId;
+                    return this.lockedMonths[mappedTeamId]?.includes(monthYear);
+                });
+                
+                console.log(`🔍 Teams with ${monthYear} data:`, teamsWithData);
+                console.log(`🔍 Teams with ${monthYear} locked:`, teamsWithLockedMonth);
+                
+                const allTeamsLocked = teamsWithData.length > 0 && teamsWithData.every(teamId => {
+                    const teamMapping = {
+                        'zero1_bratish': 'zero1',
+                        'zero1_harish': 'harish',
+                        'varsity': 'varsity',
+                        'b2b': 'b2b',
+                        'audio': 'audio',
+                        'shorts': 'shorts',
+                        'graphics': 'graphics',
+                        'tech': 'tech',
+                        'product': 'product',
+                        'preproduction': 'preproduction',
+                        'content': 'content',
+                        'social': 'social'
+                    };
+                    const mappedTeamId = teamMapping[teamId] || teamId;
+                    return this.lockedMonths[mappedTeamId]?.includes(monthYear);
+                });
+                
+                if (!allTeamsLocked) {
                     periodInfoText += `
                         <div style="margin-top: 15px;">
                             <button onclick="if(window.tracker) window.tracker.lockCompanyMonth('${monthYear}')" 
