@@ -11231,6 +11231,8 @@ class RealEfficiencyTracker {
             // Add finalized weeks from current month
             periodSelectElement.innerHTML = '<option value="">Select a week...</option>';
             console.log('📅 Loading weekly options...');
+            console.log('🔍 Current lockedMonths:', this.lockedMonths);
+            console.log('🔍 Available company months:', this.getAvailableCompanyMonths());
             
             if (this.finalizedReports) {
                 console.log('🔍 finalizedReports structure:', this.finalizedReports);
@@ -11256,10 +11258,19 @@ class RealEfficiencyTracker {
                         const week = this.weekSystem.getWeeksForSelector().find(w => w.id === weekId);
                         if (week) {
                             const monthYear = `${week.monthName} ${week.year}`;
-                            const isMonthLocked = this.getAvailableCompanyMonths().includes(monthYear);
+                            
+                            // Check multiple ways to determine if month is locked
+                            const isInAvailableMonths = this.getAvailableCompanyMonths().includes(monthYear);
+                            
+                            // Also check if any team has this month locked
+                            const isAnyTeamLocked = Object.keys(this.lockedMonths || {}).some(teamId => {
+                                return this.lockedMonths[teamId]?.includes(monthYear);
+                            });
+                            
+                            console.log(`🔍 Week ${weekId} (${monthYear}): inAvailable=${isInAvailableMonths}, anyTeamLocked=${isAnyTeamLocked}`);
                             
                             // Skip weeks from locked months
-                            if (isMonthLocked) {
+                            if (isInAvailableMonths || isAnyTeamLocked) {
                                 console.log(`🔒 Skipping week ${weekId} from locked month ${monthYear}`);
                                 return;
                             }
@@ -11270,6 +11281,7 @@ class RealEfficiencyTracker {
                         option.value = weekId;
                         option.textContent = `Week ${weekNumber} (${weekId})`;
                         periodSelectElement.appendChild(option);
+                        console.log(`✅ Added week ${weekId} to dropdown`);
                     } catch (error) {
                         console.warn(`Error processing week ${weekId}:`, error);
                     }
@@ -11289,11 +11301,17 @@ class RealEfficiencyTracker {
         
         console.log(`📊 Loading company data for ${periodType}: ${selectedPeriod}`);
         
+        // Show loading indicator
+        this.showCompanyLoading(`Loading ${periodType === 'month' ? 'monthly' : 'weekly'} data for ${selectedPeriod}...`);
+        
         try {
             const companyData = await this.getCompanyData(periodType, selectedPeriod);
+            this.hideCompanyLoading();
             this.displayCompanyData(companyData, periodType, selectedPeriod);
         } catch (error) {
             console.error('❌ Error updating company data:', error);
+            this.hideCompanyLoading();
+            this.showCompanyError('Failed to load company data. Please try again.');
         }
     }
 
@@ -11341,6 +11359,57 @@ class RealEfficiencyTracker {
             console.error(`❌ Error locking ${monthYear} for all teams:`, error);
             alert(`Error locking ${monthYear}: ${error.message}`);
         }
+    }
+
+    // Company View Loading Management
+    showCompanyLoading(message = 'Loading company data...', progress = 0) {
+        const loadingElement = document.getElementById('company-loading');
+        const loadingText = document.getElementById('company-loading-text');
+        const loadingProgress = document.getElementById('company-loading-progress');
+        const loadingBar = document.getElementById('company-loading-bar');
+        
+        if (loadingElement) {
+            loadingElement.style.display = 'block';
+            if (loadingText) loadingText.textContent = message;
+            if (loadingProgress) loadingProgress.textContent = 'Initializing...';
+            if (loadingBar) loadingBar.style.width = progress + '%';
+        }
+        
+        // Hide data sections while loading
+        this.hideCompanyDataSections();
+    }
+    
+    updateCompanyLoadingProgress(message, progress) {
+        const loadingProgress = document.getElementById('company-loading-progress');
+        const loadingBar = document.getElementById('company-loading-bar');
+        
+        if (loadingProgress) loadingProgress.textContent = message;
+        if (loadingBar) loadingBar.style.width = progress + '%';
+    }
+    
+    hideCompanyLoading() {
+        const loadingElement = document.getElementById('company-loading');
+        if (loadingElement) {
+            loadingElement.style.display = 'none';
+        }
+    }
+    
+    showCompanyError(message) {
+        const periodInfo = document.getElementById('company-period-info');
+        if (periodInfo) {
+            periodInfo.innerHTML = `
+                <div style="color: #dc3545; text-align: center; padding: 20px;">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                    <div style="font-size: 16px; font-weight: 500;">${message}</div>
+                </div>
+            `;
+        }
+    }
+    
+    hideCompanyDataSections() {
+        document.getElementById('company-stats').style.display = 'none';
+        document.getElementById('team-summary').style.display = 'none';
+        document.getElementById('member-chart-section').style.display = 'none';
     }
 
     // Auto-detect available months across all teams for Company View
@@ -11393,7 +11462,16 @@ class RealEfficiencyTracker {
         
         console.log('🔍 Selected teams for Company View:', selectedTeams);
         
-        for (const teamId of selectedTeams) {
+        // Update loading progress
+        this.updateCompanyLoadingProgress('Loading team data...', 10);
+        
+        for (let i = 0; i < selectedTeams.length; i++) {
+            const teamId = selectedTeams[i];
+            
+            // Update progress for each team
+            const progress = 10 + (i / selectedTeams.length) * 70; // 10% to 80%
+            this.updateCompanyLoadingProgress(`Loading ${this.getTeamDisplayName(teamId)} data...`, progress);
+            
             let teamData = null;
             
             if (periodType === 'month') {
@@ -11417,6 +11495,9 @@ class RealEfficiencyTracker {
                 console.log(`❌ No data found for team ${teamId}`);
             }
         }
+        
+        // Update progress for sorting
+        this.updateCompanyLoadingProgress('Sorting and finalizing data...', 90);
         
         // Sort by efficiency (highest first) - ensure numeric comparison
         allMembers.sort((a, b) => {

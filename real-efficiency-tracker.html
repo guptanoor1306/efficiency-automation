@@ -625,6 +625,22 @@
                     Select a period to view company-wide performance data
                 </div>
                 
+                <!-- Company Loading Indicator -->
+                <div id="company-loading" style="display: none; text-align: center; padding: 40px; background: #f8f9fa; border-radius: 8px; margin-bottom: 20px;">
+                    <div style="display: inline-block; position: relative;">
+                        <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: #3498db; margin-bottom: 15px;"></i>
+                    </div>
+                    <div id="company-loading-text" style="color: #2c3e50; font-size: 16px; font-weight: 500; margin-bottom: 10px;">
+                        Loading company data...
+                    </div>
+                    <div id="company-loading-progress" style="color: #6c757d; font-size: 14px;">
+                        Initializing...
+                    </div>
+                    <div style="width: 100%; max-width: 400px; margin: 15px auto; background: #e9ecef; border-radius: 10px; height: 8px; overflow: hidden;">
+                        <div id="company-loading-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #3498db, #2ecc71); border-radius: 10px; transition: width 0.3s ease;"></div>
+                    </div>
+                </div>
+                
                 <!-- Company Statistics -->
                 <div class="company-stats" id="company-stats" style="display: none; margin-bottom: 25px;">
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
