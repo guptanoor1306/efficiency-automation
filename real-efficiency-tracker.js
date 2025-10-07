@@ -11253,7 +11253,7 @@ class RealEfficiencyTracker {
                                 // Check if this week is from a locked month before adding
                                 const week = this.weekSystem.getWeeksForSelector().find(w => w.id === weekId);
                                 if (week) {
-                                    const monthYear = `${week.monthName} ${week.year}`;
+                                    const monthYear = week.monthYear; // Use monthYear directly
                                     const isMonthLocked = this.isMonthLockedForCompany(monthYear);
                                     
                                     if (isMonthLocked) {
@@ -11277,7 +11277,7 @@ class RealEfficiencyTracker {
                         // Check if this week belongs to a locked month
                         const week = this.weekSystem.getWeeksForSelector().find(w => w.id === weekId);
                         if (week) {
-                            const monthYear = `${week.monthName} ${week.year}`;
+                            const monthYear = week.monthYear; // Use monthYear directly
                             
                             // Dynamic check: Skip any locked month weeks
                             if (this.isMonthLockedForCompany(monthYear)) {
