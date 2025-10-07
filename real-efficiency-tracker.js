@@ -6178,32 +6178,41 @@ class RealEfficiencyTracker {
             }
         }
         
+        // Show loading indicator
+        this.showMonthlyLoading(`Loading ${monthYear} data...`, 'Retrieving team performance data...');
+        this.updateMonthlyLoadingProgress(20, 'Checking data sources...');
+        
         let monthData = this.historicalData[this.currentTeam]?.[monthYear];
         
         // If it's September 2025, always load real data from Supabase (regardless of placeholder structure)
         if (monthYear === 'September 2025') {
             console.log('📊 Loading September 2025 data from Supabase for monthly view...');
             console.log('📊 Current monthData structure:', monthData);
+            this.updateMonthlyLoadingProgress(40, 'Loading data from database...');
+            
             try {
                 monthData = await this.loadSeptemberDataFromSupabase();
                 console.log('📊 Loaded September data from Supabase:', monthData);
+                this.updateMonthlyLoadingProgress(80, 'Processing team metrics...');
             } catch (error) {
                 console.error('Error loading September data:', error);
-                this.showMessage('Error loading September data from database', 'error');
+                this.hideMonthlyLoading();
+                this.showMonthlyError('Error loading September data from database. Please try again.');
                 return;
             }
+        } else {
+            this.updateMonthlyLoadingProgress(60, 'Processing historical data...');
+            // Add small delay for better UX
+            await new Promise(resolve => setTimeout(resolve, 300));
         }
         
         if (!monthData) {
-            this.showMessage('No data available for this month', 'error');
+            this.hideMonthlyLoading();
+            this.showMonthlyError('No data available for this month. Please select a different month.');
             return;
         }
         
-        // Hide other views
-        const weeklyData = document.getElementById('efficiency-data');
-        const personView = document.getElementById('person-view');
-        if (weeklyData) weeklyData.style.display = 'none';
-        if (personView) personView.style.display = 'none';
+        this.updateMonthlyLoadingProgress(90, 'Generating performance summary...');
         
         // Update view buttons
         this.updateViewButtons('monthly');
@@ -6227,6 +6236,12 @@ class RealEfficiencyTracker {
         
         // Create monthly view table
         this.createMonthlyViewTable(monthYear, monthData);
+        
+        // Complete loading
+        this.updateMonthlyLoadingProgress(100, 'Complete!');
+        setTimeout(() => {
+            this.hideMonthlyLoading();
+        }, 500);
     }
     
     createMonthlyViewTable(monthYear, monthData) {
@@ -6329,6 +6344,12 @@ class RealEfficiencyTracker {
         `;
         
         mainContent.insertAdjacentHTML('beforeend', monthlyTableHTML);
+        
+        // Ensure the monthly table is visible
+        const monthlyTable = document.getElementById('monthly-table');
+        if (monthlyTable) {
+            monthlyTable.style.display = 'block';
+        }
     }
     
     showWeeklyView() {
@@ -12213,6 +12234,69 @@ class RealEfficiencyTracker {
         if (sendReportBtn) {
             sendReportBtn.style.display = 'none';
         }
+    }
+
+    // Monthly View Loading Management
+    showMonthlyLoading(text = 'Loading monthly data...', progress = 'Calculating team performance metrics...') {
+        const loadingDiv = document.getElementById('monthly-loading');
+        const textDiv = document.getElementById('monthly-loading-text');
+        const progressDiv = document.getElementById('monthly-loading-progress');
+        const barDiv = document.getElementById('monthly-loading-bar');
+        
+        if (loadingDiv) {
+            loadingDiv.style.display = 'block';
+            if (textDiv) textDiv.textContent = text;
+            if (progressDiv) progressDiv.textContent = progress;
+            if (barDiv) barDiv.style.width = '0%';
+        }
+        
+        // Hide other content
+        this.hideMonthlyDataSections();
+    }
+    
+    updateMonthlyLoadingProgress(percentage, text) {
+        const progressDiv = document.getElementById('monthly-loading-progress');
+        const barDiv = document.getElementById('monthly-loading-bar');
+        
+        if (progressDiv && text) progressDiv.textContent = text;
+        if (barDiv) barDiv.style.width = `${percentage}%`;
+    }
+    
+    hideMonthlyLoading() {
+        const loadingDiv = document.getElementById('monthly-loading');
+        if (loadingDiv) {
+            loadingDiv.style.display = 'none';
+        }
+    }
+    
+    showMonthlyError(message) {
+        const loadingDiv = document.getElementById('monthly-loading');
+        if (loadingDiv) {
+            loadingDiv.innerHTML = `
+                <div style="text-align: center; padding: 40px; background: #fee; border-radius: 8px; margin: 20px 0; border: 1px solid #fcc;">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 2rem; color: #e74c3c; margin-bottom: 15px;"></i>
+                    <div style="color: #c0392b; font-size: 16px; font-weight: 500;">
+                        ${message}
+                    </div>
+                    <button onclick="window.tracker.showWeeklyView()" style="margin-top: 15px; padding: 10px 20px; background: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                        Back to Weekly View
+                    </button>
+                </div>
+            `;
+            loadingDiv.style.display = 'block';
+        }
+    }
+    
+    hideMonthlyDataSections() {
+        // Hide existing monthly table
+        const existingTable = document.getElementById('monthly-table');
+        if (existingTable) existingTable.style.display = 'none';
+        
+        // Hide other views
+        const weeklyData = document.getElementById('efficiency-data');
+        const personView = document.getElementById('person-view');
+        if (weeklyData) weeklyData.style.display = 'none';
+        if (personView) personView.style.display = 'none';
     }
 
     // Slack Report Functions
