@@ -8873,9 +8873,11 @@ class RealEfficiencyTracker {
                             memberWeeks.push(weekTotal);
                             weeklyRatings.push(weeklyRating);
                             
-                            // Store target points for Tech team
+                            // Store target points for Tech team (adjusted for leave days like weekly calculation)
                             if (this.currentTeam === 'tech' && targetPoints > 0) {
-                                memberTotalTargetPoints += targetPoints;
+                                const adjustedTargetPoints = targetPoints * (effectiveWorkingDays / workingDays);
+                                memberTotalTargetPoints += adjustedTargetPoints;
+                                console.log(`📊 Tech ${memberName} week ${week.id}: targetPoints=${targetPoints}, effectiveWorkingDays=${effectiveWorkingDays}, workingDays=${workingDays}, adjustedTarget=${adjustedTargetPoints.toFixed(2)}`);
                             }
                             
                             if (weeklyRating > 0) {
@@ -8903,7 +8905,7 @@ class RealEfficiencyTracker {
                     // Tech team: Use target story points
                     memberTarget = memberTotalTargetPoints;
                     memberEfficiency = memberTotalTargetPoints > 0 ? (memberTotalOutput / memberTotalTargetPoints) * 100 : 0;
-                    console.log(`📈 Tech ${memberName} totals: output=${memberTotalOutput}, targetPoints=${memberTotalTargetPoints}, efficiency=${memberEfficiency.toFixed(2)}%, monthlyRating=${monthlyRating.toFixed(2)}`);
+                    console.log(`📈 Tech ${memberName} totals: output=${memberTotalOutput}, adjustedTargetPoints=${memberTotalTargetPoints.toFixed(2)}, efficiency=${memberEfficiency.toFixed(2)}%, monthlyRating=${monthlyRating.toFixed(2)}`);
                 } else if (this.currentTeam === 'product') {
                     // Product team: 1 story point per effective working day (working days - leave days)
                     memberTarget = memberTotalEffectiveWorkingDays * 1; // 1 SP per effective working day
