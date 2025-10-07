@@ -6184,20 +6184,22 @@ class RealEfficiencyTracker {
         
         let monthData = this.historicalData[this.currentTeam]?.[monthYear];
         
-        // If it's September 2025, always load real data from Supabase (regardless of placeholder structure)
-        if (monthYear === 'September 2025') {
-            console.log('📊 Loading September 2025 data from Supabase for monthly view...');
+        // Check if this month is locked (needs to be loaded from Supabase)
+        const isLockedMonth = this.lockedMonths[this.currentTeam]?.includes(monthYear);
+        
+        if (isLockedMonth) {
+            console.log(`📊 Loading ${monthYear} data from Supabase for monthly view...`);
             console.log('📊 Current monthData structure:', monthData);
             this.updateMonthlyLoadingProgress(40, 'Loading data from database...');
             
             try {
-                monthData = await this.loadSeptemberDataFromSupabase();
-                console.log('📊 Loaded September data from Supabase:', monthData);
+                monthData = await this.loadMonthDataFromSupabase(monthYear);
+                console.log(`📊 Loaded ${monthYear} data from Supabase:`, monthData);
                 this.updateMonthlyLoadingProgress(80, 'Processing team metrics...');
             } catch (error) {
-                console.error('Error loading September data:', error);
+                console.error(`Error loading ${monthYear} data:`, error);
                 this.hideMonthlyLoading();
-                this.showMonthlyError('Error loading September data from database. Please try again.');
+                this.showMonthlyError(`Error loading ${monthYear} data from database. Please try again.`);
                 return;
             }
         } else {
@@ -8846,17 +8848,21 @@ class RealEfficiencyTracker {
         }
     }
 
-    // Function to load September 2025 data from Supabase for monthly view
-    async loadSeptemberDataFromSupabase() {
-        console.log('📊 Loading September 2025 data from Supabase...');
+    // Function to load any month's data from Supabase for monthly view
+    async loadMonthDataFromSupabase(monthYear) {
+        console.log(`📊 Loading ${monthYear} data from Supabase...`);
         
         try {
-            // Get all September weeks for the current team
-            const septemberWeeks = this.weekSystem.getWeeksByMonthName('September', 2025);
+            // Parse monthYear (e.g., "October 2025", "September 2025")
+            const [monthName, yearStr] = monthYear.split(' ');
+            const year = parseInt(yearStr);
+            
+            // Get all weeks for the specified month and year
+            const monthWeeks = this.weekSystem.getWeeksByMonthName(monthName, year);
             const teamMembers = this.getActiveTeamMembers(this.currentTeam);
             
-            console.log(`📊 Loading September data for team: ${this.currentTeam}`);
-            console.log(`📊 September weeks found: ${septemberWeeks.length}`, septemberWeeks.map(w => w.id));
+            console.log(`📊 Loading ${monthYear} data for team: ${this.currentTeam}`);
+            console.log(`📊 ${monthName} ${year} weeks found: ${monthWeeks.length}`, monthWeeks.map(w => w.id));
             console.log(`📊 Team members: ${teamMembers.length}`, teamMembers.map(m => m.name || m));
             
             let totalTeamOutput = 0;
@@ -8882,7 +8888,7 @@ class RealEfficiencyTracker {
                 let totalRating = 0;
                 let ratingCount = 0;
                 
-                for (const week of septemberWeeks) {
+                for (const week of monthWeeks) {
                     try {
                         // Load all data for this week (not just for one member)
                         const weekDataArray = await this.supabaseAPI.loadWeekData(this.currentTeam, week.id);
@@ -8997,9 +9003,14 @@ class RealEfficiencyTracker {
             };
             
         } catch (error) {
-            console.error('Error loading September data from Supabase:', error);
+            console.error(`Error loading ${monthYear} data from Supabase:`, error);
             throw error;
         }
+    }
+
+    // Backward compatibility alias for September-specific function
+    async loadSeptemberDataFromSupabase() {
+        return await this.loadMonthDataFromSupabase('September 2025');
     }
 
     async ensureAllHistoricalDataLoaded() {
@@ -10569,28 +10580,26 @@ class RealEfficiencyTracker {
         for (const lockedMonth of lockedMonthsForTeam) {
             console.log(`🔄 Loading locked month ${lockedMonth} data from Supabase for ${memberName}...`);
             
-            // Temporarily load the month data from Supabase
-            if (lockedMonth === 'September 2025') {
-                try {
-                    const monthData = await this.loadSeptemberDataFromSupabase();
-                    if (monthData && monthData.monthlyData && monthData.monthlyData[memberName]) {
-                        const memberData = monthData.monthlyData[memberName];
-                        console.log(`✅ Found ${memberName} data in ${lockedMonth} from Supabase:`, memberData);
-                        
-                        monthlyData.push({
-                            month: lockedMonth,
-                            efficiency: memberData.efficiency || 0,
-                            output: memberData.totalOutput || 0,
-                            rating: memberData.monthlyRating || 0,
-                            target: memberData.target || 0,
-                            workingDays: memberData.workingDays || 0
-                        });
-                    } else {
-                        console.log(`❌ No data found for ${memberName} in ${lockedMonth}`);
-                    }
-                } catch (error) {
-                    console.error(`Error loading ${lockedMonth} data for ${memberName}:`, error);
+            // Load the month data from Supabase using generic function
+            try {
+                const monthData = await this.loadMonthDataFromSupabase(lockedMonth);
+                if (monthData && monthData.monthlyData && monthData.monthlyData[memberName]) {
+                    const memberData = monthData.monthlyData[memberName];
+                    console.log(`✅ Found ${memberName} data in ${lockedMonth} from Supabase:`, memberData);
+                    
+                    monthlyData.push({
+                        month: lockedMonth,
+                        efficiency: memberData.efficiency || 0,
+                        output: memberData.totalOutput || 0,
+                        rating: memberData.monthlyRating || 0,
+                        target: memberData.target || 0,
+                        workingDays: memberData.workingDays || 0
+                    });
+                } else {
+                    console.log(`❌ No data found for ${memberName} in ${lockedMonth}`);
                 }
+            } catch (error) {
+                console.error(`❌ Error loading ${lockedMonth} data for ${memberName}:`, error);
             }
         }
         
@@ -11763,13 +11772,12 @@ class RealEfficiencyTracker {
                 const originalTeam = this.currentTeam;
                 this.currentTeam = historicalKey;
                 
-                // For September 2025, use the specific function, for others we'll need a generic one
+                // Load data for any locked month using the generic function
                 let monthData;
-                if (monthYear === 'September 2025') {
-                    monthData = await this.loadSeptemberDataFromSupabase();
-                } else {
-                    // For future months, we could implement a generic loadMonthDataFromSupabase function
-                    console.log(`⚠️ Generic month loading not yet implemented for ${monthYear}`);
+                try {
+                    monthData = await this.loadMonthDataFromSupabase(monthYear);
+                } catch (error) {
+                    console.error(`❌ Error loading ${monthYear} data for team ${teamId}:`, error);
                     monthData = null;
                 }
                 
