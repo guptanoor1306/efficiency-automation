@@ -3,7 +3,7 @@
 
 INSERT INTO teams (id, name, members, work_types) VALUES 
 ('preproduction', 'Pre-production Team',
- '["Vandit", "Bhavya Oberoi", "Abid", "Mudit", "Nikhil"]',
+ '["Vandit", "Abid", "Mudit", "Nikhil"]',
  '{
    "script_preplanning_vd_shoot": {"level": "YT Shorts", "name": "Script Screenplay + Pre-Planning + VD + Shoot", "perDay": 2},
    "yt_normal_moodboard": {"level": "YT LF (Normal)", "name": "Visual Moodboard", "perDay": 2},

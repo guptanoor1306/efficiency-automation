@@ -32,6 +32,12 @@ class RealEfficiencyTracker {
                 });
             }
             
+            // Filter out locked months from weekly view
+            const lockedMonthsForTeam = this.lockedMonths[this.currentTeam] || [];
+            weeks = weeks.filter(week => {
+                return !lockedMonthsForTeam.includes(week.monthYear);
+            });
+            
             return weeks;
         };
         
@@ -546,7 +552,8 @@ class RealEfficiencyTracker {
                     { name: 'Akshay' },
                     { name: 'Ankush' },
                     { name: 'Noor' },
-                    { name: 'Vaishnavi' }
+                    { name: 'Vaishnavi' },
+                    { name: 'Bhavya Oberoi' }
                 ],
                 historicalMembers: [
                     { name: 'Akshay' },
@@ -562,7 +569,6 @@ class RealEfficiencyTracker {
                 name: 'Pre-production Team',
                 members: [
                     { name: 'Vandit' },
-                    { name: 'Bhavya Oberoi' },
                     { name: 'Abid' },
                     { name: 'Mudit' },
                     { name: 'Nikhil' }
@@ -636,6 +642,17 @@ class RealEfficiencyTracker {
         
         // Slack webhook configuration for reports
         this.slackWebhookUrl = ''; // Will be set by user
+        
+        // Month locking system - tracks which months are locked for each team
+        this.lockedMonths = {
+            // September 2025 should be locked for all teams since all weeks are complete
+            'graphics': ['September 2025'],
+            'tech': ['September 2025'],
+            'product': ['September 2025'],
+            'preproduction': ['September 2025'],
+            'content': ['September 2025'],
+            'social': ['September 2025']
+        };
         
         // Historical data - January to May 2025 (completed months)
         // Organized by team: this.historicalData[team][month]
@@ -4389,6 +4406,9 @@ class RealEfficiencyTracker {
         try {
             this.showMessage('Initializing system...', 'info');
             
+            // Mark September 2025 as completed for all teams
+            this.markSeptemberAsCompleted();
+            
             // Setup team switching with error handling
             try {
                 this.setupTeamSwitching();
@@ -6115,7 +6135,20 @@ class RealEfficiencyTracker {
             }
         }
         
-        const monthData = this.historicalData[this.currentTeam]?.[monthYear];
+        let monthData = this.historicalData[this.currentTeam]?.[monthYear];
+        
+        // If it's September 2025 and we have placeholder data, load real data from Supabase
+        if (monthYear === 'September 2025' && monthData && monthData.monthlyData.placeholder) {
+            console.log('📊 Loading September 2025 data from Supabase for monthly view...');
+            try {
+                monthData = await this.loadSeptemberDataFromSupabase();
+            } catch (error) {
+                console.error('Error loading September data:', error);
+                this.showMessage('Error loading September data from database', 'error');
+                return;
+            }
+        }
+        
         if (!monthData) {
             this.showMessage('No data available for this month', 'error');
             return;
@@ -8622,6 +8655,125 @@ class RealEfficiencyTracker {
         console.log('✅ Product historical data loaded successfully');
         console.log('Available Product months:', Object.keys(this.historicalData.product));
         this.showMessage(`✅ Loaded Product team data for August 2025`, 'success');
+    }
+
+    // Function to mark September 2025 as completed for all teams
+    markSeptemberAsCompleted() {
+        console.log('🔒 Marking September 2025 as completed for all teams...');
+        
+        // Add September 2025 as completed month for all teams that have it locked
+        const teamsWithSeptemberData = ['graphics', 'tech', 'product', 'preproduction', 'content', 'social'];
+        
+        teamsWithSeptemberData.forEach(teamId => {
+            if (!this.historicalData[teamId]) {
+                this.historicalData[teamId] = {};
+            }
+            
+            // Add September 2025 as completed month (placeholder data - real data comes from Supabase)
+            this.historicalData[teamId]['September 2025'] = {
+                isComplete: true,
+                monthlyData: {
+                    // Placeholder - actual data will be loaded from Supabase when viewing monthly
+                    'placeholder': {
+                        weeks: [0, 0, 0, 0],
+                        weeklyQualityRatings: [0, 0, 0, 0],
+                        monthlyRating: 0,
+                        target: 0,
+                        totalOutput: 0,
+                        workingDays: 0,
+                        efficiency: 0
+                    }
+                },
+                teamSummary: {
+                    totalMembers: 0,
+                    avgRating: 0,
+                    totalOutput: 0,
+                    totalWorkingDays: 0,
+                    avgEfficiency: 0
+                }
+            };
+        });
+        
+        console.log('✅ September 2025 marked as completed for all teams');
+    }
+
+    // Function to load September 2025 data from Supabase for monthly view
+    async loadSeptemberDataFromSupabase() {
+        console.log('📊 Loading September 2025 data from Supabase...');
+        
+        try {
+            // Get all September weeks for the current team
+            const septemberWeeks = this.weekSystem.getWeeksByMonthName('September', 2025);
+            const teamMembers = this.getActiveTeamMembers(this.currentTeam);
+            
+            let totalTeamOutput = 0;
+            let totalTeamWorkingDays = 0;
+            let totalEfficiency = 0;
+            let memberCount = 0;
+            
+            const monthlyData = {};
+            
+            // Load data for each team member
+            for (const member of teamMembers) {
+                const memberName = member.name || member;
+                let memberTotalOutput = 0;
+                let memberTotalWorkingDays = 0;
+                const memberWeeks = [];
+                
+                // Load data for each week
+                for (const week of septemberWeeks) {
+                    try {
+                        const weekData = await this.supabaseAPI.loadWeekData(this.currentTeam, week.id, memberName);
+                        if (weekData) {
+                            memberTotalOutput += weekData.week_total || 0;
+                            memberTotalWorkingDays += weekData.working_days || 5;
+                            memberWeeks.push(weekData.week_total || 0);
+                        } else {
+                            memberWeeks.push(0);
+                        }
+                    } catch (error) {
+                        console.warn(`No data found for ${memberName} week ${week.id}`);
+                        memberWeeks.push(0);
+                    }
+                }
+                
+                // Calculate member efficiency
+                const memberEfficiency = memberTotalWorkingDays > 0 ? (memberTotalOutput / memberTotalWorkingDays) * 100 : 0;
+                
+                monthlyData[memberName] = {
+                    weeks: memberWeeks,
+                    weeklyQualityRatings: [0, 0, 0, 0], // No ratings for new teams
+                    monthlyRating: 0,
+                    target: memberTotalWorkingDays,
+                    totalOutput: memberTotalOutput,
+                    workingDays: memberTotalWorkingDays,
+                    efficiency: memberEfficiency
+                };
+                
+                totalTeamOutput += memberTotalOutput;
+                totalTeamWorkingDays += memberTotalWorkingDays;
+                totalEfficiency += memberEfficiency;
+                memberCount++;
+            }
+            
+            const avgEfficiency = memberCount > 0 ? totalEfficiency / memberCount : 0;
+            
+            return {
+                isComplete: true,
+                monthlyData: monthlyData,
+                teamSummary: {
+                    totalMembers: memberCount,
+                    avgRating: 0, // No ratings for new teams
+                    totalOutput: totalTeamOutput,
+                    totalWorkingDays: totalTeamWorkingDays,
+                    avgEfficiency: avgEfficiency
+                }
+            };
+            
+        } catch (error) {
+            console.error('Error loading September data from Supabase:', error);
+            throw error;
+        }
     }
 
     async ensureAllHistoricalDataLoaded() {
