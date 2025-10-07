@@ -11176,15 +11176,12 @@ class RealEfficiencyTracker {
         periodSelectElement.innerHTML = '<option value="">Loading...</option>';
         
         if (periodType === 'month') {
-            // Add historical months
-            const historicalMonths = [
-                'January 2025', 'February 2025', 'March 2025', 'April 2025',
-                'May 2025', 'June 2025', 'July 2025', 'August 2025', 'September 2025'
-            ];
+            // Auto-detect available months from all teams
+            const availableMonths = this.getAvailableCompanyMonths();
             
             periodSelectElement.innerHTML = '<option value="">Select a month...</option>';
-            console.log('📅 Adding historical months:', historicalMonths);
-            historicalMonths.forEach(month => {
+            console.log('📅 Auto-detected available months:', availableMonths);
+            availableMonths.forEach(month => {
                 const option = document.createElement('option');
                 option.value = month;
                 option.textContent = month;
@@ -11254,6 +11251,50 @@ class RealEfficiencyTracker {
         } catch (error) {
             console.error('❌ Error updating company data:', error);
         }
+    }
+
+    // Auto-detect available months across all teams for Company View
+    getAvailableCompanyMonths() {
+        const allMonths = new Set();
+        
+        // Check historical data for all teams
+        Object.keys(this.historicalData).forEach(teamId => {
+            const teamData = this.historicalData[teamId];
+            if (teamData) {
+                Object.keys(teamData).forEach(monthYear => {
+                    // Only include months that have complete data (isComplete: true)
+                    if (teamData[monthYear]?.isComplete) {
+                        allMonths.add(monthYear);
+                    }
+                });
+            }
+        });
+        
+        // Also check locked months (these should be available in monthly view)
+        Object.keys(this.lockedMonths || {}).forEach(teamId => {
+            const lockedMonthsForTeam = this.lockedMonths[teamId] || [];
+            lockedMonthsForTeam.forEach(monthYear => {
+                allMonths.add(monthYear);
+            });
+        });
+        
+        // Convert to sorted array
+        const monthsArray = Array.from(allMonths).sort((a, b) => {
+            // Sort by year first, then by month
+            const [monthA, yearA] = a.split(' ');
+            const [monthB, yearB] = b.split(' ');
+            
+            if (yearA !== yearB) {
+                return parseInt(yearA) - parseInt(yearB);
+            }
+            
+            const monthOrder = ['January', 'February', 'March', 'April', 'May', 'June', 
+                              'July', 'August', 'September', 'October', 'November', 'December'];
+            return monthOrder.indexOf(monthA) - monthOrder.indexOf(monthB);
+        });
+        
+        console.log('🔍 Auto-detected company months from teams:', monthsArray);
+        return monthsArray;
     }
 
     async getCompanyData(periodType, selectedPeriod) {
@@ -11461,28 +11502,38 @@ class RealEfficiencyTracker {
         
         const historicalKey = teamMapping[teamId] || teamId;
         
-        // Special handling for September 2025 - load from Supabase
-        if (monthYear === 'September 2025') {
-            console.log(`🔄 Loading September 2025 data from Supabase for team ${teamId} (Company View)`);
+        // Check if this month is locked for this team (should load from Supabase)
+        const isLockedMonth = this.lockedMonths[historicalKey]?.includes(monthYear);
+        
+        if (isLockedMonth) {
+            console.log(`🔄 Loading locked month ${monthYear} data from Supabase for team ${teamId} (Company View)`);
             try {
-                // Temporarily switch to the team to load its September data
+                // Temporarily switch to the team to load its data
                 const originalTeam = this.currentTeam;
                 this.currentTeam = historicalKey;
                 
-                const septemberData = await this.loadSeptemberDataFromSupabase();
+                // For September 2025, use the specific function, for others we'll need a generic one
+                let monthData;
+                if (monthYear === 'September 2025') {
+                    monthData = await this.loadSeptemberDataFromSupabase();
+                } else {
+                    // For future months, we could implement a generic loadMonthDataFromSupabase function
+                    console.log(`⚠️ Generic month loading not yet implemented for ${monthYear}`);
+                    monthData = null;
+                }
                 
                 // Restore original team
                 this.currentTeam = originalTeam;
                 
-                if (septemberData && septemberData.monthlyData) {
-                    console.log(`✅ Loaded September 2025 data for ${teamId} from Supabase`);
-                    return septemberData;
+                if (monthData && monthData.monthlyData) {
+                    console.log(`✅ Loaded ${monthYear} data for ${teamId} from Supabase`);
+                    return monthData;
                 } else {
-                    console.log(`❌ No September 2025 data found for ${teamId} in Supabase`);
+                    console.log(`❌ No ${monthYear} data found for ${teamId} in Supabase`);
                     return null;
                 }
             } catch (error) {
-                console.error(`❌ Error loading September 2025 data for ${teamId}:`, error);
+                console.error(`❌ Error loading ${monthYear} data for ${teamId}:`, error);
                 return null;
             }
         }
