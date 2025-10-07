@@ -134,7 +134,7 @@ INSERT INTO teams (id, name, members, work_types) VALUES
 
 -- Graphics Team (uses this.graphicsWorkTypes)
 ('graphics', 'Graphics Team',
- '["Amit Joshi", "Rakhi Dhama", "Raj", "Abhishek Shukla", "Mayank", "Shreya Sureka", "Anubha", "Pranchal Chaudhary", "Piyush Vaid", "Vaibhav Singhal", "Ishika", "Aman"]',
+    '["Amit Joshi", "Rakhi Dhama", "Raj", "Abhishek Shukla", "Mayank", "Anubha", "Pranchal Chaudhary", "Piyush Vaid", "Vaibhav Singhal", "Ishika", "Aman"]',
  '{
    "graphics_l1": {"level": "L1", "name": "Graphics", "perDay": 5},
    "ppt_slides": {"level": "L1", "name": "PPT Slides", "perDay": 30},

@@ -500,7 +500,6 @@ class RealEfficiencyTracker {
                     { name: 'Raj' },
                     { name: 'Abhishek Shukla' },
                     { name: 'Mayank' },
-                    { name: 'Shreya Sureka' },
                     { name: 'Anubha' },
                     { name: 'Pranchal Chaudhary' },
                     { name: 'Piyush Vaid' },
@@ -514,7 +513,6 @@ class RealEfficiencyTracker {
                     { name: 'Raj' },
                     { name: 'Abhishek Shukla' },
                     { name: 'Mayank' },
-                    { name: 'Shreya Sureka' },
                     { name: 'Anubha' },
                     { name: 'Pranchal Chaudhary' },
                     { name: 'Piyush Vaid' },
@@ -2802,15 +2800,6 @@ class RealEfficiencyTracker {
                             workingDays: 19,
                             efficiency: 39.74
                         },
-                        'Shreya Sureka': { 
-                            weeks: [4.6, 2.8, 4.3, 3.9], 
-                            weeklyQualityRatings: [8, 8, 8, 8], 
-                            monthlyRating: 8, 
-                            target: 19.0, 
-                            totalOutput: 15.60, 
-                            workingDays: 19,
-                            efficiency: 82.11
-                        },
                         'Anubha': { 
                             weeks: [3.7, 3.5, 4, 4.2], 
                             weeklyQualityRatings: [8, 8, 8, 8], 
@@ -2922,15 +2911,6 @@ class RealEfficiencyTracker {
                             workingDays: 17,
                             efficiency: 106.18
                         },
-                        'Shreya Sureka': { 
-                            weeks: [4.9, 3.8, 4.00, 2.4], 
-                            weeklyQualityRatings: [8, 8, 8, 8], 
-                            monthlyRating: 8, 
-                            target: 17.5, 
-                            totalOutput: 15.05, 
-                            workingDays: 17.5,
-                            efficiency: 86.00
-                        },
                         'Anubha': { 
                             weeks: [5.2, 4.5, 4.10, 3.8], 
                             weeklyQualityRatings: [8, 8, 8, 8], 
@@ -3041,15 +3021,6 @@ class RealEfficiencyTracker {
                             totalOutput: 12.60, 
                             workingDays: 15,
                             efficiency: 84.00
-                        },
-                        'Shreya Sureka': { 
-                            weeks: [2.20, 0, 6.10, 0.0], 
-                            weeklyQualityRatings: [8, 8, 8, 8], 
-                            monthlyRating: 8, 
-                            target: 10.5, 
-                            totalOutput: 8.30, 
-                            workingDays: 10.5,
-                            efficiency: 79.05
                         },
                         'Anubha': { 
                             weeks: [4.10, 0, 5.30, 2.9], 
@@ -8511,7 +8482,6 @@ class RealEfficiencyTracker {
                         'Raj': { weeks: [2.9, 3.2, 3.3, 3.9], weeklyQualityRatings: [7, 7, 7, 7], monthlyRating: 7, target: 20.0, totalOutput: 13.30, workingDays: 20, efficiency: 66.50 },
                         'Abhishek Shukla': { weeks: [2.4, 3.9, 3.5, 2.3], weeklyQualityRatings: [7, 7, 7, 7], monthlyRating: 7, target: 20.0, totalOutput: 12.10, workingDays: 20, efficiency: 60.50 },
                         'Mayank': { weeks: [3.8, 0, 0, 3.75], weeklyQualityRatings: [7, 7, 7, 7], monthlyRating: 7, target: 19.0, totalOutput: 7.55, workingDays: 19, efficiency: 39.74 },
-                        'Shreya Sureka': { weeks: [4.6, 2.8, 4.3, 3.9], weeklyQualityRatings: [8, 8, 8, 8], monthlyRating: 8, target: 19.0, totalOutput: 15.60, workingDays: 19, efficiency: 82.11 },
                         'Anubha': { weeks: [3.7, 3.5, 4, 4.2], weeklyQualityRatings: [8, 8, 8, 8], monthlyRating: 8, target: 19.0, totalOutput: 15.40, workingDays: 19, efficiency: 81.05 },
                         'Pranchal Chaudhary': { weeks: [3.6, 2.8, 1.3, 1.3], weeklyQualityRatings: [7, 7, 7, 7], monthlyRating: 7, target: 19.0, totalOutput: 9.00, workingDays: 19, efficiency: 47.37 },
                         'Piyush Vaid': { weeks: [3.5, 5, 5, 4.7], weeklyQualityRatings: [7, 7, 7, 7], monthlyRating: 7, target: 20.0, totalOutput: 18.20, workingDays: 20, efficiency: 91.00 },
@@ -8529,7 +8499,6 @@ class RealEfficiencyTracker {
                         'Raj': { weeks: [3.6, 2.90, 3.40, 3.8], weeklyQualityRatings: [7, 7, 7, 7], monthlyRating: 7, target: 18.0, totalOutput: 13.65, workingDays: 18, efficiency: 75.83 },
                         'Abhishek Shukla': { weeks: [3.9, 3.20, 2.85, 4.6], weeklyQualityRatings: [7, 7, 7, 7], monthlyRating: 7, target: 18.0, totalOutput: 14.55, workingDays: 18, efficiency: 80.83 },
                         'Mayank': { weeks: [5.2, 5.45, 4.00, 3.4], weeklyQualityRatings: [7, 7, 7, 7], monthlyRating: 7, target: 17.0, totalOutput: 18.05, workingDays: 17, efficiency: 106.18 },
-                        'Shreya Sureka': { weeks: [4.9, 3.8, 4.00, 2.4], weeklyQualityRatings: [8, 8, 8, 8], monthlyRating: 8, target: 17.5, totalOutput: 15.05, workingDays: 17.5, efficiency: 86.00 },
                         'Anubha': { weeks: [5.2, 4.5, 4.10, 3.8], weeklyQualityRatings: [8, 8, 8, 8], monthlyRating: 8, target: 19.0, totalOutput: 17.55, workingDays: 19, efficiency: 92.37 },
                         'Pranchal Chaudhary': { weeks: [4.2, 2.2, 3.50, 4.3], weeklyQualityRatings: [7, 7, 7, 7], monthlyRating: 7, target: 17.5, totalOutput: 14.20, workingDays: 17.5, efficiency: 81.14 },
                         'Piyush Vaid': { weeks: [5.6, 5.8, 4.00, 6.3], weeklyQualityRatings: [7, 7, 7, 7], monthlyRating: 7, target: 19.0, totalOutput: 21.70, workingDays: 19, efficiency: 114.21 },
@@ -8547,7 +8516,6 @@ class RealEfficiencyTracker {
                         'Raj': { weeks: [2.80, 3.10, 3.4, 0], weeklyQualityRatings: [7, 7, 7, 7], monthlyRating: 7, target: 13.0, totalOutput: 9.30, workingDays: 13, efficiency: 71.54 },
                         'Abhishek Shukla': { weeks: [2.20, 3.20, 3.7, 0], weeklyQualityRatings: [7, 7, 7, 7], monthlyRating: 7, target: 13.5, totalOutput: 9.10, workingDays: 13.5, efficiency: 67.41 },
                         'Mayank': { weeks: [4.30, 3.80, 4.5, 0], weeklyQualityRatings: [7, 7, 7, 7], monthlyRating: 7, target: 15.0, totalOutput: 12.60, workingDays: 15, efficiency: 84.00 },
-                        'Shreya Sureka': { weeks: [2.20, 6.10, 0.0, 0], weeklyQualityRatings: [8, 8, 8, 8], monthlyRating: 8, target: 10.5, totalOutput: 8.30, workingDays: 10.5, efficiency: 79.05 },
                         'Anubha': { weeks: [4.10, 5.30, 2.9, 0], weeklyQualityRatings: [8, 8, 8, 8], monthlyRating: 8, target: 15.0, totalOutput: 12.30, workingDays: 15, efficiency: 82.00 },
                         'Pranchal Chaudhary': { weeks: [3.00, 5.40, 3.7, 0], weeklyQualityRatings: [7, 7, 7, 7], monthlyRating: 7, target: 16.0, totalOutput: 12.07, workingDays: 16, efficiency: 75.44 },
                         'Piyush Vaid': { weeks: [3.40, 5.60, 1.75, 0], weeklyQualityRatings: [7, 7, 7, 7], monthlyRating: 7, target: 13.0, totalOutput: 10.75, workingDays: 13, efficiency: 82.69 },
