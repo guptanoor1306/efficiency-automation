@@ -8924,6 +8924,11 @@ class RealEfficiencyTracker {
                     memberTarget = memberTotalEffectiveWorkingDays * 1; // 1 SP per effective working day
                     memberEfficiency = memberTarget > 0 ? (memberTotalOutput / memberTarget) * 100 : 0;
                     console.log(`📈 Product ${memberName} totals: output=${memberTotalOutput}, effectiveWorkingDays=${memberTotalEffectiveWorkingDays}, expectedSP=${memberTarget}, efficiency=${memberEfficiency.toFixed(2)}%, monthlyRating=${monthlyRating.toFixed(2)}`);
+                } else if (this.currentTeam === 'graphics') {
+                    // Graphics team: totalDays / effectiveWorkingDays * 100 (same as weekly calculation)
+                    memberTarget = memberTotalEffectiveWorkingDays; // Target = effective working days
+                    memberEfficiency = memberTotalEffectiveWorkingDays > 0 ? (memberTotalOutput / memberTotalEffectiveWorkingDays) * 100 : 0;
+                    console.log(`📈 Graphics ${memberName} totals: totalDays=${memberTotalOutput}, effectiveWorkingDays=${memberTotalEffectiveWorkingDays}, efficiency=${memberEfficiency.toFixed(2)}%, monthlyRating=${monthlyRating.toFixed(2)}`);
                 } else {
                     // Other teams: Use working days
                     memberEfficiency = memberTotalWorkingDays > 0 ? (memberTotalOutput / memberTotalWorkingDays) * 100 : 0;
@@ -11890,6 +11895,7 @@ class RealEfficiencyTracker {
                 // Get working days from week system for accurate calculation
                 const week = this.weekSystem.getWeeksForSelector().find(w => w.id === weekId);
                 const weekWorkingDays = week ? week.workingDays : 5;
+                console.log(`🔍 Company View working days debug: weekId=${weekId}, week found=${!!week}, weekWorkingDays=${weekWorkingDays}`);
                 
                 supabaseData.forEach(entry => {
                     const memberOutput = parseFloat(entry.week_total) || 0;
@@ -11898,6 +11904,7 @@ class RealEfficiencyTracker {
                     const leaveDays = parseFloat(entry.leave_days) || 0;
                     const rating = parseFloat(entry.weekly_rating) || 0;
                     const effectiveWorkingDays = workingDays - leaveDays;
+                    console.log(`🔍 ${entry.member_name} calculation debug: workingDays=${workingDays}, leaveDays=${leaveDays}, effectiveWorkingDays=${effectiveWorkingDays}`);
                     
                     let efficiency = 0;
                     if (teamId === 'tech') {
