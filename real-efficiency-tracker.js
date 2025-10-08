@@ -11917,19 +11917,19 @@ class RealEfficiencyTracker {
             const supabaseData = await this.supabaseAPI.loadWeekData(reportKey, weekId);
             
             if (supabaseData && supabaseData.length > 0) {
-                // Get working days from week system for accurate calculation
-                const week = this.weekSystem.getWeeksForSelector().find(w => w.id === weekId);
-                const weekWorkingDays = week ? week.workingDays : 5;
-                
                 supabaseData.forEach(entry => {
                     const memberOutput = parseFloat(entry.week_total) || 0;
-                    // Use dynamic working days from week system instead of stored value
-                    const workingDays = weekWorkingDays;
+                    // CRITICAL FIX: Use working_days from the database entry, not from week system
+                    // The database entry has the correct working days for that specific week
+                    const workingDays = parseFloat(entry.working_days) || 5;
                     const leaveDays = parseFloat(entry.leave_days) || 0;
                     const rating = parseFloat(entry.weekly_rating) || 0;
                     const effectiveWorkingDays = workingDays - leaveDays;
                     
                     let efficiency = 0;
+                    
+                    console.log(`🔍 Company View - ${entry.member_name} (${teamId}): output=${memberOutput}, working_days=${workingDays}, leave_days=${leaveDays}, effective_days=${effectiveWorkingDays}`);
+                    
                     if (teamId === 'tech') {
                         // Tech team: Use leave-adjusted formula consistently
                         const targetPoints = parseFloat(entry.target_points) || 0;
@@ -11937,7 +11937,7 @@ class RealEfficiencyTracker {
                             const adjustedTarget = targetPoints * (effectiveWorkingDays / workingDays);
                             efficiency = adjustedTarget > 0 ? (memberOutput / adjustedTarget) * 100 : 0;
                             
-                            console.log(`✅ Tech Company View: ${memberOutput}/(${targetPoints}*${effectiveWorkingDays}/${workingDays}) = ${memberOutput}/${adjustedTarget.toFixed(1)} = ${efficiency.toFixed(1)}%`);
+                            console.log(`✅ Tech Company View: ${entry.member_name}: ${memberOutput}/(${targetPoints}*${effectiveWorkingDays}/${workingDays}) = ${memberOutput}/${adjustedTarget.toFixed(1)} = ${efficiency.toFixed(1)}%`);
                         } else {
                             console.warn(`⚠️ Company View: No target_points for ${entry.member_name} (found: ${entry.target_points})`);
                         }
@@ -11947,13 +11947,12 @@ class RealEfficiencyTracker {
                         // target = effectiveWorkingDays * 1 SP/day
                         efficiency = effectiveWorkingDays > 0 ? (memberOutput / effectiveWorkingDays * 100) : 0;
                         
-                        console.log(`✅ Product Company View: ${memberOutput}/(${effectiveWorkingDays}*1) = ${memberOutput}/${effectiveWorkingDays} = ${efficiency.toFixed(1)}%`);
-                        console.log(`   Formula: story_points / effective_working_days * 100`);
+                        console.log(`✅ Product Company View: ${entry.member_name}: ${memberOutput}/${effectiveWorkingDays} = ${efficiency.toFixed(1)}%`);
                     } else {
                         // Other teams: week_total contains days equivalent, use effective working days
                         efficiency = effectiveWorkingDays > 0 ? (memberOutput / effectiveWorkingDays * 100) : 0;
                         
-                        console.log(`✅ Standard calculation for ${entry.member_name}: days=${memberOutput}, working_days=${workingDays}, leave_days=${leaveDays}, effective_days=${effectiveWorkingDays}, efficiency=${efficiency.toFixed(1)}%`);
+                        console.log(`✅ ${teamId} Company View: ${entry.member_name}: ${memberOutput}/${effectiveWorkingDays} = ${efficiency.toFixed(1)}%`);
                     }
                     
                     members.push({
