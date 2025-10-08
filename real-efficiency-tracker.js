@@ -7169,18 +7169,24 @@ class RealEfficiencyTracker {
             let memberEfficiency = 0;
             
             if (this.currentTeam === 'tech') {
-                // Tech team: (completed points / target points) * (effective days / working days)
+                // Tech team: story points / (target points * effective days / working days)
+                // Formula: (output / targetPoints) * (workingDays / effectiveWorkingDays) * 100
                 const targetPointsInput = document.querySelector(`[data-member="${memberName}"].target-points-input`);
                 const targetPoints = parseFloat(targetPointsInput?.value) || 0;
                 
                 if (targetPoints > 0) {
-                    memberEfficiency = (memberOutput / targetPoints) * (effectiveWorkingDays / memberWorkingDays) * 100;
-                    console.log(`🎯 Tech summary for ${memberName}: ${memberOutput}/${targetPoints} * ${effectiveWorkingDays}/${memberWorkingDays} = ${memberEfficiency.toFixed(1)}%`);
+                    const adjustedTarget = targetPoints * (effectiveWorkingDays / memberWorkingDays);
+                    memberEfficiency = adjustedTarget > 0 ? (memberOutput / adjustedTarget) * 100 : 0;
+                    console.log(`🎯 Tech summary for ${memberName}: ${memberOutput}/(${targetPoints}*${effectiveWorkingDays}/${memberWorkingDays}) = ${memberOutput}/${adjustedTarget.toFixed(1)} = ${memberEfficiency.toFixed(1)}%`);
                 } else {
                     console.warn(`⚠️ No target points for ${memberName} in summary`);
                 }
+            } else if (this.currentTeam === 'product') {
+                // Product team: story points / effective working days
+                memberEfficiency = effectiveWorkingDays > 0 ? (memberOutput / effectiveWorkingDays * 100) : 0;
+                console.log(`🎯 Product summary for ${memberName}: ${memberOutput}/${effectiveWorkingDays} = ${memberEfficiency.toFixed(1)}%`);
             } else {
-                // Other teams: standard calculation
+                // Other teams: days equivalent / effective working days
                 memberEfficiency = effectiveWorkingDays > 0 ? (memberOutput / effectiveWorkingDays * 100) : 0;
             }
             
