@@ -6634,6 +6634,19 @@ class RealEfficiencyTracker {
                 } else {
                     console.warn(`⚠️ No target points set for ${member.name}`);
                 }
+            } else if (this.currentTeam === 'product') {
+                // Product team: story points with automatic 1 SP/day target
+                // output = completed story points
+                // target = effectiveWorkingDays * 1 SP/day
+                efficiency = effectiveWorkingDays > 0 ? (output / effectiveWorkingDays) * 100 : 0;
+                
+                console.log(`✅ Product finalization calculation for ${member.name}:`, {
+                    completedPoints: output,
+                    effectiveWorkingDays: effectiveWorkingDays,
+                    automaticTarget: effectiveWorkingDays,
+                    efficiency: efficiency.toFixed(1) + '%',
+                    'Formula': 'story_points / effective_working_days * 100'
+                });
             } else {
                 // Other teams: output is days equivalent, use effective working days
                 efficiency = effectiveWorkingDays > 0 ? (output / effectiveWorkingDays) * 100 : 0;
@@ -11913,6 +11926,14 @@ class RealEfficiencyTracker {
                         } else {
                             console.warn(`⚠️ Company View: No target_points for ${entry.member_name} (found: ${entry.target_points})`);
                         }
+                    } else if (teamId === 'product') {
+                        // Product team: story points with automatic 1 SP/day target
+                        // memberOutput = completed story points
+                        // target = effectiveWorkingDays * 1 SP/day
+                        efficiency = effectiveWorkingDays > 0 ? (memberOutput / effectiveWorkingDays * 100) : 0;
+                        
+                        console.log(`✅ Product Company View: ${memberOutput}/(${effectiveWorkingDays}*1) = ${memberOutput}/${effectiveWorkingDays} = ${efficiency.toFixed(1)}%`);
+                        console.log(`   Formula: story_points / effective_working_days * 100`);
                     } else {
                         // Other teams: week_total contains days equivalent, use effective working days
                         efficiency = effectiveWorkingDays > 0 ? (memberOutput / effectiveWorkingDays * 100) : 0;
