@@ -5881,8 +5881,10 @@ class RealEfficiencyTracker {
             Object.keys(teamWorkTypes).forEach(workType => {
                 const input = document.querySelector(`[data-member="${memberName}"][data-work="${workType}"]`);
                 const workDone = parseFloat(input?.value) || 0;
+                console.log(`🔍 calculateMemberTotalOutput - ${memberName} (${this.currentTeam}): workType=${workType}, input found=${!!input}, value=${workDone}`);
                 totalOutput += workDone; // Direct story points, no division
             });
+            console.log(`📊 ${memberName} total output (story points): ${totalOutput}`);
         } else {
             // For other teams: convert to days equivalent (original logic)
         Object.keys(teamWorkTypes).forEach(workType => {
