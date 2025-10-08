@@ -3740,13 +3740,26 @@ class RealEfficiencyTracker {
                                     const leaveDays = parseFloat(entry.leave_days) || 0;
                                     const rating = parseFloat(entry.quality_rating) || 0;
                                     const effectiveWorkingDays = workingDays - leaveDays;
-                                    // Use stored efficiency if available (already calculated correctly)
-                                    // Fallback to calculation only if no stored efficiency
-                                    const storedEfficiency = parseFloat(entry.efficiency) || 0;
                                     
-                                    // Calculate efficiency using: week_total / (working_days - leave_days) * 100
-                                    const calculatedEfficiency = effectiveWorkingDays > 0 ? (memberOutput / effectiveWorkingDays * 100) : 0;
-                                    const efficiency = storedEfficiency > 0 ? storedEfficiency : calculatedEfficiency;
+                                    // ALWAYS recalculate efficiency to ensure correct formula is used
+                                    // Don't trust stored efficiency as it may have been calculated with old formula
+                                    let efficiency = 0;
+                                    const teamKey = team; // Already mapped to storage key
+                                    
+                                    if (teamKey === 'tech') {
+                                        // Tech team: Use target points formula
+                                        const targetPoints = parseFloat(entry.target_points) || 0;
+                                        if (targetPoints > 0) {
+                                            const adjustedTarget = targetPoints * (effectiveWorkingDays / workingDays);
+                                            efficiency = adjustedTarget > 0 ? (memberOutput / adjustedTarget) * 100 : 0;
+                                        }
+                                    } else if (teamKey === 'product') {
+                                        // Product team: 1 SP per day automatic target
+                                        efficiency = effectiveWorkingDays > 0 ? (memberOutput / effectiveWorkingDays * 100) : 0;
+                                    } else {
+                                        // All other teams: days equivalent / effective working days
+                                        efficiency = effectiveWorkingDays > 0 ? (memberOutput / effectiveWorkingDays * 100) : 0;
+                                    }
                                     
                                     console.log(`✅ Efficiency for ${entry.member_name}: week_total=${memberOutput}, working_days=${workingDays}, leave_days=${leaveDays}, effective_days=${effectiveWorkingDays}, efficiency=${efficiency.toFixed(1)}%`);
                                     
@@ -7251,33 +7264,29 @@ class RealEfficiencyTracker {
             const rating = parseFloat(entry.weekly_rating) || 0;
             const effectiveWorkingDays = workingDays - leaveDays;
             
-            // Use stored efficiency if available, otherwise calculate
-            let efficiency = parseFloat(entry.efficiency) || 0;
+            // ALWAYS recalculate efficiency to ensure correct formula is used
+            // Don't trust stored efficiency as it may have been calculated with old formula
+            let efficiency = 0;
             
-            if (efficiency === 0) {
-                // Calculate efficiency based on team type
-                if (this.currentTeam === 'tech') {
-                    // Tech team: story points based with target points
-                    const targetPoints = parseFloat(entry.target_points) || 0;
-                    if (targetPoints > 0) {
-                        const adjustedTarget = targetPoints * (effectiveWorkingDays / workingDays);
-                        efficiency = adjustedTarget > 0 ? (memberOutput / adjustedTarget) * 100 : 0;
-                        console.log(`🎯 Tech efficiency for ${memberName}: ${memberOutput}/(${targetPoints}*${effectiveWorkingDays}/${workingDays}) = ${efficiency.toFixed(1)}%`);
-                    }
-                } else if (this.currentTeam === 'product') {
-                    // Product team: 1 story point per working day (no target_points storage)
-                    const expectedStoryPoints = effectiveWorkingDays * 1; // 1 SP per working day
-                    if (expectedStoryPoints > 0) {
-                        efficiency = (memberOutput / expectedStoryPoints) * 100;
-                        console.log(`🎯 Product efficiency for ${memberName}: ${memberOutput}/${expectedStoryPoints} (${effectiveWorkingDays} working days) = ${efficiency.toFixed(1)}%`);
-                    }
-                } else {
-                    // Other teams: days equivalent based
-                    efficiency = effectiveWorkingDays > 0 ? (memberOutput / effectiveWorkingDays) * 100 : 0;
-                    console.log(`✅ Standard efficiency for ${memberName}: ${memberOutput}/${effectiveWorkingDays} = ${efficiency.toFixed(1)}%`);
+            if (this.currentTeam === 'tech') {
+                // Tech team: story points based with target points
+                const targetPoints = parseFloat(entry.target_points) || 0;
+                if (targetPoints > 0) {
+                    const adjustedTarget = targetPoints * (effectiveWorkingDays / workingDays);
+                    efficiency = adjustedTarget > 0 ? (memberOutput / adjustedTarget) * 100 : 0;
+                    console.log(`🎯 Tech efficiency for ${memberName}: ${memberOutput}/(${targetPoints}*${effectiveWorkingDays}/${workingDays}) = ${efficiency.toFixed(1)}%`);
+                }
+            } else if (this.currentTeam === 'product') {
+                // Product team: 1 story point per working day (no target_points storage)
+                const expectedStoryPoints = effectiveWorkingDays * 1; // 1 SP per working day
+                if (expectedStoryPoints > 0) {
+                    efficiency = (memberOutput / expectedStoryPoints) * 100;
+                    console.log(`🎯 Product efficiency for ${memberName}: ${memberOutput}/${expectedStoryPoints} (${effectiveWorkingDays} working days) = ${efficiency.toFixed(1)}%`);
                 }
             } else {
-                console.log(`✅ Using stored efficiency for ${memberName}: ${efficiency.toFixed(1)}%`);
+                // Other teams: days equivalent based
+                efficiency = effectiveWorkingDays > 0 ? (memberOutput / effectiveWorkingDays) * 100 : 0;
+                console.log(`✅ Standard efficiency for ${memberName}: ${memberOutput}/${effectiveWorkingDays} = ${efficiency.toFixed(1)}%`);
             }
             
             memberSummaries.push({
