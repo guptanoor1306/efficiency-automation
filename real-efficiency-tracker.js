@@ -5269,6 +5269,42 @@ class RealEfficiencyTracker {
                 adjustedTarget = targetPoints * (effectiveWorkingDays / workingDays);
                 efficiency = (weekTotal / adjustedTarget) * 100;
             }
+            
+            // Update displays for Tech team
+            const weekTotalDisplay = document.getElementById(`week-total-${memberName}`);
+            const targetDisplay = document.getElementById(`target-${memberName}`);
+            const efficiencyDisplay = document.getElementById(`efficiency-${memberName}`);
+            
+            if (weekTotalDisplay) {
+                weekTotalDisplay.textContent = weekTotal.toFixed(1); // Story points completed
+            }
+            
+            if (targetDisplay) {
+                targetDisplay.textContent = adjustedTarget.toFixed(1); // Adjusted target points
+            }
+            
+            if (efficiencyDisplay) {
+                efficiencyDisplay.textContent = efficiency.toFixed(1) + '%';
+                // Color code efficiency
+                if (efficiency >= 90) {
+                    efficiencyDisplay.style.color = '#28a745'; // Green
+                } else if (efficiency >= 70) {
+                    efficiencyDisplay.style.color = '#ffc107'; // Yellow
+                } else {
+                    efficiencyDisplay.style.color = '#dc3545'; // Red
+                }
+            }
+            
+            console.log(`${memberName} Tech calculation:`, {
+                'Completed Points': weekTotal.toFixed(1),
+                'Target Points': targetPoints.toFixed(1),
+                'Working Days': workingDays,
+                'Leave Days': leaveDays,
+                'Effective Working Days': effectiveWorkingDays,
+                'Adjusted Target': adjustedTarget.toFixed(1),
+                'Efficiency': efficiency.toFixed(1) + '%'
+            });
+            
         } else if (this.currentTeam === 'product') {
             // Product team: 1 story point per effective working day (automatic calculation)
             // Get completed story points (direct input)
