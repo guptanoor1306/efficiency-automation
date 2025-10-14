@@ -349,12 +349,12 @@ class RealEfficiencyTracker {
             
             // All
             'research_toolkit': { level: 'All', name: 'Research + Toolkit', perDay: 7 },
-            'review_changes': { level: 'All', name: 'Review/Changes', perDay: 42 },
+            'review_changes': { level: 'All', name: 'Review/Changes', perDay: 14 },
             'storyboard_qc': { level: 'All', name: 'Storyboard +QC', perDay: 3 },
             'subtitles_qc_fix': { level: 'All', name: 'Subtitles QC/Fix', perDay: 42 },
             'strategy_presentations': { level: 'All', name: 'Strategy (Presentations)', perDay: 7 },
             'shoot': { level: 'All', name: 'Shoot', perDay: 7 },
-            'retro': { level: 'All', name: 'Retro', perDay: 98 },
+            'retro': { level: 'All', name: 'Retro', perDay: 28 },
             'rejection_meeting': { level: 'All', name: 'Rejection Meeting', perDay: 3 }
         };
 
