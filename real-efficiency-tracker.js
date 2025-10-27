@@ -529,7 +529,6 @@ class RealEfficiencyTracker {
                     { name: 'Supriya' },
                     { name: 'Tilak' },
                     { name: 'Rishi' },
-                    { name: 'Sahil' },
                     { name: 'Chandan' },
                     { name: 'Harshita' }
                 ],
@@ -537,7 +536,6 @@ class RealEfficiencyTracker {
                     { name: 'Supriya' },
                     { name: 'Tilak' },
                     { name: 'Rishi' },
-                    { name: 'Sahil' },
                     { name: 'Chandan' },
                     { name: 'Harshita' }
                 ],
@@ -8638,15 +8636,6 @@ class RealEfficiencyTracker {
                         totalOutput: 62, // 13+18+18+13
                         workingDays: 59,
                         efficiency: 105.08 // Average: (92.86+100.00+100.00+144.44)/4
-                    },
-                    'Sahil': { 
-                        weeks: [13, 15, 15, 12], 
-                        weeklyQualityRatings: [0, 0, 0, 0], // No ratings for Tech team
-                        monthlyRating: 0, // No ratings for Tech team
-                        target: 62, // 14+18+18+12 expected story points from data
-                        totalOutput: 55, // 13+15+15+12
-                        workingDays: 62,
-                        efficiency: 88.71 // Average: (92.86+83.33+83.33+100.00)/4
                     },
                     'Chandan': { 
                         weeks: [14, 15, 15, 16], 

@@ -5,7 +5,7 @@ INSERT INTO teams (id, name, members, work_types) VALUES
 
 -- Tech Team (story points based - 3 points per working day)
 ('tech', 'Tech Team',
- '["Supriya", "Tilak", "Rishi", "Sahil", "Chandan", "Harshita"]',
+ '["Supriya", "Tilak", "Rishi", "Chandan", "Harshita"]',
  '{
    "story_points": {"level": "SP", "name": "Story Points", "perDay": 3}
  }'),
@@ -23,7 +23,7 @@ ON CONFLICT (id) DO UPDATE SET
   work_types = EXCLUDED.work_types;
 
 -- Comments:
--- Tech Team: 6 members, target 3 story points per working day
+-- Tech Team: 5 members, target 3 story points per working day
 -- Product Team: 3 members, target 1 story point per working day
 -- Both teams use "SP" level instead of traditional L1/L2/L3 levels
 -- Story points tracking: Complete Story Points ÷ Expected Story Points × 100 = Efficiency

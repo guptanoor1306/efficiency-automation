@@ -144,7 +144,7 @@ INSERT INTO teams (id, name, members, work_types) VALUES
 
 -- Tech Team (uses this.techWorkTypes - story points based)
 ('tech', 'Tech Team',
- '["Supriya", "Tilak", "Rishi", "Sahil", "Chandan", "Harshita"]',
+ '["Supriya", "Tilak", "Rishi", "Chandan", "Harshita"]',
  '{
    "story_points": {"level": "SP", "name": "Story Points", "perDay": 3}
  }'),
