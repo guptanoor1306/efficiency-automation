@@ -11990,6 +11990,39 @@ class RealEfficiencyTracker {
         const [monthName, yearStr] = monthYear.split(' ');
         const year = parseInt(yearStr);
         
+        // TEMPORARY FIX: Force October 2025 to load from Supabase to get correct calculations
+        if (monthYear === 'October 2025') {
+            console.log(`🔄 FORCE LOADING October 2025 from Supabase for team ${teamId}`);
+            try {
+                const originalTeam = this.currentTeam;
+                this.currentTeam = historicalKey;
+                
+                const monthData = await this.loadMonthDataFromSupabase(monthYear);
+                this.currentTeam = originalTeam;
+                
+                if (monthData && monthData.monthlyData) {
+                    console.log(`✅ Loaded October 2025 data for ${teamId} from Supabase`);
+                    const members = [];
+                    Object.keys(monthData.monthlyData).forEach(memberName => {
+                        const memberData = monthData.monthlyData[memberName];
+                        members.push({
+                            name: memberName,
+                            efficiency: memberData.efficiency || 0,
+                            output: memberData.totalOutput || 0,
+                            rating: memberData.monthlyRating || 0
+                        });
+                    });
+                    return {
+                        team: teamId,
+                        period: monthYear,
+                        members: members
+                    };
+                }
+            } catch (error) {
+                console.error(`❌ Error force loading October 2025 for ${teamId}:`, error);
+            }
+        }
+        
         // CRITICAL FIX: Check if ALL weeks of this month have been finalized for this team
         // This allows the 360° Company View to show finalized data even if the month wasn't explicitly "locked"
         let hasAllWeeksFinalized = false;
