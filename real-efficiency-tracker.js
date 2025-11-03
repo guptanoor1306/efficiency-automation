@@ -9094,7 +9094,23 @@ class RealEfficiencyTracker {
     async loadAllTeamsFinalizedReports() {
         console.log('\n📋 Loading finalized reports for all teams from localStorage...');
         
-        const allTeams = ['b2b', 'varsity', 'zero1', 'harish', 'audio', 'shorts', 'graphics', 'tech', 'product', 'preproduction', 'content', 'social'];
+        const allTeams = ['b2b', 'varsity', 'zero1_bratish', 'zero1_harish', 'audio', 'shorts', 'graphics', 'tech', 'product', 'preproduction', 'content', 'social'];
+        
+        // Map team IDs to historical keys for consistency with getTeamMonthlyData
+        const teamMapping = {
+            'zero1_bratish': 'zero1',
+            'zero1_harish': 'harish',
+            'varsity': 'varsity',
+            'b2b': 'b2b',
+            'audio': 'audio',
+            'shorts': 'shorts',
+            'graphics': 'graphics',
+            'tech': 'tech',
+            'product': 'product',
+            'preproduction': 'preproduction',
+            'content': 'content',
+            'social': 'social'
+        };
         
         // Initialize finalizedReports if it doesn't exist
         if (!this.finalizedReports) {
@@ -9104,6 +9120,7 @@ class RealEfficiencyTracker {
         allTeams.forEach(teamId => {
             const finalizedKey = `${teamId}_finalized_reports`;
             const storedReports = localStorage.getItem(finalizedKey);
+            const historicalKey = teamMapping[teamId] || teamId;
             
             if (storedReports) {
                 try {
@@ -9112,6 +9129,7 @@ class RealEfficiencyTracker {
                     
                     // Merge into main finalizedReports structure
                     if (parsed && typeof parsed === 'object') {
+                        // First, merge using original keys from the parsed data
                         Object.keys(parsed).forEach(key => {
                             if (!this.finalizedReports[key]) {
                                 this.finalizedReports[key] = {};
@@ -9120,6 +9138,16 @@ class RealEfficiencyTracker {
                             console.log(`  📅 Merging ${teamId} -> ${key}: ${weekKeys.length} weeks`, weekKeys);
                             this.finalizedReports[key] = { ...this.finalizedReports[key], ...parsed[key] };
                         });
+                        
+                        // CRITICAL FIX: Also map to historical key for Company View lookup
+                        if (parsed[teamId] && historicalKey !== teamId) {
+                            console.log(`  🔄 Mapping ${teamId} -> ${historicalKey} for historical key lookup`);
+                            if (!this.finalizedReports[historicalKey]) {
+                                this.finalizedReports[historicalKey] = {};
+                            }
+                            this.finalizedReports[historicalKey] = { ...this.finalizedReports[historicalKey], ...parsed[teamId] };
+                        }
+                        
                         console.log(`✅ Loaded finalized reports for ${teamId}: Team keys =`, Object.keys(parsed));
                     }
                 } catch (error) {
