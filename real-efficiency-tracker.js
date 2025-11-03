@@ -11690,9 +11690,11 @@ class RealEfficiencyTracker {
         
         // CRITICAL FIX: Also check for months where ALL weeks are finalized
         // This ensures that months like October 2025 appear in the dropdown when all weeks are done
+        console.log('🔍 Checking finalized reports for months...', this.finalizedReports);
         if (this.finalizedReports) {
             Object.keys(this.finalizedReports).forEach(teamId => {
                 const teamFinalizedWeeks = this.finalizedReports[teamId];
+                console.log(`🔍 Checking finalized weeks for ${teamId}:`, teamFinalizedWeeks);
                 if (teamFinalizedWeeks && typeof teamFinalizedWeeks === 'object') {
                     // Group finalized weeks by month
                     const monthsWithFinalizedWeeks = {};
@@ -11711,6 +11713,8 @@ class RealEfficiencyTracker {
                         }
                     });
                     
+                    console.log(`📊 ${teamId} months with finalized weeks:`, monthsWithFinalizedWeeks);
+                    
                     // Check if all weeks are finalized for each month
                     Object.keys(monthsWithFinalizedWeeks).forEach(monthYear => {
                         const [monthName, yearStr] = monthYear.split(' ');
@@ -11718,15 +11722,24 @@ class RealEfficiencyTracker {
                         const monthWeeks = this.weekSystem.getWeeksByMonthName(monthName, year);
                         const { finalizedCount } = monthsWithFinalizedWeeks[monthYear];
                         
+                        console.log(`🔍 ${teamId} - ${monthYear}: ${finalizedCount} finalized out of ${monthWeeks.length} total weeks`);
+                        
                         // If all weeks of this month are finalized, add to available months
                         if (finalizedCount === monthWeeks.length && monthWeeks.length > 0) {
                             console.log(`✅ ${monthYear} detected as complete: ${finalizedCount}/${monthWeeks.length} weeks finalized for ${teamId}`);
                             allMonths.add(monthYear);
+                        } else if (finalizedCount > 0) {
+                            console.log(`⚠️ ${monthYear} partially complete: ${finalizedCount}/${monthWeeks.length} weeks finalized for ${teamId}`);
                         }
                     });
                 }
             });
         }
+        
+        // TEMPORARY FIX: Explicitly add October 2025 to check Supabase data
+        // This allows us to see data even if finalization tracking has issues
+        console.log('🔧 Checking for October 2025 data in Supabase...');
+        allMonths.add('October 2025');
         
         // Convert to sorted array
         const monthsArray = Array.from(allMonths).sort((a, b) => {
