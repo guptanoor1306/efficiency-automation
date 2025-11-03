@@ -6871,9 +6871,10 @@ class RealEfficiencyTracker {
             this.loadTeamSpecificData();
             const finalizedReports = this.finalizedReports || {};
             
-            // Check if all weeks are finalized
+            // Check if all weeks are finalized (using team-specific structure)
+            const teamFinalizedReports = finalizedReports[this.currentTeam] || {};
             const finalizedWeeksInMonth = monthWeeks.filter(week => {
-                const weekReport = finalizedReports[week.id];
+                const weekReport = teamFinalizedReports[week.id];
                 const isFinalized = weekReport && (weekReport.status === 'finalized' || weekReport.isFinalized === true);
                 console.log(`Week ${week.id}: ${isFinalized ? 'FINALIZED' : 'not finalized'}`);
                 if (weekReport) {
@@ -6904,9 +6905,10 @@ class RealEfficiencyTracker {
             } else {
                 console.log(`Month not complete yet. Need ${monthWeeks.length - finalizedWeeksInMonth.length} more weeks.`);
                 
-                // Show which weeks are missing
+                // Show which weeks are missing (using team-specific structure)
+                const teamFinalizedReports = finalizedReports[this.currentTeam] || {};
                 const missingWeeks = monthWeeks.filter(week => 
-                    !finalizedReports[week.id] || finalizedReports[week.id].status !== 'finalized'
+                    !teamFinalizedReports[week.id] || teamFinalizedReports[week.id].status !== 'finalized'
                 );
                 if (missingWeeks.length > 0) {
                     console.log('Missing weeks:', missingWeeks.map(w => w.label));
@@ -7106,10 +7108,11 @@ class RealEfficiencyTracker {
             const monthWeeks = this.weekSystem.getWeeksForMonth(currentMonth, currentYear);
             if (monthWeeks.length < 4) return '';
             
-            // Check if all weeks are finalized
+            // Check if all weeks are finalized (using team-specific structure)
             const finalizedReports = this.finalizedReports || {};
+            const teamFinalizedReports = finalizedReports[this.currentTeam] || {};
             const finalizedWeeksInMonth = monthWeeks.filter(week => {
-                const weekReport = finalizedReports[week.id];
+                const weekReport = teamFinalizedReports[week.id];
                 return weekReport && (weekReport.status === 'finalized' || weekReport.isFinalized === true);
             });
             
@@ -8815,7 +8818,7 @@ class RealEfficiencyTracker {
             console.log(`🔒 Locking ${monthYear} for ${this.currentTeam} team...`);
             
             // Confirm with user
-            const confirmed = confirm(`🔒 Lock ${monthYear} for ${this.teamConfigs[this.currentTeam]?.name || this.currentTeam}?\n\nThis will:\n• Move the month from weekly to monthly view\n• Make it read-only\n• Show it in company monthly summary\n\nThis action can be undone by refreshing the page.`);
+            const confirmed = confirm(`🔒 Lock ${monthYear} for ${this.teamConfigs[this.currentTeam]?.name || this.currentTeam}?\n\nThis will:\n• Remove individual weeks from weekly dropdown\n• Move the month to monthly view only\n• Make the data read-only\n• Show it in 360° Company View\n\nThe locked status will persist across page reloads.`);
             
             if (!confirmed) return;
             
@@ -8859,6 +8862,10 @@ class RealEfficiencyTracker {
             
             console.log(`✅ Locked ${monthYear} for ${this.currentTeam} team`);
             console.log(`🔒 Current locked months for ${this.currentTeam}:`, this.lockedMonths[this.currentTeam]);
+            
+            // CRITICAL FIX: Save the locked months to localStorage so they persist on page refresh
+            this.saveTeamSpecificData();
+            console.log(`💾 Saved locked months to localStorage`);
             
             // Refresh the week selector to remove locked month weeks
             this.populateWeekSelector();
@@ -8998,9 +9005,10 @@ class RealEfficiencyTracker {
                     memberEfficiency = memberTotalEffectiveWorkingDays > 0 ? (memberTotalOutput / memberTotalEffectiveWorkingDays) * 100 : 0;
                     console.log(`📈 Graphics ${memberName} totals: totalDays=${memberTotalOutput}, effectiveWorkingDays=${memberTotalEffectiveWorkingDays}, efficiency=${memberEfficiency.toFixed(2)}%, monthlyRating=${monthlyRating.toFixed(2)}`);
                 } else {
-                    // Other teams: Use working days
-                    memberEfficiency = memberTotalWorkingDays > 0 ? (memberTotalOutput / memberTotalWorkingDays) * 100 : 0;
-                    console.log(`📈 ${memberName} totals: output=${memberTotalOutput}, workingDays=${memberTotalWorkingDays}, efficiency=${memberEfficiency.toFixed(2)}%, monthlyRating=${monthlyRating.toFixed(2)}`);
+                    // Other teams (B2B, Varsity, Zero1, Audio, Shorts, etc.): Use EFFECTIVE working days (working days - leave days)
+                    memberTarget = memberTotalEffectiveWorkingDays; // Target = effective working days
+                    memberEfficiency = memberTotalEffectiveWorkingDays > 0 ? (memberTotalOutput / memberTotalEffectiveWorkingDays) * 100 : 0;
+                    console.log(`📈 ${memberName} totals: output=${memberTotalOutput}, workingDays=${memberTotalWorkingDays}, leaveDays=${memberTotalWorkingDays - memberTotalEffectiveWorkingDays}, effectiveWorkingDays=${memberTotalEffectiveWorkingDays}, efficiency=${memberEfficiency.toFixed(2)}%, monthlyRating=${monthlyRating.toFixed(2)}`);
                 }
                 
                 monthlyData[memberName] = {
@@ -9229,14 +9237,24 @@ class RealEfficiencyTracker {
     async loadTeamSpecificData() {
         const teamKey = `${this.currentTeam}_week_entries`;
         const finalizedKey = `${this.currentTeam}_finalized_reports`;
+        const lockedMonthsKey = `${this.currentTeam}_locked_months`; // CRITICAL FIX: Load locked months
         
         // Load local data first
         this.weekEntries = JSON.parse(localStorage.getItem(teamKey) || '{}');
         this.finalizedReports = JSON.parse(localStorage.getItem(finalizedKey) || '{}');
         
+        // Load locked months for this team
+        if (!this.lockedMonths[this.currentTeam]) {
+            this.lockedMonths[this.currentTeam] = [];
+        }
+        const storedLockedMonths = JSON.parse(localStorage.getItem(lockedMonthsKey) || '[]');
+        this.lockedMonths[this.currentTeam] = storedLockedMonths;
+        
         console.log(`Loaded local data for ${this.currentTeam}:`, {
             weekEntries: Object.keys(this.weekEntries).length,
             finalizedReports: Object.keys(this.finalizedReports).length,
+            lockedMonths: this.lockedMonths[this.currentTeam].length,
+            lockedMonthsList: this.lockedMonths[this.currentTeam],
             finalizedReportsData: this.finalizedReports
         });
         
@@ -9520,6 +9538,7 @@ class RealEfficiencyTracker {
         const finalizedKey = `${this.currentTeam}_finalized_reports`;
         const historicalKey = `${this.currentTeam}_historical_data`;
         const syncKey = `${this.currentTeam}_sync_metadata`;
+        const lockedMonthsKey = `${this.currentTeam}_locked_months`; // CRITICAL FIX: Save locked months
         
         // Add timestamp and user info for conflict resolution
         const timestamp = new Date().toISOString();
@@ -9534,11 +9553,13 @@ class RealEfficiencyTracker {
         localStorage.setItem(finalizedKey, JSON.stringify(this.finalizedReports || {}));
         localStorage.setItem(historicalKey, JSON.stringify(this.historicalData[this.currentTeam] || {}));
         localStorage.setItem(syncKey, JSON.stringify(syncMetadata));
+        localStorage.setItem(lockedMonthsKey, JSON.stringify(this.lockedMonths[this.currentTeam] || [])); // Save locked months for this team
         
         console.log(`Saved data for ${this.currentTeam}`, {
             weekEntries: Object.keys(this.weekEntries).length,
             finalizedReports: Object.keys(this.finalizedReports || {}).length,
             historicalData: Object.keys(this.historicalData[this.currentTeam] || {}).length,
+            lockedMonths: (this.lockedMonths[this.currentTeam] || []).length,
             syncMetadata: syncMetadata
         });
     }
