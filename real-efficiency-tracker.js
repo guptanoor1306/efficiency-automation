@@ -8944,9 +8944,10 @@ class RealEfficiencyTracker {
                         
                         if (memberWeekData) {
                             const weekTotal = memberWeekData.week_total || 0;
-                            // Calculate working days dynamically from week system instead of using stored value
-                            const workingDays = week.workingDays || memberWeekData.working_days || 5;
-                            const leaveDays = memberWeekData.leave_days || 0;
+                            // CRITICAL FIX: Use ACTUAL working days from Supabase (what user entered/finalized)
+                            // NOT the calculated working days from week system
+                            const workingDays = memberWeekData.working_days || week.workingDays || 5;
+                            const leaveDays = parseFloat(memberWeekData.leave_days) || 0;
                             const weeklyRating = memberWeekData.weekly_rating || 0;
                             const targetPoints = memberWeekData.target_points || 0;
                             
@@ -8955,11 +8956,12 @@ class RealEfficiencyTracker {
                             
                             console.log(`📊 ${this.currentTeam.toUpperCase()} - ${memberName} week ${week.id}:`, {
                                 'Week Total (Output)': weekTotal,
-                                'Working Days': workingDays,
-                                'Leave Days': leaveDays,
+                                'Working Days (from DB)': workingDays,
+                                'Leave Days (from DB)': leaveDays,
                                 '🎯 Effective Working Days': effectiveWorkingDays,
                                 'Weekly Rating': weeklyRating,
-                                'Target Points': targetPoints
+                                'Target Points': targetPoints,
+                                'Week System Working Days': week.workingDays
                             });
                             
                             memberTotalOutput += weekTotal;
