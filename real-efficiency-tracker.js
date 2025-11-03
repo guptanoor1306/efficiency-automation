@@ -9092,7 +9092,7 @@ class RealEfficiencyTracker {
 
     // Load finalized reports for ALL teams from localStorage (for Company View)
     async loadAllTeamsFinalizedReports() {
-        console.log('📋 Loading finalized reports for all teams from localStorage...');
+        console.log('\n📋 Loading finalized reports for all teams from localStorage...');
         
         const allTeams = ['b2b', 'varsity', 'zero1', 'harish', 'audio', 'shorts', 'graphics', 'tech', 'product', 'preproduction', 'content', 'social'];
         
@@ -9108,15 +9108,19 @@ class RealEfficiencyTracker {
             if (storedReports) {
                 try {
                     const parsed = JSON.parse(storedReports);
+                    console.log(`📦 Parsed finalized reports for ${teamId}:`, parsed);
+                    
                     // Merge into main finalizedReports structure
                     if (parsed && typeof parsed === 'object') {
                         Object.keys(parsed).forEach(key => {
                             if (!this.finalizedReports[key]) {
                                 this.finalizedReports[key] = {};
                             }
+                            const weekKeys = Object.keys(parsed[key] || {});
+                            console.log(`  📅 Merging ${teamId} -> ${key}: ${weekKeys.length} weeks`, weekKeys);
                             this.finalizedReports[key] = { ...this.finalizedReports[key], ...parsed[key] };
                         });
-                        console.log(`✅ Loaded finalized reports for ${teamId}:`, Object.keys(parsed));
+                        console.log(`✅ Loaded finalized reports for ${teamId}: Team keys =`, Object.keys(parsed));
                     }
                 } catch (error) {
                     console.warn(`⚠️ Could not parse finalized reports for ${teamId}:`, error);
@@ -9126,7 +9130,11 @@ class RealEfficiencyTracker {
             }
         });
         
-        console.log('📊 Final merged finalizedReports structure:', this.finalizedReports);
+        console.log('\n📊 Final merged finalizedReports structure:');
+        Object.keys(this.finalizedReports).forEach(teamKey => {
+            const weeks = Object.keys(this.finalizedReports[teamKey] || {});
+            console.log(`  ${teamKey}: ${weeks.length} weeks ->`, weeks);
+        });
         console.log('📊 Teams with finalized weeks:', Object.keys(this.finalizedReports));
     }
     
@@ -11946,14 +11954,25 @@ class RealEfficiencyTracker {
         let hasAllWeeksFinalized = false;
         const monthWeeks = this.weekSystem.getWeeksByMonthName(monthName, year);
         
+        console.log(`\n🔍 Checking finalized weeks for ${historicalKey} - ${monthYear}`);
+        console.log(`📅 Month weeks found: ${monthWeeks.length}`, monthWeeks.map(w => w.id));
+        console.log(`📊 finalizedReports exists: ${!!this.finalizedReports}`);
+        console.log(`📊 finalizedReports[${historicalKey}] exists: ${!!(this.finalizedReports && this.finalizedReports[historicalKey])}`);
+        
+        if (this.finalizedReports && this.finalizedReports[historicalKey]) {
+            console.log(`📊 Finalized weeks for ${historicalKey}:`, Object.keys(this.finalizedReports[historicalKey]));
+        }
+        
         if (monthWeeks.length > 0 && this.finalizedReports && this.finalizedReports[historicalKey]) {
             const teamFinalizedWeeks = this.finalizedReports[historicalKey];
             hasAllWeeksFinalized = monthWeeks.every(week => {
                 const isFinalized = teamFinalizedWeeks[week.id] !== undefined && teamFinalizedWeeks[week.id] !== null;
-                console.log(`🔍 ${historicalKey} week ${week.id}: finalized = ${isFinalized}`);
+                console.log(`  🔍 ${historicalKey} week ${week.id}: finalized = ${isFinalized}`);
                 return isFinalized;
             });
             console.log(`📊 ${historicalKey} ${monthYear}: ${monthWeeks.length} weeks, all finalized = ${hasAllWeeksFinalized}`);
+        } else {
+            console.log(`⚠️ Cannot check finalized weeks - missing data for ${historicalKey}`);
         }
         
         // Check if this month is explicitly locked OR has all weeks finalized (should load from Supabase)
