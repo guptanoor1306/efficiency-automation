@@ -34,8 +34,37 @@ class RealEfficiencyTracker {
             
             // Filter out locked months from weekly view
             const lockedMonthsForTeam = this.lockedMonths[this.currentTeam] || [];
+            
+            // CRITICAL FIX: Also filter out months where ALL weeks are finalized
+            // This ensures that when a month is complete (all weeks finalized), 
+            // those weeks disappear from weekly view and only show in monthly view
+            const finalizedWeeksForTeam = this.finalizedReports?.[this.currentTeam] || {};
+            
             weeks = weeks.filter(week => {
-                return !lockedMonthsForTeam.includes(week.monthYear);
+                // Check if month is explicitly locked
+                if (lockedMonthsForTeam.includes(week.monthYear)) {
+                    console.log(`🔒 Filtering out ${week.id} - month ${week.monthYear} is locked`);
+                    return false;
+                }
+                
+                // Check if ALL weeks of this month are finalized
+                const [monthName, yearStr] = week.monthYear.split(' ');
+                const year = parseInt(yearStr);
+                const monthWeeks = this.weekSystem.getWeeksByMonthName(monthName, year);
+                
+                // Count how many weeks of this month are finalized
+                const finalizedCount = monthWeeks.filter(w => 
+                    finalizedWeeksForTeam[w.id] !== undefined && 
+                    finalizedWeeksForTeam[w.id] !== null
+                ).length;
+                
+                // If all weeks are finalized, hide them from weekly dropdown
+                if (finalizedCount === monthWeeks.length && monthWeeks.length > 0) {
+                    console.log(`🔒 Filtering out ${week.id} - all ${finalizedCount}/${monthWeeks.length} weeks of ${week.monthYear} are finalized`);
+                    return false;
+                }
+                
+                return true;
             });
             
             return weeks;
