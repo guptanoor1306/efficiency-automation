@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Noor's October Data</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background: #667eea;
+            color: white;
+        }
+        .efficiency {
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .high { color: #28a745; }
+        .medium { color: #ffc107; }
+        .low { color: #dc3545; }
+        pre {
+            background: #f4f4f4;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .summary {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #5568d3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Debug Noor's October 2025 Data</h1>
+        
+        <button onclick="loadData()">Load Noor's October Data from Supabase</button>
+        
+        <div id="loading" style="display: none; margin: 20px 0; text-align: center;">
+            <div style="font-size: 24px;">⏳ Loading data...</div>
+        </div>
+        
+        <div id="results"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
+    <script src="week-system.js"></script>
+    <script>
+        const supabaseUrl = 'https://ygazzjwpazxekyqnsrsi.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlnYXp6andwYXp4ZWt5cW5zcnNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTczMjYwNTQsImV4cCI6MjA3MjkwMjA1NH0.t96cTbq_Yc3-FCMvPYTBoD_eQVTuTE9yKPlaKNHTGY4';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        const weekSystem = new WeekSystem();
+        
+        async function loadData() {
+            const resultsDiv = document.getElementById('results');
+            const loadingDiv = document.getElementById('loading');
+            
+            loadingDiv.style.display = 'block';
+            resultsDiv.innerHTML = '';
+            
+            try {
+                // Get October 2025 weeks
+                const octoberWeeks = weekSystem.getWeeksByMonthName('October', 2025);
+                console.log('October weeks:', octoberWeeks);
+                
+                let html = '<h2>October 2025 Weeks for Product Team</h2>';
+                html += '<table><thead><tr><th>Week ID</th><th>Week Label</th><th>Date Range</th><th>Working Days</th></tr></thead><tbody>';
+                
+                octoberWeeks.forEach(week => {
+                    html += `<tr>
+                        <td>${week.id}</td>
+                        <td>${week.label}</td>
+                        <td>${week.dateRange}</td>
+                        <td>${week.workingDays || 5}</td>
+                    </tr>`;
+                });
+                html += '</tbody></table>';
+                
+                // Load Noor's data for each week
+                html += '<h2>Noor\'s Data from Supabase</h2>';
+                html += '<table><thead><tr><th>Week</th><th>Week Total (SP)</th><th>Working Days</th><th>Leave Days</th><th>Effective Days</th><th>Target (1 SP/day)</th><th>Weekly Efficiency</th><th>Raw Data</th></tr></thead><tbody>';
+                
+                let totalOutput = 0;
+                let totalEffectiveWorkingDays = 0;
+                let totalWorkingDays = 0;
+                const weekData = [];
+                
+                for (const week of octoberWeeks) {
+                    // Load data from Supabase
+                    const { data, error } = await supabase
+                        .from('weekly_entries')
+                        .select('*')
+                        .eq('team_id', 'product')
+                        .eq('week_id', week.id)
+                        .eq('member_name', 'Noor');
+                    
+                    if (error) {
+                        console.error('Error loading week', week.id, error);
+                        html += `<tr><td>${week.label}</td><td colspan="7">Error: ${error.message}</td></tr>`;
+                        continue;
+                    }
+                    
+                    if (!data || data.length === 0) {
+                        html += `<tr><td>${week.label}</td><td colspan="7">No data found</td></tr>`;
+                        continue;
+                    }
+                    
+                    const entry = data[0];
+                    const weekTotal = parseFloat(entry.week_total) || 0;
+                    const workingDays = week.workingDays || entry.working_days || 5;
+                    const leaveDays = parseFloat(entry.leave_days) || 0;
+                    const effectiveWorkingDays = workingDays - leaveDays;
+                    const target = effectiveWorkingDays * 1; // Product team: 1 SP per effective day
+                    const weeklyEfficiency = target > 0 ? (weekTotal / target) * 100 : 0;
+                    
+                    totalOutput += weekTotal;
+                    totalEffectiveWorkingDays += effectiveWorkingDays;
+                    totalWorkingDays += workingDays;
+                    
+                    weekData.push({
+                        week: week.label,
+                        weekTotal,
+                        workingDays,
+                        leaveDays,
+                        effectiveWorkingDays,
+                        target,
+                        weeklyEfficiency
+                    });
+                    
+                    const effClass = weeklyEfficiency >= 90 ? 'high' : weeklyEfficiency >= 70 ? 'medium' : 'low';
+                    
+                    html += `<tr>
+                        <td>${week.label}</td>
+                        <td><strong>${weekTotal.toFixed(1)}</strong></td>
+                        <td>${workingDays}</td>
+                        <td>${leaveDays}</td>
+                        <td><strong>${effectiveWorkingDays}</strong></td>
+                        <td>${target.toFixed(1)}</td>
+                        <td class="efficiency ${effClass}">${weeklyEfficiency.toFixed(1)}%</td>
+                        <td><pre>${JSON.stringify(entry, null, 2)}</pre></td>
+                    </tr>`;
+                }
+                
+                html += '</tbody></table>';
+                
+                // Calculate monthly efficiency
+                const monthlyTarget = totalEffectiveWorkingDays * 1;
+                const monthlyEfficiency = monthlyTarget > 0 ? (totalOutput / monthlyTarget) * 100 : 0;
+                const effClass = monthlyEfficiency >= 90 ? 'high' : monthlyEfficiency >= 70 ? 'medium' : 'low';
+                
+                html += `<div class="summary">
+                    <h2>📊 Monthly Calculation Summary</h2>
+                    <table>
+                        <tr>
+                            <th>Metric</th>
+                            <th>Value</th>
+                            <th>Formula</th>
+                        </tr>
+                        <tr>
+                            <td>Total Output (Story Points)</td>
+                            <td><strong>${totalOutput.toFixed(1)} SP</strong></td>
+                            <td>Sum of all weekly story points</td>
+                        </tr>
+                        <tr>
+                            <td>Total Working Days</td>
+                            <td><strong>${totalWorkingDays}</strong></td>
+                            <td>Sum of all working days</td>
+                        </tr>
+                        <tr>
+                            <td>Total Effective Working Days</td>
+                            <td><strong>${totalEffectiveWorkingDays}</strong></td>
+                            <td>Working Days - Leave Days</td>
+                        </tr>
+                        <tr>
+                            <td>Monthly Target (Product Team)</td>
+                            <td><strong>${monthlyTarget.toFixed(1)} SP</strong></td>
+                            <td>Effective Days × 1 SP/day</td>
+                        </tr>
+                        <tr>
+                            <td>Monthly Efficiency</td>
+                            <td class="efficiency ${effClass}"><strong>${monthlyEfficiency.toFixed(1)}%</strong></td>
+                            <td>(${totalOutput.toFixed(1)} ÷ ${monthlyTarget.toFixed(1)}) × 100</td>
+                        </tr>
+                    </table>
+                </div>`;
+                
+                html += `<div class="summary">
+                    <h3>🔍 Week-by-Week Breakdown</h3>
+                    <pre>${JSON.stringify(weekData, null, 2)}</pre>
+                </div>`;
+                
+                html += `<div class="summary" style="background: ${monthlyEfficiency >= 90 ? '#d4edda' : monthlyEfficiency >= 70 ? '#fff3cd' : '#f8d7da'};">
+                    <h3>✨ Expected Monthly Efficiency: <span class="${effClass}">${monthlyEfficiency.toFixed(2)}%</span></h3>
+                    <p><strong>Formula:</strong> Total Story Points (${totalOutput.toFixed(1)}) ÷ Total Effective Working Days (${totalEffectiveWorkingDays}) × 100</p>
+                    ${monthlyEfficiency !== 81.5 ? `<p style="color: #dc3545; font-weight: bold;">⚠️ This doesn't match the 81.5% shown in the UI! There may be a data loading issue.</p>` : ''}
+                </div>`;
+                
+                resultsDiv.innerHTML = html;
+                
+            } catch (error) {
+                resultsDiv.innerHTML = `<div style="color: red; padding: 20px;">
+                    <h2>Error</h2>
+                    <pre>${error.message}\n\n${error.stack}</pre>
+                </div>`;
+            } finally {
+                loadingDiv.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
+
