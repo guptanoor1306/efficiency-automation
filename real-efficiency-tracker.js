@@ -8953,7 +8953,14 @@ class RealEfficiencyTracker {
                             // Calculate effective working days for this week (working days - leave days)
                             const effectiveWorkingDays = workingDays - leaveDays;
                             
-                            console.log(`📊 ${memberName} week ${week.id}: total=${weekTotal}, workingDays=${workingDays}, leaveDays=${leaveDays}, effectiveWorkingDays=${effectiveWorkingDays}, rating=${weeklyRating}, targetPoints=${targetPoints}`);
+                            console.log(`📊 ${this.currentTeam.toUpperCase()} - ${memberName} week ${week.id}:`, {
+                                'Week Total (Output)': weekTotal,
+                                'Working Days': workingDays,
+                                'Leave Days': leaveDays,
+                                '🎯 Effective Working Days': effectiveWorkingDays,
+                                'Weekly Rating': weeklyRating,
+                                'Target Points': targetPoints
+                            });
                             
                             memberTotalOutput += weekTotal;
                             memberTotalWorkingDays += workingDays;
@@ -8998,17 +9005,38 @@ class RealEfficiencyTracker {
                     // Product team: 1 story point per effective working day (working days - leave days)
                     memberTarget = memberTotalEffectiveWorkingDays * 1; // 1 SP per effective working day
                     memberEfficiency = memberTarget > 0 ? (memberTotalOutput / memberTarget) * 100 : 0;
-                    console.log(`📈 Product ${memberName} totals: output=${memberTotalOutput}, effectiveWorkingDays=${memberTotalEffectiveWorkingDays}, expectedSP=${memberTarget}, efficiency=${memberEfficiency.toFixed(2)}%, monthlyRating=${monthlyRating.toFixed(2)}`);
+                    console.log(`📈 PRODUCT ${memberName} MONTHLY CALCULATION:`, {
+                        'Total Story Points (Output)': memberTotalOutput,
+                        'Total Working Days': memberTotalWorkingDays,
+                        'Total Leave Days': memberTotalWorkingDays - memberTotalEffectiveWorkingDays,
+                        '🎯 Total Effective Working Days': memberTotalEffectiveWorkingDays,
+                        'Target (1 SP/effective day)': memberTarget,
+                        '✨ Monthly Efficiency': `${memberEfficiency.toFixed(2)}%`,
+                        'Formula': `${memberTotalOutput} SP ÷ ${memberTotalEffectiveWorkingDays} days × 100`
+                    });
                 } else if (this.currentTeam === 'graphics') {
                     // Graphics team: totalDays / effectiveWorkingDays * 100 (same as weekly calculation)
                     memberTarget = memberTotalEffectiveWorkingDays; // Target = effective working days
                     memberEfficiency = memberTotalEffectiveWorkingDays > 0 ? (memberTotalOutput / memberTotalEffectiveWorkingDays) * 100 : 0;
-                    console.log(`📈 Graphics ${memberName} totals: totalDays=${memberTotalOutput}, effectiveWorkingDays=${memberTotalEffectiveWorkingDays}, efficiency=${memberEfficiency.toFixed(2)}%, monthlyRating=${monthlyRating.toFixed(2)}`);
+                    console.log(`📈 GRAPHICS ${memberName} MONTHLY:`, {
+                        'Total Days Output': memberTotalOutput,
+                        'Total Working Days': memberTotalWorkingDays,
+                        'Total Leave Days': memberTotalWorkingDays - memberTotalEffectiveWorkingDays,
+                        '🎯 Effective Working Days': memberTotalEffectiveWorkingDays,
+                        'Efficiency': `${memberEfficiency.toFixed(2)}%`
+                    });
                 } else {
                     // Other teams (B2B, Varsity, Zero1, Audio, Shorts, etc.): Use EFFECTIVE working days (working days - leave days)
                     memberTarget = memberTotalEffectiveWorkingDays; // Target = effective working days
                     memberEfficiency = memberTotalEffectiveWorkingDays > 0 ? (memberTotalOutput / memberTotalEffectiveWorkingDays) * 100 : 0;
-                    console.log(`📈 ${memberName} totals: output=${memberTotalOutput}, workingDays=${memberTotalWorkingDays}, leaveDays=${memberTotalWorkingDays - memberTotalEffectiveWorkingDays}, effectiveWorkingDays=${memberTotalEffectiveWorkingDays}, efficiency=${memberEfficiency.toFixed(2)}%, monthlyRating=${monthlyRating.toFixed(2)}`);
+                    console.log(`📈 ${this.currentTeam.toUpperCase()} ${memberName} MONTHLY:`, {
+                        'Total Output': memberTotalOutput,
+                        'Total Working Days': memberTotalWorkingDays,
+                        'Total Leave Days': memberTotalWorkingDays - memberTotalEffectiveWorkingDays,
+                        '🎯 Effective Working Days': memberTotalEffectiveWorkingDays,
+                        'Efficiency': `${memberEfficiency.toFixed(2)}%`,
+                        'Formula': `${memberTotalOutput} ÷ ${memberTotalEffectiveWorkingDays} × 100`
+                    });
                 }
                 
                 monthlyData[memberName] = {
@@ -9062,6 +9090,46 @@ class RealEfficiencyTracker {
         return await this.loadMonthDataFromSupabase('September 2025');
     }
 
+    // Load finalized reports for ALL teams from localStorage (for Company View)
+    async loadAllTeamsFinalizedReports() {
+        console.log('📋 Loading finalized reports for all teams from localStorage...');
+        
+        const allTeams = ['b2b', 'varsity', 'zero1', 'harish', 'audio', 'shorts', 'graphics', 'tech', 'product', 'preproduction', 'content', 'social'];
+        
+        // Initialize finalizedReports if it doesn't exist
+        if (!this.finalizedReports) {
+            this.finalizedReports = {};
+        }
+        
+        allTeams.forEach(teamId => {
+            const finalizedKey = `${teamId}_finalized_reports`;
+            const storedReports = localStorage.getItem(finalizedKey);
+            
+            if (storedReports) {
+                try {
+                    const parsed = JSON.parse(storedReports);
+                    // Merge into main finalizedReports structure
+                    if (parsed && typeof parsed === 'object') {
+                        Object.keys(parsed).forEach(key => {
+                            if (!this.finalizedReports[key]) {
+                                this.finalizedReports[key] = {};
+                            }
+                            this.finalizedReports[key] = { ...this.finalizedReports[key], ...parsed[key] };
+                        });
+                        console.log(`✅ Loaded finalized reports for ${teamId}:`, Object.keys(parsed));
+                    }
+                } catch (error) {
+                    console.warn(`⚠️ Could not parse finalized reports for ${teamId}:`, error);
+                }
+            } else {
+                console.log(`ℹ️ No finalized reports found for ${teamId}`);
+            }
+        });
+        
+        console.log('📊 Final merged finalizedReports structure:', this.finalizedReports);
+        console.log('📊 Teams with finalized weeks:', Object.keys(this.finalizedReports));
+    }
+    
     async ensureAllHistoricalDataLoaded() {
         console.log('🔄 Ensuring all team historical data is loaded for Company View...');
         
@@ -11225,6 +11293,11 @@ class RealEfficiencyTracker {
         console.log('🚀 Initializing Company Dashboard...');
         
         try {
+            // CRITICAL FIX: Load finalized reports for ALL teams from localStorage
+            // This ensures we can detect which teams have finalized October weeks
+            console.log('📋 Loading finalized reports for all teams...');
+            await this.loadAllTeamsFinalizedReports();
+            
             // Ensure all team historical data is loaded for Company View
             console.log('📊 Loading all team historical data...');
             await this.ensureAllHistoricalDataLoaded();
