@@ -3990,10 +3990,10 @@ class RealEfficiencyTracker {
                         }
                     });
                     
-                    // Clear finalized reports
+                    // Clear finalized reports (team-specific structure)
                     const weekKey = week.id;
-                    if (this.finalizedReports[weekKey]) {
-                        delete this.finalizedReports[weekKey];
+                    if (this.finalizedReports && this.finalizedReports[team] && this.finalizedReports[team][weekKey]) {
+                        delete this.finalizedReports[team][weekKey];
                         console.log(`🗑️ Cleared ${team} finalized: ${weekKey}`);
                     }
                 });
@@ -4051,11 +4051,11 @@ class RealEfficiencyTracker {
             }
         });
         
-        // Clear finalized reports for current week
+        // Clear finalized reports for current week (team-specific structure)
         const weekKey = this.currentWeek.id;
-        if (this.finalizedReports[weekKey]) {
-            delete this.finalizedReports[weekKey];
-            console.log(`🗑️ Cleared finalized report: ${weekKey}`);
+        if (this.finalizedReports && this.finalizedReports[this.currentTeam] && this.finalizedReports[this.currentTeam][weekKey]) {
+            delete this.finalizedReports[this.currentTeam][weekKey];
+            console.log(`🗑️ Cleared finalized report for ${this.currentTeam}: ${weekKey}`);
         }
         
         // Save the cleared data locally
@@ -5742,7 +5742,8 @@ class RealEfficiencyTracker {
         const finalizedReports = this.finalizedReports || {};
         const weekKey = `${this.currentWeek.id}`;
         
-        if (finalizedReports[weekKey]) {
+        // Check team-specific finalized reports
+        if (finalizedReports[this.currentTeam] && finalizedReports[this.currentTeam][weekKey]) {
             this.showMessage('This week has been finalized. Cannot make changes.', 'error');
             return;
         }
@@ -5776,7 +5777,8 @@ class RealEfficiencyTracker {
         const finalizedReports = this.finalizedReports || {};
         const weekKey = `${this.currentWeek.id}`;
         
-        if (finalizedReports[weekKey]) return;
+        // Don't auto-save if week is finalized (check team-specific structure)
+        if (finalizedReports[this.currentTeam] && finalizedReports[this.currentTeam][weekKey]) return;
         
         let savedCount = 0;
         this.teamMembers.forEach(member => {
@@ -6624,9 +6626,9 @@ class RealEfficiencyTracker {
             return;
         }
         
-        // Check if already finalized
+        // Check if already finalized (team-specific structure)
         const finalizedReports = this.finalizedReports || {};
-        if (finalizedReports[this.currentWeek.id]) {
+        if (finalizedReports[this.currentTeam] && finalizedReports[this.currentTeam][this.currentWeek.id]) {
             this.showMessage('This week has already been finalized!', 'error');
             return;
         }
@@ -6742,12 +6744,27 @@ class RealEfficiencyTracker {
             avgEfficiency: totalEfficiency / memberCount,
             memberSummaries: memberSummaries,
             finalizedAt: new Date().toISOString(),
-            status: 'finalized'
+            status: 'finalized',
+            isFinalized: true,
+            source: 'manual_finalization'
         };
         
-        // Save finalized report
-        finalizedReports[this.currentWeek.id] = weekSummary;
-        this.finalizedReports = finalizedReports;
+        // CRITICAL FIX: Save finalized report in team-specific nested structure
+        if (!this.finalizedReports) {
+            this.finalizedReports = {};
+        }
+        if (!this.finalizedReports[this.currentTeam]) {
+            this.finalizedReports[this.currentTeam] = {};
+        }
+        this.finalizedReports[this.currentTeam][this.currentWeek.id] = weekSummary;
+        
+        console.log(`✅ Stored finalized report for team ${this.currentTeam}, week ${this.currentWeek.id}`);
+        console.log(`📋 Updated finalizedReports structure:`, {
+            team: this.currentTeam,
+            weekId: this.currentWeek.id,
+            allFinalizedWeeks: Object.keys(this.finalizedReports[this.currentTeam])
+        });
+        
         this.saveTeamSpecificData();
         
         // CRITICAL: Save current week data permanently AND force sync to Supabase
@@ -7429,9 +7446,10 @@ class RealEfficiencyTracker {
             console.log(`🔍 Looking for stored summary for week: ${weekKey}`);
             if (!weekKey) return;
             
+            // Get team-specific finalized report
             const finalizedReports = this.finalizedReports || {};
-            weekSummary = finalizedReports[weekKey];
-            console.log(`📊 Found stored summary:`, weekSummary);
+            weekSummary = finalizedReports[this.currentTeam] && finalizedReports[this.currentTeam][weekKey];
+            console.log(`📊 Found stored summary for ${this.currentTeam}:`, weekSummary);
             
             if (!weekSummary) {
                 // Week is not finalized, hide the summary
@@ -11540,6 +11558,46 @@ class RealEfficiencyTracker {
             });
         });
         
+        // CRITICAL FIX: Also check for months where ALL weeks are finalized
+        // This ensures that months like October 2025 appear in the dropdown when all weeks are done
+        if (this.finalizedReports) {
+            Object.keys(this.finalizedReports).forEach(teamId => {
+                const teamFinalizedWeeks = this.finalizedReports[teamId];
+                if (teamFinalizedWeeks && typeof teamFinalizedWeeks === 'object') {
+                    // Group finalized weeks by month
+                    const monthsWithFinalizedWeeks = {};
+                    Object.keys(teamFinalizedWeeks).forEach(weekId => {
+                        // Find the week in the week system to get its month/year
+                        const week = this.weekSystem.getWeeksForSelector().find(w => w.id === weekId);
+                        if (week) {
+                            const monthYear = `${week.monthName} ${week.year}`;
+                            if (!monthsWithFinalizedWeeks[monthYear]) {
+                                monthsWithFinalizedWeeks[monthYear] = {
+                                    finalizedCount: 0,
+                                    totalWeeks: 0
+                                };
+                            }
+                            monthsWithFinalizedWeeks[monthYear].finalizedCount++;
+                        }
+                    });
+                    
+                    // Check if all weeks are finalized for each month
+                    Object.keys(monthsWithFinalizedWeeks).forEach(monthYear => {
+                        const [monthName, yearStr] = monthYear.split(' ');
+                        const year = parseInt(yearStr);
+                        const monthWeeks = this.weekSystem.getWeeksByMonthName(monthName, year);
+                        const { finalizedCount } = monthsWithFinalizedWeeks[monthYear];
+                        
+                        // If all weeks of this month are finalized, add to available months
+                        if (finalizedCount === monthWeeks.length && monthWeeks.length > 0) {
+                            console.log(`✅ ${monthYear} detected as complete: ${finalizedCount}/${monthWeeks.length} weeks finalized for ${teamId}`);
+                            allMonths.add(monthYear);
+                        }
+                    });
+                }
+            });
+        }
+        
         // Convert to sorted array
         const monthsArray = Array.from(allMonths).sort((a, b) => {
             // Sort by year first, then by month
@@ -11785,8 +11843,27 @@ class RealEfficiencyTracker {
         
         const historicalKey = teamMapping[teamId] || teamId;
         
-        // Check if this month is locked for this team (should load from Supabase)
-        const isLockedMonth = this.lockedMonths[historicalKey]?.includes(monthYear);
+        // Parse monthYear to check for finalized weeks
+        const [monthName, yearStr] = monthYear.split(' ');
+        const year = parseInt(yearStr);
+        
+        // CRITICAL FIX: Check if ALL weeks of this month have been finalized for this team
+        // This allows the 360° Company View to show finalized data even if the month wasn't explicitly "locked"
+        let hasAllWeeksFinalized = false;
+        const monthWeeks = this.weekSystem.getWeeksByMonthName(monthName, year);
+        
+        if (monthWeeks.length > 0 && this.finalizedReports && this.finalizedReports[historicalKey]) {
+            const teamFinalizedWeeks = this.finalizedReports[historicalKey];
+            hasAllWeeksFinalized = monthWeeks.every(week => {
+                const isFinalized = teamFinalizedWeeks[week.id] !== undefined && teamFinalizedWeeks[week.id] !== null;
+                console.log(`🔍 ${historicalKey} week ${week.id}: finalized = ${isFinalized}`);
+                return isFinalized;
+            });
+            console.log(`📊 ${historicalKey} ${monthYear}: ${monthWeeks.length} weeks, all finalized = ${hasAllWeeksFinalized}`);
+        }
+        
+        // Check if this month is explicitly locked OR has all weeks finalized (should load from Supabase)
+        const isLockedMonth = this.lockedMonths[historicalKey]?.includes(monthYear) || hasAllWeeksFinalized;
         
         if (isLockedMonth) {
             console.log(`🔄 Loading locked month ${monthYear} data from Supabase for team ${teamId} (Company View)`);
