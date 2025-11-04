@@ -4534,6 +4534,32 @@ class RealEfficiencyTracker {
             monthGroups[monthYear].push(week);
         });
         
+        // CRITICAL FIX: Add finalized months that were filtered out from weekly view
+        // Check all months in 2025 to see if they have all weeks finalized
+        const finalizedWeeksForTeam = this.finalizedReports?.[this.currentTeam] || {};
+        const allWeeks = this.weekSystem.getWeeksForSelector();
+        const allMonthYears = [...new Set(allWeeks.map(w => w.monthYear))];
+        
+        allMonthYears.forEach(monthYear => {
+            // Skip if already in monthGroups (not filtered out)
+            if (monthGroups[monthYear]) return;
+            
+            // Check if this month has all weeks finalized
+            const [monthName, yearStr] = monthYear.split(' ');
+            const year = parseInt(yearStr);
+            const monthWeeks = this.weekSystem.getWeeksByMonthName(monthName, year);
+            const finalizedCount = monthWeeks.filter(w => 
+                finalizedWeeksForTeam[w.id] !== undefined && 
+                finalizedWeeksForTeam[w.id] !== null
+            ).length;
+            
+            // If all weeks finalized, add as a month group (even though weeks are hidden)
+            if (finalizedCount === monthWeeks.length && monthWeeks.length > 0) {
+                monthGroups[monthYear] = monthWeeks; // Add the weeks for reference
+                console.log(`📊 Adding finalized month to dropdown: ${monthYear} (${finalizedCount}/${monthWeeks.length} weeks finalized)`);
+            }
+        });
+        
         let optionsHTML = '<option value="">Select a period...</option>';
         
         // Determine current working month from this.currentWeek
@@ -4554,16 +4580,25 @@ class RealEfficiencyTracker {
                 console.log(`  - currentView: ${currentView}`);
             }
             
+            // CRITICAL FIX: Also check if all weeks of this month are finalized
+            const monthWeeks = this.weekSystem.getWeeksByMonthName(monthYear.split(' ')[0], parseInt(monthYear.split(' ')[1]));
+            const finalizedWeeksForTeam = this.finalizedReports?.[this.currentTeam] || {};
+            const finalizedCount = monthWeeks.filter(w => 
+                finalizedWeeksForTeam[w.id] !== undefined && 
+                finalizedWeeksForTeam[w.id] !== null
+            ).length;
+            const hasAllWeeksFinalized = finalizedCount === monthWeeks.length && monthWeeks.length > 0;
+            
             // Filter options based on current view
             if (currentView === 'monthly') {
-                // In monthly view, show months that are either complete OR in the historical months list
-                if (isCompleteMonth || isHistoricalMonth) {
+                // In monthly view, show months that are either complete, historical, OR have all weeks finalized
+                if (isCompleteMonth || isHistoricalMonth || hasAllWeeksFinalized) {
                     optionsHTML += `<option value="MONTH_${monthYear}">📊 ${monthYear} (Monthly Summary)</option>`;
-                    if (monthYear === 'September 2025') {
-                        console.log(`✅ Added September 2025 to monthly dropdown for ${this.currentTeam}`);
+                    if (monthYear === 'September 2025' || monthYear === 'October 2025') {
+                        console.log(`✅ Added ${monthYear} to monthly dropdown for ${this.currentTeam} (finalized: ${finalizedCount}/${monthWeeks.length})`);
                     }
-                } else if (monthYear === 'September 2025') {
-                    console.log(`❌ September 2025 NOT added to monthly dropdown for ${this.currentTeam}`);
+                } else if (monthYear === 'September 2025' || monthYear === 'October 2025') {
+                    console.log(`❌ ${monthYear} NOT added to monthly dropdown for ${this.currentTeam} (finalized: ${finalizedCount}/${monthWeeks.length})`);
                 }
             } else if (currentView === 'weekly') {
                 // In weekly view, only show weekly options (not completed months)
