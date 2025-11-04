@@ -9829,8 +9829,13 @@ class RealEfficiencyTracker {
     
     // Save team-specific data to localStorage with sync metadata
     saveTeamSpecificData() {
+        // CRITICAL FIX: Map team IDs to Supabase storage keys for Zero1 teams
+        const supabaseTeamIdForSave = this.currentTeam === 'zero1' ? 'zero1_bratish' : 
+                                       this.currentTeam === 'harish' ? 'zero1_harish' : 
+                                       this.currentTeam;
+        
         const teamKey = `${this.currentTeam}_week_entries`;
-        const finalizedKey = `${this.currentTeam}_finalized_reports`;
+        const finalizedKey = `${supabaseTeamIdForSave}_finalized_reports`; // Use Supabase team ID
         const historicalKey = `${this.currentTeam}_historical_data`;
         const syncKey = `${this.currentTeam}_sync_metadata`;
         const lockedMonthsKey = `${this.currentTeam}_locked_months`; // CRITICAL FIX: Save locked months
@@ -9850,11 +9855,12 @@ class RealEfficiencyTracker {
         localStorage.setItem(syncKey, JSON.stringify(syncMetadata));
         localStorage.setItem(lockedMonthsKey, JSON.stringify(this.lockedMonths[this.currentTeam] || [])); // Save locked months for this team
         
-        console.log(`Saved data for ${this.currentTeam}`, {
+        console.log(`Saved data for ${this.currentTeam} (Supabase ID: ${supabaseTeamIdForSave})`, {
             weekEntries: Object.keys(this.weekEntries).length,
             finalizedReports: Object.keys(this.finalizedReports || {}).length,
             historicalData: Object.keys(this.historicalData[this.currentTeam] || {}).length,
             lockedMonths: (this.lockedMonths[this.currentTeam] || []).length,
+            finalizedKey: finalizedKey,
             syncMetadata: syncMetadata
         });
     }
