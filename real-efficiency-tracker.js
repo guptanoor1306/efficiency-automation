@@ -38,7 +38,11 @@ class RealEfficiencyTracker {
             // CRITICAL FIX: Also filter out months where ALL weeks are finalized
             // This ensures that when a month is complete (all weeks finalized), 
             // those weeks disappear from weekly view and only show in monthly view
-            const finalizedWeeksForTeam = this.finalizedReports?.[this.currentTeam] || {};
+            // Map currentTeam to Supabase team ID for finalized reports lookup
+            const supabaseTeamId = this.currentTeam === 'zero1' ? 'zero1_bratish' : 
+                                   this.currentTeam === 'harish' ? 'zero1_harish' : 
+                                   this.currentTeam;
+            const finalizedWeeksForTeam = this.finalizedReports?.[supabaseTeamId] || this.finalizedReports?.[this.currentTeam] || {};
             
             weeks = weeks.filter(week => {
                 // Check if month is explicitly locked
@@ -4543,7 +4547,15 @@ class RealEfficiencyTracker {
         
         // CRITICAL FIX: Add finalized months that were filtered out from weekly view
         // Check all months in 2025 to see if they have all weeks finalized
-        const finalizedWeeksForTeam = this.finalizedReports?.[this.currentTeam] || {};
+        // Map currentTeam to Supabase team ID for finalized reports lookup
+        const supabaseTeamId = this.currentTeam === 'zero1' ? 'zero1_bratish' : 
+                               this.currentTeam === 'harish' ? 'zero1_harish' : 
+                               this.currentTeam;
+        const finalizedWeeksForTeam = this.finalizedReports?.[supabaseTeamId] || this.finalizedReports?.[this.currentTeam] || {};
+        
+        console.log(`🔍 Checking finalized weeks for ${this.currentTeam} (Supabase ID: ${supabaseTeamId})`);
+        console.log(`  - Finalized weeks found:`, Object.keys(finalizedWeeksForTeam));
+        
         const allWeeks = this.weekSystem.getWeeksForSelector();
         const allMonthYears = [...new Set(allWeeks.map(w => w.monthYear))];
         
@@ -4589,10 +4601,11 @@ class RealEfficiencyTracker {
             
             // CRITICAL FIX: Also check if all weeks of this month are finalized
             const monthWeeks = this.weekSystem.getWeeksByMonthName(monthYear.split(' ')[0], parseInt(monthYear.split(' ')[1]));
-            const finalizedWeeksForTeam = this.finalizedReports?.[this.currentTeam] || {};
+            // Use same Supabase team ID mapping as above
+            const teamFinalizedWeeks = this.finalizedReports?.[supabaseTeamId] || this.finalizedReports?.[this.currentTeam] || {};
             const finalizedCount = monthWeeks.filter(w => 
-                finalizedWeeksForTeam[w.id] !== undefined && 
-                finalizedWeeksForTeam[w.id] !== null
+                teamFinalizedWeeks[w.id] !== undefined && 
+                teamFinalizedWeeks[w.id] !== null
             ).length;
             const hasAllWeeksFinalized = finalizedCount === monthWeeks.length && monthWeeks.length > 0;
             
@@ -9493,12 +9506,29 @@ class RealEfficiencyTracker {
     // Load team-specific data from localStorage and sync with Google Sheets
     async loadTeamSpecificData() {
         const teamKey = `${this.currentTeam}_week_entries`;
-        const finalizedKey = `${this.currentTeam}_finalized_reports`;
+        let finalizedKey = `${this.currentTeam}_finalized_reports`;
         const lockedMonthsKey = `${this.currentTeam}_locked_months`; // CRITICAL FIX: Load locked months
+        
+        // CRITICAL FIX: Map team IDs to Supabase storage keys for Zero1 teams
+        const supabaseTeamId = this.currentTeam === 'zero1' ? 'zero1_bratish' : 
+                               this.currentTeam === 'harish' ? 'zero1_harish' : 
+                               this.currentTeam;
+        const supabaseFinalizedKey = `${supabaseTeamId}_finalized_reports`;
         
         // Load local data first
         this.weekEntries = JSON.parse(localStorage.getItem(teamKey) || '{}');
-        this.finalizedReports = JSON.parse(localStorage.getItem(finalizedKey) || '{}');
+        
+        // Try to load finalized reports from Supabase key first, then fallback to team key
+        let finalizedReportsData = localStorage.getItem(supabaseFinalizedKey);
+        if (!finalizedReportsData) {
+            finalizedReportsData = localStorage.getItem(finalizedKey);
+        }
+        this.finalizedReports = JSON.parse(finalizedReportsData || '{}');
+        
+        console.log(`🔍 Loading finalized reports for ${this.currentTeam} (Supabase ID: ${supabaseTeamId})`);
+        console.log(`  - Tried key: ${supabaseFinalizedKey}`);
+        console.log(`  - Found data: ${!!finalizedReportsData}`);
+        console.log(`  - Finalized reports structure:`, this.finalizedReports);
         
         // Load locked months for this team
         if (!this.lockedMonths[this.currentTeam]) {
