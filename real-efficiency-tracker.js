@@ -6303,12 +6303,20 @@ class RealEfficiencyTracker {
         const [monthName, yearStr] = monthYear.split(' ');
         const year = parseInt(yearStr);
         const monthWeeks = this.weekSystem.getWeeksByMonthName(monthName, year);
-        const finalizedWeeksForTeam = this.finalizedReports?.[this.currentTeam] || {};
+        // Map currentTeam to Supabase team ID for finalized reports lookup
+        const supabaseTeamIdForMonthly = this.currentTeam === 'zero1' ? 'zero1_bratish' : 
+                                         this.currentTeam === 'harish' ? 'zero1_harish' : 
+                                         this.currentTeam;
+        const finalizedWeeksForTeam = this.finalizedReports?.[supabaseTeamIdForMonthly] || this.finalizedReports?.[this.currentTeam] || {};
+        console.log(`🔍 Monthly view checking finalized weeks for ${this.currentTeam} (Supabase ID: ${supabaseTeamIdForMonthly})`);
+        console.log(`  - Checking month: ${monthYear}`);
+        console.log(`  - Found finalized weeks:`, Object.keys(finalizedWeeksForTeam));
         const finalizedCount = monthWeeks.filter(w => 
             finalizedWeeksForTeam[w.id] !== undefined && 
             finalizedWeeksForTeam[w.id] !== null
         ).length;
         const hasAllWeeksFinalized = finalizedCount === monthWeeks.length && monthWeeks.length > 0;
+        console.log(`  - Month weeks: ${monthWeeks.length}, Finalized: ${finalizedCount}, Has all finalized: ${hasAllWeeksFinalized}`);
         
         // Load from Supabase if month is locked OR all weeks are finalized
         if (isLockedMonth || hasAllWeeksFinalized) {
