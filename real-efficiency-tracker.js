@@ -441,13 +441,15 @@ class RealEfficiencyTracker {
             },
             'zero1': {
                 name: 'Zero1 - Bratish Team',
-                // Current active members (Abhishek left after March 2025)
+                // Current active members (from November 2025: added Dheeraj and Manoj from Shorts)
                 members: [
                     { name: 'Bratish' },
                     { name: 'Saiyam Verma' },
                     { name: 'Akriti Singh' },
                     { name: 'Manish Chauhan' },
-                    { name: 'Mohd. Wasim' }
+                    { name: 'Mohd. Wasim' },
+                    { name: 'Dheeraj Rajvania' }, // Moved from Shorts in November 2025
+                    { name: 'Manoj Kumar' } // Moved from Shorts in November 2025
                 ],
                 // Historical members (for data display in completed months)
                 historicalMembers: [
@@ -456,27 +458,34 @@ class RealEfficiencyTracker {
                     { name: 'Saiyam Verma' },
                     { name: 'Akriti Singh' },
                     { name: 'Manish Chauhan' },
-                    { name: 'Mohd. Wasim' }
+                    { name: 'Mohd. Wasim' },
+                    { name: 'Dheeraj Rajvania' },
+                    { name: 'Manoj Kumar' }
                 ],
                 workLevels: this.zero1LevelMapping,
                 sheetRange: 'Zero1 - Bratish - 2025!A1:BT1000'
             },
             harish: {
                 name: 'Zero1 - Harish Team',
-                // Current members (for new week entries from Feb onwards)
+                // Current members (from November 2025: added Divyanshu, Abhishek, and Aayush from Shorts)
                 members: [
                     { name: 'Harish Rawat' },
                     { name: 'Rishabh Bangwal' },
                     { name: 'Pratik Sharma' },
-                    { name: 'Vikas Kumar' }
+                    { name: 'Vikas Kumar' },
+                    { name: 'Divyanshu Mishra' }, // Moved from Shorts in November 2025
+                    { name: 'Abhishek Sharma' }, // Moved from Shorts in November 2025
+                    { name: 'Aayush Srivastava' } // Moved from Shorts in November 2025
                 ],
-                // Historical members (for data display in completed months, includes Divyanshu for January)
+                // Historical members (for data display in completed months)
                 historicalMembers: [
                     { name: 'Harish Rawat' },
                     { name: 'Rishabh Bangwal' },
                     { name: 'Pratik Sharma' },
-                    { name: 'Divyanshu Mishra' }, // Left after January 2025
-                    { name: 'Vikas Kumar' }
+                    { name: 'Divyanshu Mishra' },
+                    { name: 'Vikas Kumar' },
+                    { name: 'Abhishek Sharma' },
+                    { name: 'Aayush Srivastava' }
                 ],
                 workLevels: this.harishLevelMapping,
                 sheetRange: 'Zero1 - Harish - 2025!A1:BT1000'
@@ -504,19 +513,16 @@ class RealEfficiencyTracker {
             },
             shorts: {
                 name: 'Shorts Team',
-                members: [
-                    { name: 'Divyanshu Mishra' },
-                    { name: 'Abhishek Sharma' },
-                    { name: 'Dheeraj Rajvania' },
-                    { name: 'Aayush Srivastava' },
-                    { name: 'Manoj Kumar' }
-                ],
+                // ARCHIVED: Team dissolved in November 2025, members moved to Zero1 teams
+                archived: true,
+                archivedFrom: 'November 2025', // Team no longer active from this month onwards
+                members: [], // No active members (team archived)
                 historicalMembers: [
-                    { name: 'Divyanshu Mishra' },
-                    { name: 'Abhishek Sharma' },
-                    { name: 'Dheeraj Rajvania' },
-                    { name: 'Aayush Srivastava' },
-                    { name: 'Manoj Kumar' }
+                    { name: 'Divyanshu Mishra' }, // Moved to Zero1 Harish in November 2025
+                    { name: 'Abhishek Sharma' }, // Moved to Zero1 Harish in November 2025
+                    { name: 'Dheeraj Rajvania' }, // Moved to Zero1 Bratish in November 2025
+                    { name: 'Aayush Srivastava' }, // Moved to Zero1 Harish in November 2025
+                    { name: 'Manoj Kumar' } // Moved to Zero1 Bratish in November 2025
                 ],
                 workLevels: this.shortsLevelMapping,
                 sheetRange: 'Shorts - 2025!A1:BT1000'
@@ -4745,6 +4751,9 @@ class RealEfficiencyTracker {
                     console.log(`Fallback to first week: ${firstWeek.label}`);
                 }
             }
+            
+            // Update team selector to hide/show archived teams based on new current week
+            this.updateTeamSelectorOptions();
         } catch (error) {
             console.warn('Error setting current week:', error);
             // Ensure we have some week selected
@@ -5750,6 +5759,9 @@ class RealEfficiencyTracker {
                     // Automatically load data for all members when week changes
                     this.loadWeekData();
                     // Update summary stats
+                    
+                    // Update team selector to hide/show archived teams based on new current week
+                    this.updateTeamSelectorOptions();
                 }
             }
         });
@@ -7622,8 +7634,19 @@ class RealEfficiencyTracker {
     setupTeamSwitching() {
         const teamSelect = document.getElementById('team-select-header');
         if (teamSelect) {
+            // Filter out archived teams for current period
+            this.updateTeamSelectorOptions();
+            
             teamSelect.addEventListener('change', async (e) => {
                 const newTeam = e.target.value;
+                
+                // Prevent switching to archived teams for current week
+                if (this.isTeamArchivedForCurrentWeek(newTeam)) {
+                    this.showMessage(`⚠️ ${this.teamConfigs[newTeam]?.name} is no longer active from ${this.teamConfigs[newTeam]?.archivedFrom}`, 'warning');
+                    teamSelect.value = this.currentTeam; // Reset to current team
+                    return;
+                }
+                
                 if (newTeam !== this.currentTeam) {
                     this.showMessage('Switching teams...', 'info');
                     await this.switchTeam(newTeam);
@@ -7631,6 +7654,57 @@ class RealEfficiencyTracker {
             });
         }
         
+    }
+    
+    // Check if team is archived for the current week
+    isTeamArchivedForCurrentWeek(teamId) {
+        const teamConfig = this.teamConfigs[teamId];
+        if (!teamConfig || !teamConfig.archived) return false;
+        
+        // Check if current week is on or after the archived date
+        if (this.currentWeek && teamConfig.archivedFrom) {
+            const currentWeekDate = new Date(this.currentWeek.startDate);
+            const [month, year] = teamConfig.archivedFrom.split(' ');
+            const archiveDate = new Date(`${month} 1, ${year}`);
+            
+            return currentWeekDate >= archiveDate;
+        }
+        
+        return false;
+    }
+    
+    // Update team selector to hide/show archived teams based on current week
+    updateTeamSelectorOptions() {
+        const teamSelect = document.getElementById('team-select-header');
+        if (!teamSelect) return;
+        
+        // Go through all options and hide archived teams for current period
+        Array.from(teamSelect.options).forEach(option => {
+            const teamId = option.value;
+            const teamConfig = this.teamConfigs[teamId];
+            
+            if (teamConfig && teamConfig.archived) {
+                // Check if current week is on or after the archived date
+                if (this.currentWeek && teamConfig.archivedFrom) {
+                    const currentWeekDate = new Date(this.currentWeek.startDate);
+                    const [month, year] = teamConfig.archivedFrom.split(' ');
+                    const archiveDate = new Date(`${month} 1, ${year}`);
+                    
+                    if (currentWeekDate >= archiveDate) {
+                        option.style.display = 'none';
+                        option.disabled = true;
+                        console.log(`🚫 Hiding archived team ${teamId} from selector (archived from ${teamConfig.archivedFrom})`);
+                    } else {
+                        option.style.display = '';
+                        option.disabled = false;
+                    }
+                } else {
+                    // No current week set, show all teams
+                    option.style.display = '';
+                    option.disabled = false;
+                }
+            }
+        });
     }
     
     async switchTeam(newTeam) {
