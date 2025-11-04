@@ -6273,8 +6273,20 @@ class RealEfficiencyTracker {
         // Check if this month is locked (needs to be loaded from Supabase)
         const isLockedMonth = this.lockedMonths[this.currentTeam]?.includes(monthYear);
         
-        if (isLockedMonth) {
-            console.log(`📊 Loading ${monthYear} data from Supabase for monthly view...`);
+        // CRITICAL FIX: Also check if all weeks are finalized (even if not explicitly locked)
+        const [monthName, yearStr] = monthYear.split(' ');
+        const year = parseInt(yearStr);
+        const monthWeeks = this.weekSystem.getWeeksByMonthName(monthName, year);
+        const finalizedWeeksForTeam = this.finalizedReports?.[this.currentTeam] || {};
+        const finalizedCount = monthWeeks.filter(w => 
+            finalizedWeeksForTeam[w.id] !== undefined && 
+            finalizedWeeksForTeam[w.id] !== null
+        ).length;
+        const hasAllWeeksFinalized = finalizedCount === monthWeeks.length && monthWeeks.length > 0;
+        
+        // Load from Supabase if month is locked OR all weeks are finalized
+        if (isLockedMonth || hasAllWeeksFinalized) {
+            console.log(`📊 Loading ${monthYear} data from Supabase for monthly view (locked: ${isLockedMonth}, finalized: ${finalizedCount}/${monthWeeks.length})...`);
             console.log('📊 Current monthData structure:', monthData);
             this.updateMonthlyLoadingProgress(40, 'Loading data from database...');
             
