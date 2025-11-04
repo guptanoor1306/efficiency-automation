@@ -679,8 +679,9 @@ class RealEfficiencyTracker {
             // September 2025 should be locked for all teams since all weeks are complete
             'b2b': ['September 2025'],
             'varsity': ['September 2025'],
-            'zero1': ['September 2025'],
-            'harish': ['September 2025'],
+            // Zero1 teams: Lock Sept AND Oct (new members joined Nov, so those months are complete)
+            'zero1': ['September 2025', 'October 2025'],
+            'harish': ['September 2025', 'October 2025'],
             'audio': ['September 2025'],
             'shorts': ['September 2025'],
             'graphics': ['September 2025'],
