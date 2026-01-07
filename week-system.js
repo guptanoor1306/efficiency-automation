@@ -15,9 +15,9 @@ class WeekSystem {
         const weeks = [];
         const currentDate = new Date();
         
-        // Generate weeks for 2025 only (up to December)
-        const startYear = 2025;
-        const endYear = 2025;
+        // Generate weeks for 2026 (all months)
+        const startYear = 2026;
+        const endYear = 2026;
         
         for (let year = startYear; year <= endYear; year++) {
             const monthLimit = 11; // December (0-based index)

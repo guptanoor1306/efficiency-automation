@@ -15,22 +15,8 @@ class RealEfficiencyTracker {
         this.getFilteredWeeks = () => {
             let weeks = this.weekSystem.getWeeksForSelector();
             
-            // For Graphics, Tech, Product, Pre-production, Content, and Social teams, only return weeks from September 2025 onwards
-            if (this.currentTeam === 'graphics' || this.currentTeam === 'tech' || this.currentTeam === 'product' || this.currentTeam === 'preproduction' || this.currentTeam === 'content' || this.currentTeam === 'social') {
-                weeks = weeks.filter(week => {
-                    // Parse monthYear string (e.g., "September 2025")
-                    const [monthName, yearStr] = week.monthYear.split(' ');
-                    const year = parseInt(yearStr);
-                    
-                    // Only show September 2025 onwards
-                    if (year > 2025) return true;
-                    if (year === 2025) {
-                        const monthIndex = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].indexOf(monthName);
-                        return monthIndex >= 8; // September is index 8
-                    }
-                    return false;
-                });
-            }
+            // For 2026, all teams show all months (January to December 2026)
+            // No special filtering needed for Graphics, Tech, Product, Pre-production, Content, and Social teams anymore
             
             // Filter out locked months from weekly view
             const lockedMonthsForTeam = this.lockedMonths[this.currentTeam] || [];
@@ -159,44 +145,23 @@ class RealEfficiencyTracker {
 
         // Audio team work types
         this.audioWorkTypes = {
-            'reel': { level: 'L1', name: 'Reel', perDay: 3 },
-            'short_videos_ads': { level: 'L1', name: 'Short Videos/Ads', perDay: 2 },
+            'reel': { level: 'L1', name: 'Reel', perDay: 5 },
+            'short_videos_ads': { level: 'L1', name: 'Short Videos/Ads', perDay: 3 },
             'live_shoot_1hr': { level: 'L1', name: 'Live Shoot - 1 Hour', perDay: 8 },
-            'dubbing_1hr': { level: 'L1', name: 'Dubbing - 1 Hour', perDay: 6 },
-            'master_upload': { level: 'L1', name: 'Master Upload', perDay: 3 },
-            'podcast_1hr_no_animation': { level: 'L2', name: 'Podcast (1 Hr) w/o Animation', perDay: 1 },
+            'podcast_1hr_no_animation': { level: 'L2', name: 'Podcast (1 Hr) w/o Animation', perDay: 2 },
             'yt_long_form': { level: 'L3', name: 'YT Long Form', perDay: 0.67 },
-            'video_8_10_mins_lf': { level: 'L3', name: 'Video (8-10 mins) LF', perDay: 0.67 }
+            'video_8_10_mins_lf': { level: 'L3', name: 'Video (8-10 mins) LF', perDay: 0.67 },
+            'vd': { level: 'L3', name: 'VD', perDay: 0.67 },
+            'storyboarding': { level: 'L3', name: 'Storyboarding', perDay: 8 },
+            'editing': { level: 'L3', name: 'Editing', perDay: 8 }
         };
         
         this.audioLevelMapping = {
-            'L1': ['reel', 'short_videos_ads', 'live_shoot_1hr', 'dubbing_1hr', 'master_upload'],
+            'L1': ['reel', 'short_videos_ads', 'live_shoot_1hr'],
             'L2': ['podcast_1hr_no_animation'],
-            'L3': ['yt_long_form', 'video_8_10_mins_lf']
+            'L3': ['yt_long_form', 'video_8_10_mins_lf', 'vd', 'storyboarding', 'editing']
         };
 
-        // Shorts team work types (new levels from screenshot)
-        this.shortsWorkTypes = {
-            'ost': { level: 'L1', name: 'OST', perDay: 20 },
-            'screen_capture': { level: 'L1', name: 'Screen Capture', perDay: 2 },
-            'hand_animation': { level: 'L1', name: 'Hand Animation', perDay: 6 },
-            'first_cut_storyboard': { level: 'L2', name: '1st Cut + Storyboard', perDay: 1 },
-            'script_discussion': { level: 'L2', name: 'Script Discussion + Moodboard', perDay: 3 },
-            'thumbnail_ideation': { level: 'L2', name: 'Thumbnail Ideation', perDay: 4 },
-            'script_review': { level: 'L2', name: 'Script Review', perDay: 3 },
-            'shoot_data_copy': { level: 'L2', name: 'Shoot + Data copy', perDay: 3 },
-            'fss_animation': { level: 'L3', name: 'FSS Animation', perDay: 7 },
-            'character_animation': { level: 'L3', name: 'Character Animation', perDay: 1 },
-            'vo_animation': { level: 'L3', name: 'VO Animation', perDay: 1 },
-            'intro': { level: 'L3', name: 'Intro', perDay: 0.15 },
-            'shot_division': { level: 'L3', name: 'Shot Division', perDay: 0.67 }
-        };
-        
-        this.shortsLevelMapping = {
-            'L1': ['ost', 'screen_capture', 'hand_animation'],
-            'L2': ['first_cut_storyboard', 'script_discussion', 'thumbnail_ideation', 'script_review', 'shoot_data_copy'],
-            'L3': ['fss_animation', 'character_animation', 'vo_animation', 'intro', 'shot_division']
-        };
 
         
         // Graphics team work types (updated structure with new levels)
@@ -388,7 +353,7 @@ class RealEfficiencyTracker {
             'strategy_presentations': { level: 'All', name: 'Strategy (Presentations)', perDay: 7 },
             'shoot': { level: 'All', name: 'Shoot', perDay: 7 },
             'retro': { level: 'All', name: 'Retro', perDay: 28 },
-            'rejection_meeting': { level: 'All', name: 'Rejection Meeting', perDay: 3 }
+            'rejection_meeting': { level: 'All', name: 'Rejection Meeting', perDay: 7 }
         };
 
         // Social team level mapping (category-based)
@@ -415,6 +380,13 @@ class RealEfficiencyTracker {
                     { name: 'Deepak', level: 'L1' },
                     { name: 'Anjali Rawat', level: 'L2' },
                     { name: 'Swati Juyal', level: 'L2' },
+                    { name: 'Deepak Kumar', level: 'L3' }
+                ],
+                historicalMembers: [
+                    { name: 'Deepak', level: 'L1' },
+                    { name: 'Anjali Rawat', level: 'L2' },
+                    { name: 'Swati Juyal', level: 'L2' },
+                    { name: 'Satyam Gupta', level: 'L3' },
                     { name: 'Deepak Kumar', level: 'L3' }
                 ],
                 // Note: Satyam Gupta removed from active members for Sept 2025 onwards but remains in historical data
@@ -515,22 +487,6 @@ class RealEfficiencyTracker {
                 workLevels: this.audioLevelMapping,
                 sheetRange: 'Audio - 2025!A1:BT1000'
             },
-            shorts: {
-                name: 'Shorts Team',
-                // ARCHIVED: Team dissolved in November 2025, members moved to Zero1 teams
-                archived: true,
-                archivedFrom: 'November 2025', // Team no longer active from this month onwards
-                members: [], // No active members (team archived)
-                historicalMembers: [
-                    { name: 'Divyanshu Mishra' }, // Moved to Zero1 Harish in November 2025
-                    { name: 'Abhishek Sharma' }, // Moved to Zero1 Harish in November 2025
-                    { name: 'Dheeraj Rajvania' }, // Moved to Zero1 Bratish in November 2025
-                    { name: 'Aayush Srivastava' }, // Moved to Zero1 Harish in November 2025
-                    { name: 'Manoj Kumar' } // Moved to Zero1 Bratish in November 2025
-                ],
-                workLevels: this.shortsLevelMapping,
-                sheetRange: 'Shorts - 2025!A1:BT1000'
-            },
             graphics: {
                 name: 'Graphics Team',
                 members: [
@@ -569,7 +525,8 @@ class RealEfficiencyTracker {
                     { name: 'Tilak' },
                     { name: 'Rishi' },
                     { name: 'Chandan' },
-                    { name: 'Harshita' }
+                    { name: 'Harshita' },
+                    { name: 'Tushar' }
                 ],
                 historicalMembers: [
                     { name: 'Supriya' },
@@ -610,7 +567,6 @@ class RealEfficiencyTracker {
                 ],
                 historicalMembers: [
                     { name: 'Vandit' },
-                    { name: 'Bhavya Oberoi' },
                     { name: 'Abid' },
                     { name: 'Mudit' },
                     { name: 'Nikhil' }
@@ -622,9 +578,6 @@ class RealEfficiencyTracker {
                 name: 'Content Team',
                 members: [
                     { name: 'Nishita' },
-                    { name: 'Akshat Mandalgi' },
-                    { name: 'Urvish' },
-                    { name: 'Meghna' },
                     { name: 'Shuchita' }
                 ],
                 historicalMembers: [
@@ -679,21 +632,20 @@ class RealEfficiencyTracker {
         this.slackWebhookUrl = ''; // Will be set by user
         
         // Month locking system - tracks which months are locked for each team
+        // 2025 completed months (September-December) remain locked
+        // 2026 months will be locked as they are completed
         this.lockedMonths = {
-            // September 2025 should be locked for all teams since all weeks are complete
-            'b2b': ['September 2025'],
-            'varsity': ['September 2025'],
-            // Zero1 teams: Lock Sept AND Oct (new members joined Nov, so those months are complete)
-            'zero1': ['September 2025', 'October 2025'],
-            'harish': ['September 2025', 'October 2025'],
-            'audio': ['September 2025'],
-            'shorts': ['September 2025'],
-            'graphics': ['September 2025'],
-            'tech': ['September 2025'],
-            'product': ['September 2025'],
-            'preproduction': ['September 2025'],
-            'content': ['September 2025'],
-            'social': ['September 2025']
+            'b2b': ['September 2025', 'October 2025', 'November 2025', 'December 2025'],
+            'varsity': ['September 2025', 'October 2025', 'November 2025', 'December 2025'],
+            'zero1': ['September 2025', 'October 2025', 'November 2025', 'December 2025'],
+            'harish': ['September 2025', 'October 2025', 'November 2025', 'December 2025'],
+            'audio': ['September 2025', 'October 2025', 'November 2025', 'December 2025'],
+            'graphics': ['September 2025', 'October 2025', 'November 2025', 'December 2025'],
+            'tech': ['September 2025', 'October 2025', 'November 2025', 'December 2025'],
+            'product': ['September 2025', 'October 2025', 'November 2025', 'December 2025'],
+            'preproduction': ['September 2025', 'October 2025', 'November 2025', 'December 2025'],
+            'content': ['September 2025', 'October 2025', 'November 2025', 'December 2025'],
+            'social': ['September 2025', 'October 2025', 'November 2025', 'December 2025']
         };
         
         // Historical data - January to May 2025 (completed months)
@@ -3660,14 +3612,13 @@ class RealEfficiencyTracker {
             console.log('📊 Loading all finalized weeks from Supabase...');
             
             // Get all teams - map display IDs to storage IDs for Supabase
-            const allTeams = ['b2b', 'varsity', 'zero1_bratish', 'zero1_harish', 'audio', 'shorts', 'graphics', 'tech', 'product', 'preproduction', 'content', 'social'];
+            const allTeams = ['b2b', 'varsity', 'zero1_bratish', 'zero1_harish', 'audio', 'graphics', 'tech', 'product', 'preproduction', 'content', 'social'];
             const teamStorageMapping = {
                 'zero1_bratish': 'zero1',
                 'zero1_harish': 'harish',
                 'varsity': 'varsity',
                 'b2b': 'b2b',
                 'audio': 'audio',
-                'shorts': 'shorts',
                 'graphics': 'graphics',
                 'tech': 'tech',
                 'product': 'product',
@@ -4514,21 +4465,20 @@ class RealEfficiencyTracker {
         const activeViewBtn = document.querySelector('.view-btn.active');
         const currentView = activeViewBtn ? activeViewBtn.getAttribute('data-view') : 'weekly';
         
-        // Get available historical months for current team
+        // Get available historical months for current team (2025 completed months)
         const getHistoricalMonths = (teamId) => {
             const monthMap = {
-                'b2b': ['January 2025', 'February 2025', 'March 2025', 'April 2025', 'May 2025', 'June 2025', 'July 2025', 'August 2025', 'September 2025'],
-                'varsity': ['January 2025', 'February 2025', 'March 2025', 'April 2025', 'May 2025', 'June 2025', 'July 2025', 'August 2025', 'September 2025'],
-                'zero1': ['January 2025', 'February 2025', 'March 2025', 'April 2025', 'May 2025', 'June 2025', 'July 2025', 'August 2025', 'September 2025'],
-                'harish': ['January 2025', 'February 2025', 'March 2025', 'April 2025', 'May 2025', 'June 2025', 'July 2025', 'August 2025', 'September 2025'],
-                'audio': ['January 2025', 'February 2025', 'March 2025', 'April 2025', 'May 2025', 'June 2025', 'July 2025', 'August 2025', 'September 2025'],
-                'shorts': ['February 2025', 'March 2025', 'April 2025', 'May 2025', 'June 2025', 'July 2025', 'August 2025', 'September 2025'],
-                'graphics': ['June 2025', 'July 2025', 'August 2025', 'September 2025'],
-                'tech': ['August 2025', 'September 2025'],
-                'product': ['August 2025', 'September 2025'],
-                'preproduction': ['August 2025', 'September 2025'],
-                'content': ['August 2025', 'September 2025'],
-                'social': ['July 2025', 'August 2025', 'September 2025']
+                'b2b': ['January 2025', 'February 2025', 'March 2025', 'April 2025', 'May 2025', 'June 2025', 'July 2025', 'August 2025', 'September 2025', 'October 2025', 'November 2025', 'December 2025'],
+                'varsity': ['January 2025', 'February 2025', 'March 2025', 'April 2025', 'May 2025', 'June 2025', 'July 2025', 'August 2025', 'September 2025', 'October 2025', 'November 2025', 'December 2025'],
+                'zero1': ['January 2025', 'February 2025', 'March 2025', 'April 2025', 'May 2025', 'June 2025', 'July 2025', 'August 2025', 'September 2025', 'October 2025', 'November 2025', 'December 2025'],
+                'harish': ['January 2025', 'February 2025', 'March 2025', 'April 2025', 'May 2025', 'June 2025', 'July 2025', 'August 2025', 'September 2025', 'October 2025', 'November 2025', 'December 2025'],
+                'audio': ['January 2025', 'February 2025', 'March 2025', 'April 2025', 'May 2025', 'June 2025', 'July 2025', 'August 2025', 'September 2025', 'October 2025', 'November 2025', 'December 2025'],
+                'graphics': ['September 2025', 'October 2025', 'November 2025', 'December 2025'],
+                'tech': ['September 2025', 'October 2025', 'November 2025', 'December 2025'],
+                'product': ['September 2025', 'October 2025', 'November 2025', 'December 2025'],
+                'preproduction': ['September 2025', 'October 2025', 'November 2025', 'December 2025'],
+                'content': ['September 2025', 'October 2025', 'November 2025', 'December 2025'],
+                'social': ['September 2025', 'October 2025', 'November 2025', 'December 2025']
             };
             return monthMap[teamId] || [];
         };
@@ -6299,28 +6249,39 @@ class RealEfficiencyTracker {
         // Check if this month is locked (needs to be loaded from Supabase)
         const isLockedMonth = this.lockedMonths[this.currentTeam]?.includes(monthYear);
         
-        // CRITICAL FIX: Also check if all weeks are finalized (even if not explicitly locked)
+        // CRITICAL FIX: For 2025 months, check finalized reports directly since week system only has 2026
         const [monthName, yearStr] = monthYear.split(' ');
         const year = parseInt(yearStr);
-        const monthWeeks = this.weekSystem.getWeeksByMonthName(monthName, year);
+        
         // Map currentTeam to Supabase team ID for finalized reports lookup
         const supabaseTeamIdForMonthly = this.currentTeam === 'zero1' ? 'zero1_bratish' : 
                                          this.currentTeam === 'harish' ? 'zero1_harish' : 
                                          this.currentTeam;
         const finalizedWeeksForTeam = this.finalizedReports?.[supabaseTeamIdForMonthly] || this.finalizedReports?.[this.currentTeam] || {};
+        
+        // Count finalized weeks for this month by parsing weekIds
+        const monthFinalizedWeeks = Object.keys(finalizedWeeksForTeam).filter(weekId => {
+            if (weekId.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                const [weekYear, weekMonth] = weekId.split('-');
+                const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
+                                  'July', 'August', 'September', 'October', 'November', 'December'];
+                const weekMonthName = monthNames[parseInt(weekMonth) - 1];
+                return weekMonthName === monthName && weekYear === yearStr;
+            }
+            return false;
+        });
+        
+        const finalizedCount = monthFinalizedWeeks.length;
+        const hasAllWeeksFinalized = finalizedCount >= 4; // Typical month has 4 weeks
+        
         console.log(`🔍 Monthly view checking finalized weeks for ${this.currentTeam} (Supabase ID: ${supabaseTeamIdForMonthly})`);
         console.log(`  - Checking month: ${monthYear}`);
-        console.log(`  - Found finalized weeks:`, Object.keys(finalizedWeeksForTeam));
-        const finalizedCount = monthWeeks.filter(w => 
-            finalizedWeeksForTeam[w.id] !== undefined && 
-            finalizedWeeksForTeam[w.id] !== null
-        ).length;
-        const hasAllWeeksFinalized = finalizedCount === monthWeeks.length && monthWeeks.length > 0;
-        console.log(`  - Month weeks: ${monthWeeks.length}, Finalized: ${finalizedCount}, Has all finalized: ${hasAllWeeksFinalized}`);
+        console.log(`  - Found finalized weeks:`, monthFinalizedWeeks);
+        console.log(`  - Finalized count: ${finalizedCount}, Has all finalized: ${hasAllWeeksFinalized}`);
         
         // Load from Supabase if month is locked OR all weeks are finalized
         if (isLockedMonth || hasAllWeeksFinalized) {
-            console.log(`📊 Loading ${monthYear} data from Supabase for monthly view (locked: ${isLockedMonth}, finalized: ${finalizedCount}/${monthWeeks.length})...`);
+            console.log(`📊 Loading ${monthYear} data from Supabase for monthly view (locked: ${isLockedMonth}, finalized: ${finalizedCount} weeks)...`);
             console.log('📊 Current monthData structure:', monthData);
             this.updateMonthlyLoadingProgress(40, 'Loading data from database...');
             
@@ -9077,13 +9038,57 @@ class RealEfficiencyTracker {
             const [monthName, yearStr] = monthYear.split(' ');
             const year = parseInt(yearStr);
             
-            // Get all weeks for the specified month and year
-            const monthWeeks = this.weekSystem.getWeeksByMonthName(monthName, year);
-            const teamMembers = this.getActiveTeamMembers(this.currentTeam);
+            // CRITICAL FIX: For 2025 months, get weeks from finalized reports since week system only has 2026
+            let monthWeeks = [];
+            
+            // Map currentTeam to Supabase team ID
+            const supabaseTeamId = this.currentTeam === 'zero1' ? 'zero1_bratish' : 
+                                   this.currentTeam === 'harish' ? 'zero1_harish' : 
+                                   this.currentTeam;
+            const finalizedWeeksForTeam = this.finalizedReports?.[supabaseTeamId] || this.finalizedReports?.[this.currentTeam] || {};
+            
+            // Get weekIds for this month from finalized reports
+            const monthWeekIds = Object.keys(finalizedWeeksForTeam).filter(weekId => {
+                if (weekId.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                    const [weekYear, weekMonth] = weekId.split('-');
+                    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
+                                      'July', 'August', 'September', 'October', 'November', 'December'];
+                    const weekMonthName = monthNames[parseInt(weekMonth) - 1];
+                    return weekMonthName === monthName && weekYear === yearStr;
+                }
+                return false;
+            }).sort(); // Sort chronologically
+            
+            // Convert weekIds to week objects
+            monthWeeks = monthWeekIds.map(weekId => ({ id: weekId, workingDays: 5 }));
+            
+            // CRITICAL FIX: For 2025 data, use historicalMembers; for 2026+ use current members
+            // Fallback to current members if historicalMembers not defined
+            const teamMembers = year <= 2025 
+                ? (this.teamConfigs[this.currentTeam].historicalMembers || this.teamConfigs[this.currentTeam].members)
+                : this.getActiveTeamMembers(this.currentTeam);
             
             console.log(`📊 Loading ${monthYear} data for team: ${this.currentTeam}`);
+            console.log(`📊 Using ${year <= 2025 ? 'historicalMembers' : 'current members'} for year ${year}`);
             console.log(`📊 ${monthName} ${year} weeks found: ${monthWeeks.length}`, monthWeeks.map(w => w.id));
-            console.log(`📊 Team members: ${teamMembers.length}`, teamMembers.map(m => m.name || m));
+            console.log(`📊 Team members (${teamMembers.length}):`, teamMembers.map(m => m.name || m));
+            
+            // CRITICAL DEBUG: Check if this team has finalized weeks in localStorage
+            const finalizedKey = `${this.currentTeam}_finalized_reports`;
+            const storedFinalized = localStorage.getItem(finalizedKey);
+            console.log(`📦 Checking localStorage key: ${finalizedKey}`);
+            console.log(`📦 Has finalized data: ${!!storedFinalized}`);
+            if (storedFinalized) {
+                try {
+                    const parsed = JSON.parse(storedFinalized);
+                    console.log(`📦 Finalized report structure:`, Object.keys(parsed));
+                    if (parsed[this.currentTeam]) {
+                        console.log(`📦 Finalized weeks for ${this.currentTeam}:`, Object.keys(parsed[this.currentTeam]));
+                    }
+                } catch(e) {
+                    console.error('📦 Error parsing finalized data:', e);
+                }
+            }
             
             let totalTeamOutput = 0;
             let totalTeamWorkingDays = 0;
@@ -9268,7 +9273,7 @@ class RealEfficiencyTracker {
     async loadAllTeamsFinalizedReports() {
         console.log('\n📋 Loading finalized reports for all teams from localStorage...');
         
-        const allTeams = ['b2b', 'varsity', 'zero1_bratish', 'zero1_harish', 'audio', 'shorts', 'graphics', 'tech', 'product', 'preproduction', 'content', 'social'];
+        const allTeams = ['b2b', 'varsity', 'zero1_bratish', 'zero1_harish', 'audio', 'graphics', 'tech', 'product', 'preproduction', 'content', 'social'];
         
         // Map team IDs to historical keys for consistency with getTeamMonthlyData
         const teamMapping = {
@@ -11571,7 +11576,7 @@ class RealEfficiencyTracker {
 
     setupTeamFilters() {
         const teamFiltersContainer = document.getElementById('team-filters');
-        const allTeams = ['b2b', 'varsity', 'zero1_bratish', 'zero1_harish', 'audio', 'shorts', 'graphics', 'tech', 'product', 'preproduction', 'content', 'social'];
+        const allTeams = ['b2b', 'varsity', 'zero1_bratish', 'zero1_harish', 'audio', 'graphics', 'tech', 'product', 'preproduction', 'content', 'social'];
         
         const teamDisplayNames = {
             'b2b': 'B2B Team',
@@ -11579,7 +11584,6 @@ class RealEfficiencyTracker {
             'zero1_bratish': 'Zero1 - Bratish',
             'zero1_harish': 'Zero1 - Harish',
             'audio': 'Audio Team',
-            'shorts': 'Shorts Team',
             'graphics': 'Graphics Team',
             'tech': 'Tech Team',
             'product': 'Product Team',
@@ -11666,21 +11670,21 @@ class RealEfficiencyTracker {
                             console.log(`🔍 Found weekId: ${weekId}`);
                             // Only add valid week IDs (YYYY-MM-DD format), not metadata properties
                             if (weekId.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                                // Check if this week is from a locked month before adding
-                                const week = this.weekSystem.getWeeksForSelector().find(w => w.id === weekId);
-                                if (week) {
-                                    const monthYear = week.monthYear; // Use monthYear directly
-                                    const isMonthLocked = this.isMonthLockedForCompany(monthYear);
-                                    
-                                    if (isMonthLocked) {
-                                        console.log(`🔒 NOT adding locked month week ${weekId} (${monthYear}) to allWeeks`);
-                                    } else {
-                                allWeeks.add(weekId);
-                                console.log(`✅ Added week ${weekId} to allWeeks`);
-                                    }
+                                // Parse month/year from weekId (format: YYYY-MM-DD)
+                                const [year, month, day] = weekId.split('-');
+                                const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
+                                                  'July', 'August', 'September', 'October', 'November', 'December'];
+                                const monthName = monthNames[parseInt(month) - 1];
+                                const monthYear = `${monthName} ${year}`;
+                                
+                                // Check if this week is from a locked month
+                                const isMonthLocked = this.isMonthLockedForCompany(monthYear);
+                                
+                                if (isMonthLocked) {
+                                    console.log(`🔒 NOT adding locked month week ${weekId} (${monthYear}) to allWeeks`);
                                 } else {
                                     allWeeks.add(weekId);
-                                    console.log(`✅ Added week ${weekId} to allWeeks (no month info)`);
+                                    console.log(`✅ Added week ${weekId} to allWeeks`);
                                 }
                             }
                         });
@@ -11690,16 +11694,17 @@ class RealEfficiencyTracker {
                 
                 Array.from(allWeeks).sort().forEach(weekId => {
                     try {
-                        // Check if this week belongs to a locked month
-                        const week = this.weekSystem.getWeeksForSelector().find(w => w.id === weekId);
-                        if (week) {
-                            const monthYear = week.monthYear; // Use monthYear directly
-                            
-                            // Dynamic check: Skip any locked month weeks
-                            if (this.isMonthLockedForCompany(monthYear)) {
-                                console.log(`🔒 EXPLICITLY skipping locked month week ${weekId} (${monthYear})`);
-                                return;
-                            }
+                        // Parse month/year from weekId (format: YYYY-MM-DD) for 2025 compatibility
+                        const [year, month, day] = weekId.split('-');
+                        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
+                                          'July', 'August', 'September', 'October', 'November', 'December'];
+                        const monthName = monthNames[parseInt(month) - 1];
+                        const monthYear = `${monthName} ${year}`;
+                        
+                        // Dynamic check: Skip any locked month weeks
+                        if (this.isMonthLockedForCompany(monthYear)) {
+                            console.log(`🔒 EXPLICITLY skipping locked month week ${weekId} (${monthYear})`);
+                            return;
                         }
                         
                         const weekNumber = this.getWeekNumberInMonth(weekId);
@@ -11746,7 +11751,7 @@ class RealEfficiencyTracker {
         console.log(`🔒 Locking ${monthYear} for all teams...`);
         
         try {
-            const allTeams = ['b2b', 'varsity', 'zero1_bratish', 'zero1_harish', 'audio', 'shorts', 'graphics', 'tech', 'product', 'preproduction', 'content', 'social'];
+            const allTeams = ['b2b', 'varsity', 'zero1_bratish', 'zero1_harish', 'audio', 'graphics', 'tech', 'product', 'preproduction', 'content', 'social'];
             const lockedTeams = [];
             
             for (const teamId of allTeams) {
@@ -11840,9 +11845,10 @@ class RealEfficiencyTracker {
 
     // Check if a month is locked for Company View (any team has it locked or it's in monthly view)
     isMonthLockedForCompany(monthYear) {
-        // EXPLICIT CHECK: September 2025 should always be considered locked
-        if (monthYear === 'September 2025') {
-            console.log(`🔒 September 2025 is EXPLICITLY locked`);
+        // EXPLICIT CHECK: All 2025 locked months (September-December)
+        const locked2025Months = ['September 2025', 'October 2025', 'November 2025', 'December 2025'];
+        if (locked2025Months.includes(monthYear)) {
+            console.log(`🔒 ${monthYear} is EXPLICITLY locked (2025 completed data)`);
             return true;
         }
         
@@ -11886,57 +11892,57 @@ class RealEfficiencyTracker {
         });
         
         // CRITICAL FIX: Also check for months where ALL weeks are finalized
-        // This ensures that months like October 2025 appear in the dropdown when all weeks are done
+        // For 2025 months, we need to check finalized reports directly since week system only has 2026
         console.log('🔍 Checking finalized reports for months...', this.finalizedReports);
         if (this.finalizedReports) {
             Object.keys(this.finalizedReports).forEach(teamId => {
                 const teamFinalizedWeeks = this.finalizedReports[teamId];
                 console.log(`🔍 Checking finalized weeks for ${teamId}:`, teamFinalizedWeeks);
                 if (teamFinalizedWeeks && typeof teamFinalizedWeeks === 'object') {
-                    // Group finalized weeks by month
+                    // Group finalized weeks by month (parse from weekId directly)
                     const monthsWithFinalizedWeeks = {};
                     Object.keys(teamFinalizedWeeks).forEach(weekId => {
-                        // Find the week in the week system to get its month/year
-                        const week = this.weekSystem.getWeeksForSelector().find(w => w.id === weekId);
-                        if (week) {
-                            const monthYear = `${week.monthName} ${week.year}`;
+                        // Parse weekId format: YYYY-MM-DD
+                        if (weekId.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                            const [year, month, day] = weekId.split('-');
+                            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
+                                              'July', 'August', 'September', 'October', 'November', 'December'];
+                            const monthName = monthNames[parseInt(month) - 1];
+                            const monthYear = `${monthName} ${year}`;
+                            
                             if (!monthsWithFinalizedWeeks[monthYear]) {
                                 monthsWithFinalizedWeeks[monthYear] = {
                                     finalizedCount: 0,
-                                    totalWeeks: 0
+                                    weeks: []
                                 };
                             }
                             monthsWithFinalizedWeeks[monthYear].finalizedCount++;
+                            monthsWithFinalizedWeeks[monthYear].weeks.push(weekId);
                         }
                     });
                     
                     console.log(`📊 ${teamId} months with finalized weeks:`, monthsWithFinalizedWeeks);
                     
-                    // Check if all weeks are finalized for each month
+                    // For each month with finalized weeks, check if all 4 weeks are finalized
                     Object.keys(monthsWithFinalizedWeeks).forEach(monthYear => {
-                        const [monthName, yearStr] = monthYear.split(' ');
-                        const year = parseInt(yearStr);
-                        const monthWeeks = this.weekSystem.getWeeksByMonthName(monthName, year);
-                        const { finalizedCount } = monthsWithFinalizedWeeks[monthYear];
+                        const { finalizedCount, weeks } = monthsWithFinalizedWeeks[monthYear];
                         
-                        console.log(`🔍 ${teamId} - ${monthYear}: ${finalizedCount} finalized out of ${monthWeeks.length} total weeks`);
+                        // Typically months have 4 weeks in our system
+                        const expectedWeeks = 4;
                         
-                        // If all weeks of this month are finalized, add to available months
-                        if (finalizedCount === monthWeeks.length && monthWeeks.length > 0) {
-                            console.log(`✅ ${monthYear} detected as complete: ${finalizedCount}/${monthWeeks.length} weeks finalized for ${teamId}`);
+                        console.log(`🔍 ${teamId} - ${monthYear}: ${finalizedCount} finalized weeks`, weeks);
+                        
+                        // If all 4 weeks of this month are finalized, add to available months
+                        if (finalizedCount >= expectedWeeks) {
+                            console.log(`✅ ${monthYear} detected as complete: ${finalizedCount} weeks finalized for ${teamId}`);
                             allMonths.add(monthYear);
                         } else if (finalizedCount > 0) {
-                            console.log(`⚠️ ${monthYear} partially complete: ${finalizedCount}/${monthWeeks.length} weeks finalized for ${teamId}`);
+                            console.log(`⚠️ ${monthYear} partially complete: ${finalizedCount}/${expectedWeeks} weeks finalized for ${teamId}`);
                         }
                     });
                 }
             });
         }
-        
-        // TEMPORARY FIX: Explicitly add October 2025 to check Supabase data
-        // This allows us to see data even if finalization tracking has issues
-        console.log('🔧 Checking for October 2025 data in Supabase...');
-        allMonths.add('October 2025');
         
         // Convert to sorted array
         const monthsArray = Array.from(allMonths).sort((a, b) => {
@@ -12030,7 +12036,6 @@ class RealEfficiencyTracker {
                 'varsity': 'varsity',
                 'b2b': 'b2b',
                 'audio': 'audio',
-                'shorts': 'shorts',
                 'graphics': 'graphics',
                 'tech': 'tech',
                 'product': 'product',
@@ -12103,7 +12108,7 @@ class RealEfficiencyTracker {
 
     getSelectedTeams() {
         const selectedTeams = [];
-        const allTeams = ['b2b', 'varsity', 'zero1_bratish', 'zero1_harish', 'audio', 'shorts', 'graphics', 'tech', 'product', 'preproduction', 'content', 'social'];
+        const allTeams = ['b2b', 'varsity', 'zero1_bratish', 'zero1_harish', 'audio', 'graphics', 'tech', 'product', 'preproduction', 'content', 'social'];
         
         allTeams.forEach(teamId => {
             const checkbox = document.getElementById(`team-filter-${teamId}`);
@@ -12122,7 +12127,6 @@ class RealEfficiencyTracker {
             'zero1_bratish': 'Zero1-Bratish',
             'zero1_harish': 'Zero1-Harish',
             'audio': 'Audio',
-            'shorts': 'Shorts',
             'graphics': 'Graphics',
             'tech': 'Tech',
             'product': 'Product',
@@ -12187,9 +12191,10 @@ class RealEfficiencyTracker {
         const [monthName, yearStr] = monthYear.split(' ');
         const year = parseInt(yearStr);
         
-        // TEMPORARY FIX: Force October 2025 to load from Supabase to get correct calculations
-        if (monthYear === 'October 2025') {
-            console.log(`🔄 FORCE LOADING October 2025 from Supabase for team ${teamId}`);
+        // CRITICAL FIX: Load all 2025 locked months from Supabase (Sept-Dec)
+        const locked2025Months = ['September 2025', 'October 2025', 'November 2025', 'December 2025'];
+        if (locked2025Months.includes(monthYear)) {
+            console.log(`🔄 LOADING ${monthYear} from Supabase for team ${teamId}`);
             try {
                 const originalTeam = this.currentTeam;
                 this.currentTeam = historicalKey;
@@ -12198,7 +12203,7 @@ class RealEfficiencyTracker {
                 this.currentTeam = originalTeam;
                 
                 if (monthData && monthData.monthlyData) {
-                    console.log(`✅ Loaded October 2025 data for ${teamId} from Supabase`);
+                    console.log(`✅ Loaded ${monthYear} data for ${teamId} from Supabase`);
                     const members = [];
                     Object.keys(monthData.monthlyData).forEach(memberName => {
                         const memberData = monthData.monthlyData[memberName];
@@ -12216,32 +12221,41 @@ class RealEfficiencyTracker {
                     };
                 }
             } catch (error) {
-                console.error(`❌ Error force loading October 2025 for ${teamId}:`, error);
+                console.error(`❌ Error loading ${monthYear} for ${teamId}:`, error);
             }
         }
         
         // CRITICAL FIX: Check if ALL weeks of this month have been finalized for this team
-        // This allows the 360° Company View to show finalized data even if the month wasn't explicitly "locked"
+        // For 2025 months, week system won't have the weeks, so check finalized reports directly
         let hasAllWeeksFinalized = false;
-        const monthWeeks = this.weekSystem.getWeeksByMonthName(monthName, year);
         
         console.log(`\n🔍 Checking finalized weeks for ${historicalKey} - ${monthYear}`);
-        console.log(`📅 Month weeks found: ${monthWeeks.length}`, monthWeeks.map(w => w.id));
         console.log(`📊 finalizedReports exists: ${!!this.finalizedReports}`);
         console.log(`📊 finalizedReports[${historicalKey}] exists: ${!!(this.finalizedReports && this.finalizedReports[historicalKey])}`);
         
         if (this.finalizedReports && this.finalizedReports[historicalKey]) {
             console.log(`📊 Finalized weeks for ${historicalKey}:`, Object.keys(this.finalizedReports[historicalKey]));
-        }
-        
-        if (monthWeeks.length > 0 && this.finalizedReports && this.finalizedReports[historicalKey]) {
+            
+            // Count finalized weeks for this specific month
             const teamFinalizedWeeks = this.finalizedReports[historicalKey];
-            hasAllWeeksFinalized = monthWeeks.every(week => {
-                const isFinalized = teamFinalizedWeeks[week.id] !== undefined && teamFinalizedWeeks[week.id] !== null;
-                console.log(`  🔍 ${historicalKey} week ${week.id}: finalized = ${isFinalized}`);
-                return isFinalized;
+            const monthFinalizedWeeks = Object.keys(teamFinalizedWeeks).filter(weekId => {
+                // Parse weekId format: YYYY-MM-DD
+                if (weekId.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                    const [weekYear, weekMonth] = weekId.split('-');
+                    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
+                                      'July', 'August', 'September', 'October', 'November', 'December'];
+                    const weekMonthName = monthNames[parseInt(weekMonth) - 1];
+                    const weekMonthYear = `${weekMonthName} ${weekYear}`;
+                    return weekMonthYear === monthYear;
+                }
+                return false;
             });
-            console.log(`📊 ${historicalKey} ${monthYear}: ${monthWeeks.length} weeks, all finalized = ${hasAllWeeksFinalized}`);
+            
+            console.log(`📊 ${historicalKey} ${monthYear}: ${monthFinalizedWeeks.length} finalized weeks found`, monthFinalizedWeeks);
+            
+            // If 4 weeks are finalized (typical month), consider it complete
+            hasAllWeeksFinalized = monthFinalizedWeeks.length >= 4;
+            console.log(`📊 ${historicalKey} ${monthYear}: all finalized = ${hasAllWeeksFinalized}`);
         } else {
             console.log(`⚠️ Cannot check finalized weeks - missing data for ${historicalKey}`);
         }
@@ -12508,7 +12522,7 @@ class RealEfficiencyTracker {
                 console.log(`🔍 Is month locked for company:`, this.isMonthLockedForCompany(monthYear));
                 
                 // Check if ALL teams have this month locked
-                const allTeams = ['b2b', 'varsity', 'zero1_bratish', 'zero1_harish', 'audio', 'shorts', 'graphics', 'tech', 'product', 'preproduction', 'content', 'social'];
+                const allTeams = ['b2b', 'varsity', 'zero1_bratish', 'zero1_harish', 'audio', 'graphics', 'tech', 'product', 'preproduction', 'content', 'social'];
                 const teamsWithData = allTeams.filter(teamId => {
                     return this.finalizedReports && this.finalizedReports[teamId] && Object.keys(this.finalizedReports[teamId]).some(weekId => {
                         const w = this.weekSystem.getWeeksForSelector().find(week => week.id === weekId);
