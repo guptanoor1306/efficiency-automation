@@ -11852,18 +11852,58 @@ class RealEfficiencyTracker {
             return true;
         }
         
-        // Check if month is available in monthly view (means it's locked)
-        const isInAvailableMonths = this.getAvailableCompanyMonths().includes(monthYear);
+        // CRITICAL FIX: For company view, only hide weeks if ALL teams (with data) have locked the month
+        // Not just ANY team, otherwise locking one team hides weeks for everyone
+        const allTeams = ['b2b', 'varsity', 'zero1_bratish', 'zero1_harish', 'audio', 'graphics', 'tech', 'product', 'preproduction', 'content', 'social'];
         
-        // Also check if any team has this month locked
-        const isAnyTeamLocked = Object.keys(this.lockedMonths || {}).some(teamId => {
-            return this.lockedMonths[teamId]?.includes(monthYear);
+        // Find teams that have finalized week data for this month
+        const teamsWithData = allTeams.filter(teamId => {
+            return this.finalizedReports && this.finalizedReports[teamId] && Object.keys(this.finalizedReports[teamId]).some(weekId => {
+                // Parse weekId to get month/year
+                if (weekId.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                    const [year, month] = weekId.split('-');
+                    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
+                                      'July', 'August', 'September', 'October', 'November', 'December'];
+                    const monthName = monthNames[parseInt(month) - 1];
+                    const weekMonthYear = `${monthName} ${year}`;
+                    return weekMonthYear === monthYear;
+                }
+                return false;
+            });
         });
         
-        const isLocked = isInAvailableMonths || isAnyTeamLocked;
-        console.log(`🔍 Month ${monthYear} lock status: inAvailable=${isInAvailableMonths}, anyTeamLocked=${isAnyTeamLocked}, isLocked=${isLocked}`);
+        console.log(`🔍 Teams with data for ${monthYear}:`, teamsWithData);
         
-        return isLocked;
+        if (teamsWithData.length === 0) {
+            console.log(`ℹ️ No teams have data for ${monthYear} yet`);
+            return false;
+        }
+        
+        // Check if ALL teams with data have locked this month
+        const allTeamsLocked = teamsWithData.every(teamId => {
+            const teamMapping = {
+                'zero1_bratish': 'zero1',
+                'zero1_harish': 'harish',
+                'varsity': 'varsity',
+                'b2b': 'b2b',
+                'audio': 'audio',
+                'shorts': 'shorts',
+                'graphics': 'graphics',
+                'tech': 'tech',
+                'product': 'product',
+                'preproduction': 'preproduction',
+                'content': 'content',
+                'social': 'social'
+            };
+            const mappedTeamId = teamMapping[teamId] || teamId;
+            const isLocked = this.lockedMonths[mappedTeamId]?.includes(monthYear);
+            console.log(`  - ${teamId}: locked = ${isLocked}`);
+            return isLocked;
+        });
+        
+        console.log(`🔍 Month ${monthYear} lock status: teamsWithData=${teamsWithData.length}, allTeamsLocked=${allTeamsLocked}`);
+        
+        return allTeamsLocked;
     }
 
     // Auto-detect available months across all teams for Company View
