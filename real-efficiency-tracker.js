@@ -420,9 +420,7 @@ class RealEfficiencyTracker {
                 // Current active members (from November 2025: added Dheeraj and Manoj from Shorts)
                 members: [
                     { name: 'Bratish' },
-                    { name: 'Saiyam Verma' },
                     { name: 'Akriti Singh' },
-                    { name: 'Manish Chauhan' },
                     { name: 'Mohd. Wasim' },
                     { name: 'Dheeraj Rajvania' }, // Moved from Shorts in November 2025
                     { name: 'Manoj Kumar' } // Moved from Shorts in November 2025
@@ -431,9 +429,7 @@ class RealEfficiencyTracker {
                 historicalMembers: [
                     { name: 'Bratish' },
                     { name: 'Abhishek Sharma' }, // Left after March 2025
-                    { name: 'Saiyam Verma' },
                     { name: 'Akriti Singh' },
-                    { name: 'Manish Chauhan' },
                     { name: 'Mohd. Wasim' },
                     { name: 'Dheeraj Rajvania' },
                     { name: 'Manoj Kumar' }
@@ -1071,18 +1067,6 @@ class RealEfficiencyTracker {
                             efficiency: 83.2,
                             monthlyRating: 8.3 // 83% quality rating
                         },
-                        'Saiyam Verma': {
-                            weeks: [
-                                { week: 1, output: 1.33, quality: 7.0, efficiency: 33 },
-                                { week: 2, output: 1.00, quality: 8.0, efficiency: 20.5 },
-                                { week: 3, output: 3.53, quality: 7.0, efficiency: 51.6 },
-                                { week: 4, output: 6.25, quality: 10.0, efficiency: 76 }
-                            ],
-                            totalOutput: 12.11, // 1.33+1.00+3.53+6.25
-                            target: 16,
-                            efficiency: 75.7,
-                            monthlyRating: 8.0 // 76% quality rating
-                        },
                         'Akriti Singh': {
                             weeks: [
                                 { week: 1, output: 2.39, quality: 7.0, efficiency: 48 },
@@ -1094,18 +1078,6 @@ class RealEfficiencyTracker {
                             target: 20,
                             efficiency: 49.9,
                             monthlyRating: 8.0 // 50% quality rating
-                        },
-                        'Manish Chauhan': {
-                            weeks: [
-                                { week: 1, output: 2.95, quality: 8.0, efficiency: 54 },
-                                { week: 2, output: 4.43, quality: 8.0, efficiency: 69.8 },
-                                { week: 3, output: 4.10, quality: 9.0, efficiency: 56.1 },
-                                { week: 4, output: 6.36, quality: 11.0, efficiency: 81 }
-                            ],
-                            totalOutput: 17.84, // 2.95+4.43+4.10+6.36
-                            target: 22,
-                            efficiency: 81.1,
-                            monthlyRating: 9.0 // 81% quality rating
                         },
                         'Mohd. Wasim': {
                             weeks: [
@@ -1121,10 +1093,10 @@ class RealEfficiencyTracker {
                         }
                     },
                     teamSummary: {
-                        totalMembers: 6,
-                        avgEfficiency: 74.1, // Average: (82.2+83.2+75.7+49.9+81.1+82.4)/6
-                        avgRating: 8.4, // Average: (8.5+8.3+8.0+8.0+9.0+8.3)/6
-                        totalOutput: 92.81 // Sum of all member outputs
+                        totalMembers: 4,
+                        avgEfficiency: 73.8, // Average: (82.2+83.2+49.9+82.4)/4
+                        avgRating: 8.3, // Average: (8.5+8.3+8.0+8.3)/4
+                        totalOutput: 62.86 // Sum: 17.27+18.31+9.98+17.30
                     }
                 },
                 'February 2025': {
@@ -1154,18 +1126,6 @@ class RealEfficiencyTracker {
                             efficiency: 0.0,
                             monthlyRating: 0.0
                         },
-                        'Saiyam Verma': {
-                            weeks: [
-                                { week: 1, output: 5.24, quality: 8.0, efficiency: 140 },
-                                { week: 2, output: 4.58, quality: 8.0, efficiency: 140.8 },
-                                { week: 3, output: 4.77, quality: 8.0, efficiency: 184.3 },
-                                { week: 4, output: 0.00, quality: 0.0, efficiency: 97 }
-                            ],
-                            totalOutput: 14.59,
-                            target: 15,
-                            efficiency: 97.3,
-                            monthlyRating: 6.0
-                        },
                         'Akriti Singh': {
                             weeks: [
                                 { week: 1, output: 4.42, quality: 8.0, efficiency: 93 },
@@ -1176,18 +1136,6 @@ class RealEfficiencyTracker {
                             totalOutput: 16.61,
                             target: 19,
                             efficiency: 87.4,
-                            monthlyRating: 8.0
-                        },
-                        'Manish Chauhan': {
-                            weeks: [
-                                { week: 1, output: 4.10, quality: 8.0, efficiency: 91 },
-                                { week: 2, output: 2.33, quality: 8.0, efficiency: 50.3 },
-                                { week: 3, output: 3.65, quality: 8.0, efficiency: 63.0 },
-                                { week: 4, output: 4.79, quality: 8.0, efficiency: 83 }
-                            ],
-                            totalOutput: 14.87,
-                            target: 18,
-                            efficiency: 82.6,
                             monthlyRating: 8.0
                         },
                         'Mohd. Wasim': {
@@ -1204,10 +1152,10 @@ class RealEfficiencyTracker {
                         }
                     },
                     teamSummary: {
-                        totalMembers: 6,
-                        avgEfficiency: 75.7,
-                        avgRating: 6.3,
-                        totalOutput: 77.87
+                        totalMembers: 4,
+                        avgEfficiency: 88.6, // Average: (87.5+0.0+87.4+99.6)/4
+                        avgRating: 5.9, // Average: (7.5+0.0+8.0+8.0)/4
+                        totalOutput: 48.41 // Sum: 14.87+0.00+16.61+16.93
                     }
                 },
                 'March 2025': {
@@ -1237,18 +1185,6 @@ class RealEfficiencyTracker {
                             efficiency: 0.0,
                             monthlyRating: 0.0
                         },
-                        'Saiyam Verma': {
-                            weeks: [
-                                { week: 1, output: 0.00, quality: 0.0, efficiency: 0 },
-                                { week: 2, output: 0.00, quality: 0.0, efficiency: 0 },
-                                { week: 3, output: 4.63, quality: 8.0, efficiency: 84.2 },
-                                { week: 4, output: 5.13, quality: 7.0, efficiency: 89 }
-                            ],
-                            totalOutput: 9.76,
-                            target: 11,
-                            efficiency: 88.7,
-                            monthlyRating: 7.5
-                        },
                         'Akriti Singh': {
                             weeks: [
                                 { week: 1, output: 4.50, quality: 9.0, efficiency: 95 },
@@ -1259,18 +1195,6 @@ class RealEfficiencyTracker {
                             totalOutput: 16.65,
                             target: 19,
                             efficiency: 87.6,
-                            monthlyRating: 8.5
-                        },
-                        'Manish Chauhan': {
-                            weeks: [
-                                { week: 1, output: 3.79, quality: 8.0, efficiency: 84 },
-                                { week: 2, output: 3.29, quality: 9.0, efficiency: 69.3 },
-                                { week: 3, output: 3.19, quality: 8.0, efficiency: 58.4 },
-                                { week: 4, output: 5.90, quality: 9.0, efficiency: 90 }
-                            ],
-                            totalOutput: 16.17,
-                            target: 18,
-                            efficiency: 89.8,
                             monthlyRating: 8.5
                         },
                         'Mohd. Wasim': {
@@ -1287,10 +1211,10 @@ class RealEfficiencyTracker {
                         }
                     },
                     teamSummary: {
-                        totalMembers: 6,
-                        avgEfficiency: 75.9,
-                        avgRating: 6.8,
-                        totalOutput: 73.98
+                        totalMembers: 4,
+                        avgEfficiency: 89.0, // Average: (89.8+0.0+87.6+89.6)/4
+                        avgRating: 7.1, // Average: (7.8+0.0+8.5+8.3)/4
+                        totalOutput: 47.05 // Sum: 16.17+0.00+16.65+15.23
                     }
                 },
                 'April 2025': {
@@ -1308,18 +1232,6 @@ class RealEfficiencyTracker {
                             efficiency: 84.9,
                             monthlyRating: 7.5
                         },
-                        'Saiyam Verma': {
-                            weeks: [
-                                { week: 1, output: 5.00, quality: 7.0, efficiency: 91 },
-                                { week: 2, output: 3.87, quality: 7.0, efficiency: 68.3 },
-                                { week: 3, output: 3.67, quality: 7.0, efficiency: 55.9 },
-                                { week: 4, output: 7.17, quality: 7.0, efficiency: 90 }
-                            ],
-                            totalOutput: 19.71,
-                            target: 22,
-                            efficiency: 89.6,
-                            monthlyRating: 7.0
-                        },
                         'Akriti Singh': {
                             weeks: [
                                 { week: 1, output: 3.22, quality: 7.0, efficiency: 65 },
@@ -1330,18 +1242,6 @@ class RealEfficiencyTracker {
                             totalOutput: 16.86,
                             target: 20,
                             efficiency: 84.3,
-                            monthlyRating: 7.5
-                        },
-                        'Manish Chauhan': {
-                            weeks: [
-                                { week: 1, output: 5.24, quality: 7.0, efficiency: 95 },
-                                { week: 2, output: 4.29, quality: 7.0, efficiency: 81.2 },
-                                { week: 3, output: 3.17, quality: 7.0, efficiency: 55.3 },
-                                { week: 4, output: 6.62, quality: 9.0, efficiency: 92 }
-                            ],
-                            totalOutput: 19.32,
-                            target: 21,
-                            efficiency: 92.0,
                             monthlyRating: 7.5
                         },
                         'Mohd. Wasim': {
@@ -1358,55 +1258,47 @@ class RealEfficiencyTracker {
                         }
                     },
                     teamSummary: {
-                        totalMembers: 5, // Abhishek left after March
-                        avgEfficiency: 87.1,
-                        avgRating: 7.4,
-                        totalOutput: 92.33
+                        totalMembers: 3, // Abhishek left after March, Saiyam and Manish removed
+                        avgEfficiency: 86.6, // Average: (84.9+84.3+84.6)/3
+                        avgRating: 7.5, // Average: (7.5+7.5+7.5)/3
+                        totalOutput: 53.30 // Sum: 17.83+16.86+18.61
                     }
                 },
                 'May 2025': {
                     isComplete: true,
                     monthlyData: {
                         'Bratish': { weeks: [{ week: 1, output: 1.70, quality: 7.0, efficiency: 65 }, { week: 2, output: 4.33, quality: 7.0, efficiency: 82.1 }, { week: 3, output: 4.52, quality: 7.0, efficiency: 79.6 }, { week: 4, output: 5.70, quality: 9.0, efficiency: 86 }], totalOutput: 16.25, target: 19, efficiency: 85.5, monthlyRating: 7.5 },
-                        'Saiyam Verma': { weeks: [{ week: 1, output: 4.17, quality: 7.0, efficiency: 77 }, { week: 2, output: 4.74, quality: 7.0, efficiency: 87.1 }, { week: 3, output: 4.37, quality: 7.0, efficiency: 79.5 }, { week: 4, output: 5.76, quality: 7.0, efficiency: 87 }], totalOutput: 19.04, target: 22, efficiency: 86.5, monthlyRating: 7.0 },
                         'Akriti Singh': { weeks: [{ week: 1, output: 1.54, quality: 7.0, efficiency: 41 }, { week: 2, output: 4.87, quality: 7.0, efficiency: 102.4 }, { week: 3, output: 4.55, quality: 7.0, efficiency: 95.8 }, { week: 4, output: 5.97, quality: 9.0, efficiency: 89 }], totalOutput: 16.93, target: 19, efficiency: 89.1, monthlyRating: 7.5 },
-                        'Manish Chauhan': { weeks: [{ week: 1, output: 5.17, quality: 7.0, efficiency: 95 }, { week: 2, output: 5.11, quality: 7.0, efficiency: 95.5 }, { week: 3, output: 5.02, quality: 7.0, efficiency: 95.4 }, { week: 4, output: 5.86, quality: 9.0, efficiency: 96 }], totalOutput: 21.16, target: 22, efficiency: 96.2, monthlyRating: 7.5 },
                         'Mohd. Wasim': { weeks: [{ week: 1, output: 4.67, quality: 7.0, efficiency: 88 }, { week: 2, output: 5.15, quality: 7.0, efficiency: 97.4 }, { week: 3, output: 5.05, quality: 7.0, efficiency: 95.5 }, { week: 4, output: 5.79, quality: 9.0, efficiency: 94 }], totalOutput: 20.66, target: 22, efficiency: 93.9, monthlyRating: 7.5 }
                     },
-                    teamSummary: { totalMembers: 5, avgEfficiency: 90.2, avgRating: 7.4, totalOutput: 94.04 }
+                    teamSummary: { totalMembers: 3, avgEfficiency: 89.5, avgRating: 7.5, totalOutput: 53.84 }
                 },
                 'June 2025': {
                     isComplete: true,
                     monthlyData: {
                         'Bratish': { weeks: [{ week: 1, output: 3.90, quality: 7.0, efficiency: 74 }, { week: 2, output: 2.92, quality: 7.0, efficiency: 58.4 }, { week: 3, output: 4.09, quality: 7.0, efficiency: 79.8 }, { week: 4, output: 3.57, quality: 7.0, efficiency: 76 }], totalOutput: 14.48, target: 19, efficiency: 76.2, monthlyRating: 7.0 },
-                        'Saiyam Verma': { weeks: [{ week: 1, output: 4.29, quality: 7.0, efficiency: 82 }, { week: 2, output: 2.57, quality: 7.0, efficiency: 51.4 }, { week: 3, output: 4.53, quality: 7.0, efficiency: 89.0 }, { week: 4, output: 5.05, quality: 7.0, efficiency: 86 }], totalOutput: 16.44, target: 19, efficiency: 86.5, monthlyRating: 7.0 },
                         'Akriti Singh': { weeks: [{ week: 1, output: 3.91, quality: 7.0, efficiency: 78 }, { week: 2, output: 3.74, quality: 7.0, efficiency: 77.1 }, { week: 3, output: 3.82, quality: 7.0, efficiency: 76.4 }, { week: 4, output: 4.26, quality: 7.0, efficiency: 79 }], totalOutput: 15.73, target: 20, efficiency: 78.7, monthlyRating: 7.0 },
-                        'Manish Chauhan': { weeks: [{ week: 1, output: 4.07, quality: 7.0, efficiency: 82 }, { week: 2, output: 4.05, quality: 7.0, efficiency: 81.0 }, { week: 3, output: 4.05, quality: 7.0, efficiency: 81.0 }, { week: 4, output: 3.84, quality: 7.0, efficiency: 80 }], totalOutput: 16.01, target: 20, efficiency: 80.1, monthlyRating: 7.0 },
                         'Mohd. Wasim': { weeks: [{ week: 1, output: 4.03, quality: 7.0, efficiency: 82 }, { week: 2, output: 3.85, quality: 7.0, efficiency: 77.0 }, { week: 3, output: 4.50, quality: 7.0, efficiency: 90.0 }, { week: 4, output: 0.00, quality: 7.0, efficiency: 62 }], totalOutput: 12.38, target: 20, efficiency: 61.9, monthlyRating: 7.0 }
                     },
-                    teamSummary: { totalMembers: 5, avgEfficiency: 76.7, avgRating: 7.0, totalOutput: 75.04 }
+                    teamSummary: { totalMembers: 3, avgEfficiency: 72.3, avgRating: 7.0, totalOutput: 42.59 }
                 },
                 'July 2025': {
                     isComplete: true,
                     monthlyData: {
                         'Bratish': { weeks: [{ week: 1, output: 4.00, quality: 7.0, efficiency: 85 }, { week: 2, output: 3.53, quality: 7.0, efficiency: 75.3 }, { week: 3, output: 5.43, quality: 7.0, efficiency: 115.5 }, { week: 4, output: 8.00, quality: 9.0, efficiency: 91 }], totalOutput: 20.96, target: 23, efficiency: 91.1, monthlyRating: 7.3 },
-                        'Saiyam Verma': { weeks: [{ week: 1, output: 5.00, quality: 7.0, efficiency: 106 }, { week: 2, output: 5.03, quality: 7.0, efficiency: 107.4 }, { week: 3, output: 4.99, quality: 7.0, efficiency: 106.2 }, { week: 4, output: 7.31, quality: 7.0, efficiency: 97 }], totalOutput: 22.33, target: 23, efficiency: 97.1, monthlyRating: 7.0 },
                         'Akriti Singh': { weeks: [{ week: 1, output: 4.43, quality: 7.0, efficiency: 93 }, { week: 2, output: 4.14, quality: 7.0, efficiency: 88.3 }, { week: 3, output: 4.08, quality: 7.0, efficiency: 86.8 }, { week: 4, output: 5.40, quality: 7.0, efficiency: 78 }], totalOutput: 18.05, target: 23, efficiency: 78.5, monthlyRating: 7.0 },
-                        'Manish Chauhan': { weeks: [{ week: 1, output: 3.10, quality: 7.0, efficiency: 67 }, { week: 2, output: 1.89, quality: 7.0, efficiency: 40.4 }, { week: 3, output: 4.43, quality: 7.0, efficiency: 94.5 }, { week: 4, output: 8.68, quality: 9.0, efficiency: 86 }], totalOutput: 18.10, target: 21, efficiency: 86.2, monthlyRating: 7.5 },
                         'Mohd. Wasim': { weeks: [{ week: 1, output: 2.92, quality: 7.0, efficiency: 63 }, { week: 2, output: 4.12, quality: 7.0, efficiency: 88.1 }, { week: 3, output: 5.65, quality: 7.0, efficiency: 120.6 }, { week: 4, output: 6.50, quality: 9.0, efficiency: 91 }], totalOutput: 19.19, target: 21, efficiency: 91.4, monthlyRating: 7.5 }
                     },
-                    teamSummary: { totalMembers: 5, avgEfficiency: 88.9, avgRating: 7.3, totalOutput: 98.63 }
+                    teamSummary: { totalMembers: 3, avgEfficiency: 87.0, avgRating: 7.3, totalOutput: 58.20 }
                 },
                 'August 2025': {
                     isComplete: true,
                     monthlyData: {
                         'Bratish': { weeks: [{ week: 1, output: 3.87, quality: 7.0, efficiency: 84 }, { week: 2, output: 2.83, quality: 7.0, efficiency: 61.5 }, { week: 3, output: 6.77, quality: 7.0, efficiency: 147.6 }, { week: 4, output: 4.10, quality: 9.0, efficiency: 92 }], totalOutput: 17.57, target: 19, efficiency: 92.5, monthlyRating: 7.6 },
-                        'Saiyam Verma': { weeks: [{ week: 1, output: 4.40, quality: 7.0, efficiency: 96 }, { week: 2, output: 2.48, quality: 7.0, efficiency: 54.0 }, { week: 3, output: 5.02, quality: 7.0, efficiency: 109.6 }, { week: 4, output: 3.29, quality: 7.0, efficiency: 80 }], totalOutput: 15.19, target: 19, efficiency: 79.9, monthlyRating: 7.0 },
                         'Akriti Singh': { weeks: [{ week: 1, output: 5.35, quality: 7.0, efficiency: 116 }, { week: 2, output: 1.83, quality: 7.0, efficiency: 39.9 }, { week: 3, output: 6.90, quality: 7.0, efficiency: 150.4 }, { week: 4, output: 4.25, quality: 9.0, efficiency: 97 }], totalOutput: 18.33, target: 19, efficiency: 96.5, monthlyRating: 7.5 },
-                        'Manish Chauhan': { weeks: [{ week: 1, output: 5.03, quality: 7.0, efficiency: 109 }, { week: 2, output: 3.88, quality: 7.0, efficiency: 84.5 }, { week: 3, output: 5.72, quality: 7.0, efficiency: 124.8 }, { week: 4, output: 3.21, quality: 9.0, efficiency: 94 }], totalOutput: 17.84, target: 19, efficiency: 93.9, monthlyRating: 7.6 },
                         'Mohd. Wasim': { weeks: [{ week: 1, output: 4.65, quality: 7.0, efficiency: 101 }, { week: 2, output: 3.12, quality: 7.0, efficiency: 68.0 }, { week: 3, output: 6.43, quality: 7.0, efficiency: 140.2 }, { week: 4, output: 4.80, quality: 10.0, efficiency: 100 }], totalOutput: 19.00, target: 19, efficiency: 100.0, monthlyRating: 7.8 }
                     },
-                    teamSummary: { totalMembers: 5, avgEfficiency: 92.6, avgRating: 7.5, totalOutput: 87.93 }
+                    teamSummary: { totalMembers: 3, avgEfficiency: 96.3, avgRating: 7.6, totalOutput: 54.90 }
                 }
             }
         };
