@@ -496,7 +496,8 @@ class RealEfficiencyTracker {
                     { name: 'Piyush Vaid' },
                     { name: 'Vaibhav Singhal' },
                     { name: 'Ishika' },
-                    { name: 'Aman' }
+                    { name: 'Aman' },
+                    { name: 'Shreya Surekha' }
                 ],
                 historicalMembers: [
                     { name: 'Amit Joshi' },
@@ -539,7 +540,6 @@ class RealEfficiencyTracker {
                 members: [
                     { name: 'Akshay' },
                     { name: 'Ankush' },
-                    { name: 'Noor' },
                     { name: 'Vaishnavi' },
                     { name: 'Bhavya Oberoi' }
                 ],
@@ -574,7 +574,8 @@ class RealEfficiencyTracker {
                 name: 'Content Team',
                 members: [
                     { name: 'Nishita' },
-                    { name: 'Shuchita' }
+                    { name: 'Shuchita' },
+                    { name: 'Sahil Mathur' }
                 ],
                 historicalMembers: [
                     { name: 'Nishita' },
@@ -11737,8 +11738,8 @@ class RealEfficiencyTracker {
 
     // Check if a month is locked for Company View (any team has it locked or it's in monthly view)
     isMonthLockedForCompany(monthYear) {
-        // EXPLICIT CHECK: All 2025 locked months (September-December)
-        const locked2025Months = ['September 2025', 'October 2025', 'November 2025', 'December 2025'];
+        // EXPLICIT CHECK: All 2025 locked months (January, September-December)
+        const locked2025Months = ['January 2025', 'September 2025', 'October 2025', 'November 2025', 'December 2025'];
         if (locked2025Months.includes(monthYear)) {
             console.log(`🔒 ${monthYear} is EXPLICITLY locked (2025 completed data)`);
             return true;
